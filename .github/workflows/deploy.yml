@@ -1,0 +1,40 @@
+name: Deploy to Onamae RS via FTPS
+
+on:
+  push:
+    branches: ["main", "dev"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Decide target dir
+        id: paths
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "SERVER_DIR=/public_html/ping-pong-pang.jp/order/" >> $GITHUB_OUTPUT
+          else
+            echo "SERVER_DIR=/public_html/ping-pong-pang.jp/order-dev/" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy with FTP-Deploy-Action (FTPS explicit)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          protocol: ftps
+          port: 21
+          security: explicit
+          local-dir: ./
+          server-dir: ${{ steps.paths.outputs.SERVER_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/node_modules/**
+            **/*.map
+            README*.md
