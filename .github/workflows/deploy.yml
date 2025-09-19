@@ -20,7 +20,7 @@ jobs:
             echo "SERVER_DIR=/public_html/ping-pong-pang.jp/order-dev/" >> $GITHUB_OUTPUT
           fi
 
-      - name: Deploy with FTP-Deploy-Action (FTPS explicit)
+      - name: Deploy with FTP-Deploy-Action (FTPS strict)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -28,7 +28,7 @@ jobs:
           password: ${{ secrets.FTP_PASS }}
           protocol: ftps
           port: 21
-          security: explicit
+          security: strict
           local-dir: ./
           server-dir: ${{ steps.paths.outputs.SERVER_DIR }}
           dangerous-clean-slate: false
