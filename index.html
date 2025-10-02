@@ -1,626 +1,438 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ping-Pong-Pang 受注ページ V2 完成版</title>
-  <style>
-    :root{--bg:#0f172a;--panel:#111827;--card:#0b1220;--text:#e5e7eb;--muted:#9ca3af;--accent:#22d3ee;--danger:#f87171;--ok:#34d399;--line:#1f2937}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
-    header{position:sticky;top:0;background:linear-gradient(180deg,var(--panel),#0f172a00);backdrop-filter:saturate(1.2) blur(8px);z-index:40;border-bottom:1px solid var(--line)}
-    .wrap{max-width:1100px;margin:0 auto;padding:10px 14px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    h1{font-size:16px;margin:0 8px 0 0;letter-spacing:.02em}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0b1220}
-    .btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#0b1220;color:var(--text);text-decoration:none;cursor:pointer;user-select:none}
-    .btn:hover{border-color:#2b374a}
-    .btn.pri{background:linear-gradient(180deg,#0ea5e9,#0284c7);border-color:#0ea5e9}
-    .btn.ghost{background:transparent}
-    .btn.warn{background:#1f2937;border-color:#ef4444;color:#fecaca}
-    .btn.block{width:100%;height:40px}
-    .tag{font-size:12px;color:var(--muted)}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ping-Pong-Pang｜翌日受け取り 注文</title>
+<style>
+  :root{
+    --bg:#fafafa; --ink:#1f2937; --muted:#6b7280; --brand:#0ea5e9; --border:#e5e7eb;
+    --wrap:1080px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;color:var(--ink);background:var(--bg)}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 16px}
 
-    main{max-width:1100px;margin:12px auto;padding:0 14px 60px}
-    .howto{margin:10px 0 6px;background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:10px}
-    .howto summary{cursor:pointer}
+  /* ヘッダー：スクロールで上に流れる */
+  header{position:static;background:#fff;border-bottom:1px solid var(--border)}
+  .header-in{display:flex;gap:12px;align-items:center;padding:12px 0}
+  .brand{font-size:20px;font-weight:800;letter-spacing:.01em}
+  .tag{font-size:12px;color:var(--muted)}
+  .head-badge{margin-left:auto;font-size:12px;background:#f1f5f9;border:1px solid #e2e8f0;color:#0f172a;border-radius:999px;padding:4px 10px;white-space:nowrap}
 
-    .catbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-    .chip{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0b1220;cursor:pointer}
-    .chip.active{background:#182235}
+  /* メインメニュー：常時表示（sticky） */
+  .menubar{position:sticky;top:0;z-index:25;background:#fff;border-bottom:1px solid var(--border)}
+  .menubar.scrolled{box-shadow:0 4px 12px rgba(0,0,0,.06)}
+  .menubar .inner{display:flex;align-items:center;gap:12px;padding:8px 0}
+  .seg{display:inline-flex;gap:6px;background:#f5f7fa;border:1px solid var(--border);border-radius:12px;padding:4px}
+  .seg button{appearance:none;border:0;background:transparent;padding:8px 12px;border-radius:8px;font-weight:700;color:#374151;cursor:pointer}
+  .seg button.active{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .toolbar{margin-left:auto;display:flex;gap:8px}
+  .iconbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;min-height:44px}
+  .iconbtn .dot{min-width:20px;height:20px;border-radius:999px;display:grid;place-items:center;background:#111;color:#fff;font-size:12px}
 
-    .grid{display:grid;grid-template-columns:repeat( auto-fill, minmax(220px,1fr) );gap:12px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-    .imgbox{height:180px;background:#0a0f1b;display:grid;place-items:center}
-    .imgbox img{width:100%;height:100%;object-fit:cover}
-    .pad{padding:10px}
-    .name{font-weight:600;margin-bottom:4px}
-    .price{color:#cbd5e1;margin:2px 0 8px}
-    .row.spread{display:flex;justify-content:space-between;align-items:center}
-    .qty{display:flex;gap:6px;align-items:center}
-    .qty input{width:56px;background:#0a0f1b;border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--text);text-align:center}
-    .qty .btn{width:36px;height:34px}
-    .badge{display:inline-flex;gap:6px;align-items:center;padding:3px 8px;border:1px solid var(--line);border-radius:999px;color:#a5b4fc;background:#0a1022;font-size:12px}
+  /* ページセクション */
+  .section{padding:16px 0}
+  .lead{color:var(--muted);font-size:14px}
 
-    .tabs{display:flex;gap:8px;margin:14px 0}
-    .tab{padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:#0b1220;cursor:pointer}
-    .tab.active{background:#182235}
+  /* 商品グリッド：PC=2列、他=1列 */
+  .grid{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:960px){ .grid{grid-template-columns:1fr 1fr} }
 
-    .panel{display:none}
-    .panel.active{display:block}
+  /* カード */
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+  .inner{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:640px){ .inner{grid-template-columns:0.9fr 1fr;align-items:start} }
 
-    .checkout{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
-    @media (max-width:900px){.checkout{grid-template-columns:1fr}}
+  .thumb{position:relative;background:#fff}
+  .thumb img{width:100%;height:auto;aspect-ratio:3/4;object-fit:contain;display:block;background:#fff}
+  .fav{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.9);border:1px solid #e5e7eb;display:grid;place-items:center;cursor:pointer;font-size:18px}
+  .fav[data-active="1"]{background:#fee2e2;border-color:#fecaca}
 
-    .box{background:var(--card);border:1px solid var(--line);border-radius:14px}
-    .box h3{margin:0;padding:10px 12px;border-bottom:1px solid var(--line);font-size:15px}
-    .box .inner{padding:12px}
-    label{display:block;margin:10px 0 4px;color:#cbd5e1}
-    input[type="text"], input[type="tel"], input[type="date"], select, textarea{width:100%;background:#0a0f1b;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text)}
-    textarea{min-height:96px}
-    .right{display:flex;justify-content:flex-end}
-    .muted{color:var(--muted)}
+  .info{padding:12px;display:flex;flex-direction:column;gap:10px}
+  .crumb{font-size:12px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .name{margin:.2em 0 0;font-weight:800;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .meta{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .price{font-weight:900}
+  .unitnote{font-size:12px;color:#6b7280}
 
-    .list{display:flex;flex-direction:column;gap:10px}
-    .rowline{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed #1f2a3a;padding-bottom:8px}
-    .rowline .ttl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .actions{display:flex;gap:8px}
+  .btn{appearance:none;border:0;background:var(--brand);color:#fff;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700;min-height:44px}
+  .btn.ghost{background:transparent;color:var(--brand);border:1px solid var(--brand)}
 
-    footer{position:sticky;bottom:0;background:linear-gradient(0deg,var(--panel),#0f172a00);backdrop-filter:saturate(1.2) blur(8px);border-top:1px solid var(--line)}
-    .flex{display:flex;gap:10px;align-items:center}
-    .grow{flex:1}
+  .vars{display:flex;gap:8px;flex-wrap:wrap}
+  .varbtn{appearance:none;border:1px solid #e5e7eb;background:#fff;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px}
 
-    /* Drawer */
-    .overlay{position:fixed;inset:0;background:#0008;backdrop-filter:blur(2px);display:none;z-index:50}
-    .drawer{position:fixed;right:0;top:0;bottom:0;width:460px;max-width:92vw;background:var(--panel);border-left:1px solid var(--line);display:none;z-index:60}
-    .drawer header{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line)}
-    .drawer .inner{padding:12px}
-    .rowm{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .vtab{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0b1220;cursor:pointer}
-    .vtab.active{background:#182235}
-  </style>
+  .desc{font-size:13px;color:#6b7280;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .more{font-size:13px;margin-left:6px;text-decoration:underline;color:#0ea5e9}
+
+  .soldout{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);color:#fff;font-weight:800;font-size:18px}
+
+  /* 固定カートバー：全幅背景／中身は.wrapで中央寄せ */
+  .cart{position:sticky;bottom:0;z-index:30;background:#000;color:#fff}
+  .cart .wrap{display:flex;align-items:center;gap:12px;padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+
+  .pill{background:#111;border:1px solid #333;border-radius:999px;padding:6px 10px;font-size:13px}
+  .spacer{flex:1 1 auto}
+  .total{font-weight:800}
+
+  /* モーダル */
+  dialog#itemModal{width:min(960px,92vw);border:1px solid var(--border);border-radius:16px;padding:0}
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  .modal-close{position:absolute;top:10px;right:10px;background:#fff;border:1px solid var(--border);width:40px;height:40px;border-radius:999px;cursor:pointer}
+  .modal-inner{display:grid;grid-template-columns:1fr;gap:0}
+  @media(min-width:768px){ .modal-inner{grid-template-columns:1.1fr 1fr} }
+  .modal-media{padding:16px;border-right:1px solid #f1f1f1}
+  .modal-media img{width:100%;height:auto;aspect-ratio:3/4;object-fit:contain;background:#fff;border-radius:12px}
+  .modal-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+  .modal-crumb{font-size:12px;color:#666}
+  .modal-name{font-size:18px;font-weight:800;line-height:1.35}
+  .modal-price{font-weight:900;font-size:18px}
+  .modal-actions{margin-top:auto;display:flex;gap:8px}
+
+  /* アクセシビリティ */
+  :focus-visible{outline:3px solid #0ea5e9;outline-offset:2px;border-radius:8px}
+
+/* === 1002最終：カード新仕様（ppp-） + #productGrid を新カード用グリッドに === */
+#productGrid.ppp-grid, #productGrid{
+  display:grid;
+  grid-template-columns: repeat(2, 540px);
+  justify-content: space-between;
+  gap: 0;
+}
+.ppp-card{
+  width:540px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  overflow:hidden;
+}
+.ppp-head{ padding:10px 12px 0; }
+.ppp-crumbrow{ display:grid; grid-template-columns:3fr 7fr; gap:8px; align-items:center; }
+.ppp-crumb{ font-size:12px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ppp-badges{ display:flex; gap:6px; justify-content:flex-end; overflow:hidden; }
+.ppp-badge{ min-width:72px; height:22px; display:inline-grid; place-items:center; padding:0 8px;
+            border:1px solid #e5e7eb; border-radius:999px; font-size:11px; color:#0f172a; background:#f1f5f9; white-space:nowrap; }
+.ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px; }
+.ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid #e5e7eb; display:grid; place-items:center; cursor:pointer; }
+
+.ppp-mi{ display:grid; grid-template-columns:6fr 4fr; align-items:start; gap:12px; padding:0 12px; }
+.ppp-media{ position:relative; }
+.ppp-img{ height:260px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.ppp-img > img{ width:100%; height:100%; object-fit:contain; display:block; }
+
+.ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155; }
+.ppp-price{ font-weight:900; font-size:22px; }
+.ppp-unit{ font-size:12px; color:#6b7280; text-align:right; }
+
+.ppp-actions{ display:grid; grid-template-columns:3fr 2fr; gap:8px; }
+.ppp-btn{ appearance:none; border:1px solid #e5e7eb; background:#fff; color:#0ea5e9; padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:800; min-height:44px }
+.ppp-btn.add{ background:#0ea5e9; color:#fff; }
+.ppp-vars{ display:flex; gap:8px; flex-wrap:wrap; }
+.ppp-pill{ border:1px solid #e5e7eb; background:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
+
+.ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px; }
+.ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height: calc(1.5 * 3 * 1em);
+           display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.ppp-more{ font-size:13px; color:#0ea5e9; text-decoration:underline; }
+
+/* SP only */
+@media(max-width: 720px){
+  #productGrid{ grid-template-columns: 1fr; gap:12px; }
+  .ppp-card{ width:auto; }
+
+  .ppp-badges .ppp-badge:nth-child(n+4){ display:none !important; } /* 4つ目以降は非表示 */
+  .ppp-prenote{ margin:6px 12px 0; } /* タイトル直下に移動（JSでDOM移動） */
+
+  .ppp-descwrap{ grid-template-columns:1fr; position:relative; cursor:pointer; }
+  .ppp-more{ display:none !important; }
+  .ppp-descwrap::after{
+    content:"→"; position:absolute; right:16px; bottom:12px; font-weight:700; opacity:.55; pointer-events:none;
+  }
+
+  /* 右→中央ドロワー */
+  .drawer-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.35);
+    opacity:0; visibility:hidden; transition:opacity .25s ease; z-index:9998;
+  }
+  .drawer{
+    position:fixed; top:50%; left:50%;
+    width:min(92vw, 520px); height:min(80vh, 640px);
+    background:#fff; color:#111; border-radius:16px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    transform: translate(150%, -50%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
+    z-index:9999; display:flex; flex-direction:column; will-change: transform;
+  }
+  .drawer.open{ transform: translate(-50%, -50%); }
+  .drawer-backdrop.open{ opacity:1; visibility:visible; }
+  .drawer .handle{ align-self:center; width:48px; height:4px; border-radius:2px; background:#e5e7eb; margin:12px 0 6px; }
+  .drawer .content{ padding:12px 16px 24px; overflow:auto; -webkit-overflow-scrolling:touch; font-size:14px; line-height:1.6; }
+  .drawer .close{ position:absolute; right:12px; top:8px; width:36px; height:36px; border-radius:18px; border:none; background:#f3f3f3; font-size:20px; cursor:pointer; }
+}
+
+</style>
 </head>
 <body>
+
 <header>
-  <div class="wrap row" style="justify-content:space-between">
-    <div class="row">
-      <h1>Ping-Pong-Pang 受注</h1>
-      <a id="reload" class="btn ghost" title="データ再読込">データ再読込</a>
+  <div class="wrap header-in">
+    <div>
+      <div class="brand">Ping-Pong-Pang</div>
+      <div class="tag">上板橋のコストコ再販｜翌日受け取り予約</div>
     </div>
-    <div class="row">
-      <a class="btn ghost" id="toCheckoutLink">カートを見る（<span id="cartBadge">0</span>） - <span id="cartHeaderTotal">¥0</span></a>
-    </div>
+    <div class="head-badge">本日20:00までのご注文 → 最短明日受け取り</div>
   </div>
 </header>
 
-<div id="dev-badge" style="position:fixed;right:12px;top:12px;padding:6px 10px;background:#ffe58a;color:#111;font-weight:700;border-radius:8px;z-index:9999;">
-  DEV / order-dev 環境
-</div>
-
-<main>
-  <div class="wrap">
-    <details class="howto" open>
-      <summary>ご利用方法</summary>
-      <div id="howtoText"></div>
-    </details>
-
-    <div class="catbar" id="catBar"></div>
-
-    <div class="tabs">
-      <div class="tab active" data-tab="catalog">商品一覧</div>
-      <div class="tab" data-tab="checkout">注文確認</div>
+<!-- メインメニュー（sticky） -->
+<div class="menubar">
+  <div class="wrap inner">
+    <div class="seg" role="tablist" aria-label="表示設定">
+      <button id="btnFilter" class="active" role="tab">絞り込み</button>
+      <button id="btnSort" role="tab">並べ替え</button>
+    </div>
+    <div class="toolbar">
+      <button class="iconbtn" id="btnFav"><span>♡</span><span>お気に入り</span></button>
+      <button class="iconbtn" id="btnCartView"><span>🛒</span><span>カートを見る</span><span class="dot" id="miniCount">0</span></button>
     </div>
   </div>
+</div>
 
-  <section class="panel active" id="panel-catalog">
-    <div class="wrap"><div class="grid" id="productGrid"></div></div>
+<main class="wrap">
+  <section class="section">
+    <h1 style="margin:.2em 0 0">翌日受け取り 予約注文</h1>
+    <p class="lead">本ページは「取り置き予約（店頭受け取り）」の受付です。オンライン決済は行いません。お支払いは受け取り時に店頭にて。</p>
   </section>
 
-  <section class="panel" id="panel-checkout">
-    <div class="wrap checkout">
-      <div class="box">
-        <h3>ご注文内容</h3>
-        <div class="inner">
-          <div class="list" id="cartList"></div>
-          <div class="rowline"><div class="ttl">合計数量</div><div id="grandQty">0</div></div>
-          <div class="rowline"><div class="ttl">小計</div><div id="subtotal">¥0</div></div>
-          <div class="rowline"><div class="ttl"><strong>お支払い金額</strong></div><div id="grand"><strong>¥0</strong></div></div>
-        </div>
-      </div>
-      <div class="box">
-        <h3>お客様情報</h3>
-        <div class="inner">
-          <label for="custName">お名前（必須）</label>
-          <input id="custName" type="text" placeholder="例：山田 太郎" />
+  <!-- 商品一覧（PC=2列、他=1列） -->
+  <section class="grid" id="productGrid"></section>
 
-          <label for="custTel">電話番号（必須）</label>
-          <input id="custTel" type="tel" placeholder="例：090-1234-5678" />
-
-          <label for="custDate">受け取り希望日（必須） <span class="muted">※最短〜10日後まで</span></label>
-          <input id="custDate" type="date" />
-
-          <label for="custSlot">受取時間帯（必須）</label>
-          <select id="custSlot">
-            <option value="">選択してください</option>
-            <option>14:00–17:00</option>
-            <option>17:00–20:00（土日祝は19:00まで）</option>
-          </select>
-
-          <label for="custNote">備考</label>
-          <textarea id="custNote" placeholder="連絡事項などがあればご記入ください"></textarea>
-
-          <div class="right" style="margin-top:10px">
-            <a class="btn pri" id="openForm" target="_blank" rel="noopener">Googleフォームを開く</a>
-          </div>
-          <div class="muted" style="margin-top:8px">フォームで「同意」チェックを付けて送信してください。取り込みは自動入力のJSONを使います。</div>
-        </div>
-      </div>
-    </div>
+  <section class="section">
+    <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">
+      写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。
+    </p>
   </section>
 </main>
 
-<!-- Drawer -->
-<div class="overlay" id="overlay"></div>
-<aside class="drawer" id="drawer">
-  <header class="row" style="justify-content:space-between;padding:10px 12px">
-    <div id="dwName" style="font-weight:600"></div>
-    <button class="btn ghost" id="dwClose">とじる</button>
-  </header>
-  <div class="inner" id="dwBody"></div>
-</aside>
+<!-- 固定フッター（カートバー）：グリッド幅に合わせて中央寄せ -->
+<div class="cart" id="cartBar">
+  <div class="wrap">
+    <div id="cartCount" class="pill">0点</div>
+    <div id="cartMinDate" class="pill">最短受取 —</div>
+    <div class="spacer"></div>
+    <div class="total" id="cartTotal">¥0</div>
+    <button class="btn" id="checkoutBtn2">注文へ進む</button>
+  </div>
+</div>
 
-<footer>
-  <div class="wrap row">
-    <div class="flex grow">
-      <div>© Ping-Pong-Pang</div>
+<!-- モーダル（もっと見る） -->
+<dialog id="itemModal">
+  <button class="modal-close" aria-label="閉じる">✕</button>
+  <div class="modal-inner">
+    <div class="modal-media"><img id="mImg" alt=""></div>
+    <div class="modal-body">
+      <div class="modal-crumb" id="mCrumb"></div>
+      <div class="modal-name" id="mName"></div>
+      <div class="modal-price" id="mPrice"></div>
+      <div class="lead" id="mDesc" style="font-size:14px;color:#6b7280"></div>
+      <div class="modal-actions">
+        <button class="btn" id="mAddBtn">カートに入れる</button>
+        <button class="btn line" id="mMoreBtn" style="display:none">別ページで見る</button>
+      </div>
     </div>
   </div>
-</footer>
+</dialog>
+
+
+
+
+
 
 <script>
-/** =========================
- * 設定
- * ========================= */
-const CONFIG = {
-  // ← あなたのデプロイURL（?endpoint=products を含む）
-  PRODUCTS_ENDPOINT: 'https://script.google.com/macros/s/AKfycbx2V7w56WXYnK-hmbMndA-S4bS2u4upmDU5QSpO8U2gtiuNFGopVttABMC1Xu9D72VYLg/exec?endpoint=products',
+/* ===== 設定（必要最小限） ===== */
+const FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
+const ENTRY = { customerName:"entry.1872572951", phone:"entry.823790722", pickupDate:"entry.1515941336", orderJson:"entry.1388699337", minPossible:"entry.1229502757" };
+const CUTOFF_HOUR = 20;
+const IMG_BUST = String(Date.now());
+const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbxEWeq3xi-xue-1dUeuSoZ94wKHdIzVNT6xGZRqhO4Ll2bqYX9g7GfTeZQKjbsDnuiL4w/exec?endpoint=products";
 
-  // ← あなたのフォーム viewform URL（素のURL）
-  FORM_BASE_URL: 'https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform',
+/* ===== 状態 ===== */
+let PRODUCTS = [];
+let productById = new Map();
+const state = { cart:{} };
 
-  // ← entry.XXXX を設定
-  FORM_PREFILL: {
-    NAME:         'entry.1872572951',
-    TEL:          'entry.823790722',
-    DATE:         'entry.1515941336',
-    SLOT:         'entry.145233294',
-    NOTE:         'entry.907378750',
-    ORDER_JSON:   'entry.1040973575',
-    MIN_POSSIBLE: 'entry.224243122',   // システム最短受取日（編集禁止）
-    MIN_POSSIBLE2:'entry.1229502757',  // 最短受取可能日（自動入力）
-    ITEMS:        'entry.1286573866'   // 確認用・注文一覧（段落）
-    // 了承確認（entry.1509473295）はユーザー操作のためプリフィルしません
-  },
+/* ===== ユーティリティ ===== */
+function yen(n){ return '¥' + Number(n||0).toLocaleString(); }
+function cartItems(){ return Object.values(state.cart); }
+function cartCount(){ return cartItems().reduce((s,i)=>s+i.qty,0); }
+function cartTotal(){ return cartItems().reduce((s,i)=>s+i.qty*i.price,0); }
 
-  LINE_FORMAT: ({code,name,qty,price}) => `・${name}（${code}） x ${qty} ＝ ¥${(qty*price).toLocaleString()}`,
-  SORT_KEY: 'rank',
-  CUTOFF: { hour: 20, minute: 0 }, // 当日20:00締切
-  MAX_ADVANCE_DAYS: 10,            // 最短から+10日まで
-  HOWTO_HTML: `
-    <p>このページでご注文いただけます。<br>お支払いは<strong>店頭受け取り時</strong>にお願いいたします（<strong>事前決済は不可</strong>）。</p>
-    <p>仕入先の在庫状況により、ご希望の商品がご用意できない場合があります。フォーム内の同意にチェックをお願いします。</p>
-    <p>受取時間帯は<strong>14:00–17:00</strong> / <strong>17:00–20:00（※土日祝は19:00まで）</strong> からお選びください。</p>
-  `
-};
+/* ===== ppp-カード描画（新カードのみ） ===== */
+(function(){
+  const grid = document.getElementById('productGrid');
+  if(grid) grid.classList.add('ppp-grid');
 
-/** =========================
- * ユーティリティ
- * ========================= */
-const qs = (s,el=document)=>el.querySelector(s);
-const qsa = (s,el=document)=>[...el.querySelectorAll(s)];
-const yen = (n)=> `¥${(Number(n)||0).toLocaleString()}`;
-const escapeHtml = (s)=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",
-  ">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+  window.renderProducts = function renderProducts(){
+    if(!grid) return;
+    grid.innerHTML = '';
+    const isSP = window.matchMedia('(max-width: 720px)').matches;
 
-function todayYmd(){
-  const d = new Date();
-  const z=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
-}
-function addDaysStr(isoYmd, days){
-  const [y,m,d] = isoYmd.split('-').map(Number);
-  const base = new Date(y, m-1, d);
-  base.setDate(base.getDate()+days);
-  const z=n=>String(n).padStart(2,'0');
-  return `${base.getFullYear()}-${z(base.getMonth()+1)}-${z(base.getDate())}`;
-}
+    (window.PRODUCTS||[]).filter(p=>p.active).forEach(p=>{
+      const soldout = Number(p.stock ?? 0) <= 0;
+      const crumb = [p.catGroup, p.subcatGroup].filter(Boolean).join(' › ');
+      const vars = [];
+      if(p.var1Id && p.var1Label) vars.push({id:String(p.var1Id), label:p.var1Label});
+      if(p.var2Id && p.var2Label) vars.push({id:String(p.var2Id), label:p.var2Label});
 
-/** =========================
- * 状態
- * ========================= */
-const state = {
-  products: [],
-  cart: {},
-  filterCat: 'ALL',
-  drawerCode: null
-};
+      const badges = (p.badges && Array.isArray(p.badges) ? p.badges : []);
+      const bHTML = badges.map(txt=>`<span class="ppp-badge">${txt}</span>`).join('');
 
-function saveCart(){ localStorage.setItem('ppp_cart_v2', JSON.stringify(state.cart)); updateBadge(); buildPrefillHref(); }
-function loadCart(){ try{ state.cart = JSON.parse(localStorage.getItem('ppp_cart_v2')||'{}') }catch{ state.cart = {} } updateBadge(); }
-function updateBadge(){ const t = totals(); qs('#cartBadge').textContent = t.qty; qs('#cartHeaderTotal').textContent = yen(t.sum) }
-
-/** =========================
- * データ取得
- * ========================= */
-async function fetchProducts(flush=false){
-  const url = CONFIG.PRODUCTS_ENDPOINT + (flush?'&flush=1':'');
-  const res = await fetch(url, {cache:'no-store'});
-  if(!res.ok) throw new Error('fetch failed');
-  const data = await res.json();
-  let items = (data.items||[]).slice();
-  const key = CONFIG.SORT_KEY; if(key) items.sort((a,b)=> (a[key]||9999) - (b[key]||9999));
-  state.products = items;
-  buildCatBar();
-  renderProducts();
-  updateTotals();
-}
-
-/** =========================
- * 最短受取日
- * ========================= */
-function computeMinPossible(items){
-  const now = new Date();
-  const cutoff = new Date(now);
-  cutoff.setHours(CONFIG.CUTOFF.hour||0, CONFIG.CUTOFF.minute||0, 0, 0);
-
-  let days = 1; // 翌日
-  if(now >= cutoff) days += 1; // 締切超過で+1
-  const lead = Math.max(0, ...items.map(it=>Number(it.leadDays||0)));
-  days += lead;
-
-  return addDaysStr(todayYmd(), days);
-}
-
-function setDateBounds(){
-  const {items} = totals();
-  const min = computeMinPossible(items);
-  const max = addDaysStr(min, CONFIG.MAX_ADVANCE_DAYS);
-  const el = qs('#custDate');
-  if(!el) return;
-  el.min = min; el.max = max;
-  if(el.value && el.value < min) el.value = min;
-  if(!el.value) el.value = min;
-}
-
-/** =========================
- * カテゴリ/温度帯
- * ========================= */
-function tempBadge(temp){
-  const t = String(temp||'').trim();
-  if(t.includes('冷凍')) return '<span class="badge">❄️ 冷凍</span>';
-  if(t.includes('冷蔵')) return '<span class="badge">🧊 冷蔵</span>';
-  if(t.includes('常温')) return '<span class="badge">📦 常温</span>';
-  return '';
-}
-
-function allCategories(){
-  const s = new Set();
-  state.products.forEach(p=> String(p.cat||'').split('|').map(v=>v.trim()).filter(Boolean).forEach(v=>s.add(v)) );
-  return ['ALL', ...[...s].sort()];
-}
-
-function buildCatBar(){
-  const bar = qs('#catBar');
-  const cats = allCategories();
-  bar.innerHTML = cats.map(c=>`<div class="chip ${state.filterCat===c?'active':''}" data-cat="${c}">${c==='ALL'?'すべて':escapeHtml(c)}</div>`).join('');
-}
-
-/** =========================
- * 描画
- * ========================= */
-function productCardHtml(p, groupHasVariant){
-  return `
-  <div class="card" data-code="${p.code}">
-    <div class="imgbox">${p.img?`<img src="${p.img}" referrerpolicy="no-referrer" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async">`:''}</div>
-    <div class="pad">
-      <div class="name">${escapeHtml(p.name)}</div>
-      <div class="row spread">
-        <div class="price">${yen(p.price)}</div>
-        <div>${tempBadge(p.temp)} ${groupHasVariant[p.group]?'<span class="badge">小分けあり</span>':''}</div>
-      </div>
-      <div class="row" style="gap:8px;align-items:center;margin-top:8px;flex-direction:column;align-items:stretch">
-        <div class="qty" style="justify-content:center">
-          <button class="btn" data-act="dec">−</button>
-          <input type="number" min="1" step="1" value="1" data-act="qty">
-          <button class="btn" data-act="inc">＋</button>
+      const el = document.createElement('article');
+      el.className = 'ppp-card';
+      el.setAttribute('data-id', p.id);
+      el.innerHTML = `
+        <div class="ppp-head">
+          <div class="ppp-crumbrow">
+            <div class="ppp-crumb">${crumb || ''}</div>
+            <div class="ppp-badges">${bHTML}</div>
+          </div>
         </div>
-        <div class="row" style="gap:8px">
-          <button class="btn pri block" data-act="add" style="flex:1">カートに入れる</button>
-          <button class="btn ghost" data-act="detail">詳細</button>
+
+        <div class="ppp-titlebar">
+          <div class="ppp-name">${p.name||''}</div>
+          <button class="ppp-fav" data-fav="${p.id}" aria-label="お気に入り">♡</button>
         </div>
-      </div>
-    </div>
-  </div>`
-}
 
-function renderProducts(){
-  const grid = qs('#productGrid');
-  const cats = (state.filterCat==='ALL')?null:state.filterCat;
-  const list = state.products.filter(p=>{
-    if(!cats) return true;
-    const cs = String(p.cat||'').split('|').map(v=>v.trim());
-    return cs.includes(cats);
-  });
-  // group の複数variantを検知
-  const gCount = {};
-  state.products.forEach(p=>{ if(p.group) gCount[p.group] = (gCount[p.group]||0)+1; });
-  grid.innerHTML = list.map(p=> productCardHtml(p, gCount) ).join('');
-}
+        <div class="ppp-mi">
+          <div class="ppp-media">
+            <div class="ppp-img">
+              <img src="${p.img ? (p.img + (p.img.includes('?') ? '&' : '?') + 'v=' + (window.IMG_BUST||'')) : 'https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image'}"
+                   alt="${(p.name||'').replace(/"/g,'&quot;')}"
+                   loading="lazy" decoding="async" referrerpolicy="no-referrer"
+                   onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';">
+            </div>
+          </div>
+          <div class="ppp-info">
+            ${p.prenote ? `<div class="ppp-prenote">${p.prenote}</div>` : ''}
+            <div class="ppp-price">${(p.price>0 && !isNaN(p.price)) ? (typeof yen==='function'?yen(p.price):p.price) : '店頭価格'}</div>
+            ${p.unitNote ? `<div class="ppp-unit">${p.unitNote}</div>` : ''}
 
-function totals(){
-  const items = Object.values(state.cart).map(it=>({
-    code: it.code, name: it.name, price: Number(it.price||0), qty: Number(it.qty||0), variant: it.variant||null, group: it.group||null,
-    maxPerOrder: Number.isFinite(it.maxPerOrder)?Number(it.maxPerOrder):undefined,
-    stock: Number.isFinite(it.stock)?Number(it.stock):it.stock
-  })).filter(it=>it.qty>0);
-  const sum = items.reduce((a,b)=>a + b.price*b.qty, 0);
-  const qty = items.reduce((a,b)=>a + b.qty, 0);
-  return {items, sum, qty};
-}
+            <div class="ppp-actions">
+              <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''}>${soldout?'品切れ':'カートに入れる'}</button>
+              <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで買う済':'あとで買う'}</button>
+            </div>
 
-// ルールに基づき数量を丸める
-function clampQtyByRules(prod, desired){
-  let max = Infinity;
-  const mpo = Number(prod.maxPerOrder);
-  if(Number.isFinite(mpo) && mpo>0) max = Math.min(max, mpo);
-  const st = Number(prod.stock);
-  if(Number.isFinite(st) && st>=0) max = Math.min(max, st);
-  const next = Math.max(0, Math.min(Number(desired)||0, max));
-  const adjusted = next !== (Number(desired)||0);
-  return {next, adjusted};
-}
-
-function setCartQty(code, desired){
-  const entry = state.cart[code];
-  if(!entry){ return; }
-  const {next, adjusted} = clampQtyByRules(entry, desired);
-  if(next<=0){ delete state.cart[code]; }
-  else { entry.qty = next; state.cart[code] = entry; }
-  if(adjusted && desired>0) alert('数量が上限に調整されました');
-  saveCart();
-  updateTotals();
-}
-
-function renderCart(){
-  const wrap = qs('#cartList');
-  const t = totals();
-
-  if (t.items.length === 0) {
-    wrap.innerHTML = '<div class="muted">カートは空です</div>';
-  } else {
-    wrap.innerHTML = t.items.map(it => `
-      <div class="cartrow" data-code="${it.code}">
-        <div class="rowline">
-          <div class="ttl">${escapeHtml(it.name)}</div>
-          <div>${yen(it.price)} × ${it.qty} = ${yen(it.price * it.qty)}</div>
+            ${vars.length ? `<div class="ppp-vars">${vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('')}</div>` : ''}
+          </div>
         </div>
-        <div class="row" style="gap:6px;justify-content:flex-end;margin:6px 0 4px">
-          <button class="btn" data-cart="dec">−</button>
-          <input class="cartqty" type="number" min="0" step="1" value="${it.qty}">
-          <button class="btn" data-cart="inc">＋</button>
-          <button class="btn warn" data-cart="remove">削除</button>
+
+        <div class="ppp-descwrap" data-detail="${p.id}">
+          <div class="ppp-desc" data-full="${(p.desc||'').replace(/"/g,'&quot;')}">${p.desc||''}</div>
+          <a class="ppp-more" href="#" data-detail="${p.id}">もっと見る</a>
         </div>
-      </div>
-    `).join('');
-  }
+      `;
+      grid.appendChild(el);
+    });
 
-  qs('#grandQty').textContent = t.qty;
-  qs('#subtotal').textContent = yen(t.sum);
-  qs('#grand').textContent = yen(t.sum);
-  qs('#cartHeaderTotal').textContent = yen(t.sum);
-}
+    if (isSP){
+      document.querySelectorAll('.ppp-card').forEach(card=>{
+        const namebar = card.querySelector('.ppp-titlebar');
+        const prenote = card.querySelector('.ppp-prenote');
+        if(namebar && prenote && !prenote.dataset.movedSp){
+          namebar.insertAdjacentElement('afterend', prenote);
+          prenote.dataset.movedSp = '1';
+        }
+      });
+    }
+  };
 
+  document.addEventListener('click', (ev)=>{
+    const add = ev.target.closest('.ppp-btn.add[data-add]');
+    const later = ev.target.closest('.ppp-btn[data-later]');
+    const fav = ev.target.closest('.ppp-fav[data-fav]');
+    const more = ev.target.closest('[data-detail]');
+    const vbtn = ev.target.closest('.ppp-pill[data-var]');
 
-function updateTotals(){
-  renderCart();
-  setDateBounds();
-  buildPrefillHref();
-}
-
-/** =========================
- * 詳細ドロワー
- * ========================= */
-function openDrawer(code){
-  const prod = state.products.find(p=>p.code===code); if(!prod) return;
-  state.drawerCode = code;
-  qs('#dwName').textContent = prod.name;
-
-  // siblings (variant)
-  const siblings = prod.group ? state.products.filter(p=>p.group===prod.group) : [prod];
-  const tabs = (siblings.length>1)
-    ? `<div class="rowm" style="margin:8px 0 6px">${siblings.map(s=>`<span class="vtab ${s.code===code?'active':''}" data-vcode="${s.code}">${escapeHtml(s.variant||'full')}</span>`).join('')}</div>`
-    : '';
-
-  const body = `
-    <div class="imgbox" style="height:240px">${prod.img?`<img src="${prod.img}" referrerpolicy="no-referrer" alt="${escapeHtml(prod.name)}" loading="lazy" decoding="async">`:''}</div>
-    <div class="rowm" style="margin-top:8px">${tempBadge(prod.temp)}</div>
-    <div class="muted" style="margin-top:8px">${prod.desc?escapeHtml(prod.desc):''}</div>
-    ${tabs}
-    <div class="row" style="gap:8px;align-items:center;margin-top:10px;flex-direction:column;align-items:stretch">
-      <div class="qty" style="justify-content:center">
-        <button class="btn" data-dw="dec">−</button>
-        <input id="dwQty" type="number" min="1" step="1" value="1">
-        <button class="btn" data-dw="inc">＋</button>
-      </div>
-      <button class="btn pri block" data-dw="add">カートに入れる（${yen(prod.price)}）</button>
-    </div>`;
-
-  qs('#dwBody').innerHTML = body;
-  qs('#overlay').style.display='block';
-  qs('#drawer').style.display='block';
-}
-
-function closeDrawer(){
-  qs('#overlay').style.display='none';
-  qs('#drawer').style.display='none';
-}
-
-/** =========================
- * フォーム プリフィル
- * ========================= */
-function buildPrefillHref(){
-  const t = totals();
-  const items = t.items;
-
-  const lines = items.map(it=> CONFIG.LINE_FORMAT(it));
-  const itemsText = lines.join('');
-
-  const orderJson = items.map(it=>({ code:it.code, name:it.name, price:it.price, qty:it.qty, subtotal:it.price*it.qty, variant:it.variant||null }));
-  const orderJsonStr = JSON.stringify(orderJson);
-
-  const minPossible = computeMinPossible(items);
-
-  const params = new URLSearchParams();
-  if(CONFIG.FORM_PREFILL.ITEMS)        params.set(CONFIG.FORM_PREFILL.ITEMS, itemsText);
-  if(CONFIG.FORM_PREFILL.ORDER_JSON)   params.set(CONFIG.FORM_PREFILL.ORDER_JSON, orderJsonStr);
-  if(CONFIG.FORM_PREFILL.MIN_POSSIBLE) params.set(CONFIG.FORM_PREFILL.MIN_POSSIBLE, minPossible);
-  if(CONFIG.FORM_PREFILL.MIN_POSSIBLE2)params.set(CONFIG.FORM_PREFILL.MIN_POSSIBLE2, minPossible);
-
-  const name = qs('#custName').value.trim(); if(CONFIG.FORM_PREFILL.NAME && name) params.set(CONFIG.FORM_PREFILL.NAME, name);
-  const tel  = qs('#custTel').value.trim();  if(CONFIG.FORM_PREFILL.TEL  && tel ) params.set(CONFIG.FORM_PREFILL.TEL,  tel);
-  const date = qs('#custDate').value;        if(CONFIG.FORM_PREFILL.DATE && date) params.set(CONFIG.FORM_PREFILL.DATE, date);
-  const slot = qs('#custSlot').value.trim(); if(CONFIG.FORM_PREFILL.SLOT && slot) params.set(CONFIG.FORM_PREFILL.SLOT, slot);
-  const note = qs('#custNote').value.trim(); if(CONFIG.FORM_PREFILL.NOTE && note) params.set(CONFIG.FORM_PREFILL.NOTE, note);
-
-  const href = `${CONFIG.FORM_BASE_URL}?${params.toString()}`;
-  const a = qs('#openForm');
-  if(a) a.href = href;
-}
-
-/** =========================
- * イベント
- * ========================= */
-qs('#productGrid').addEventListener('click', e=>{
-  const act = e.target.closest('[data-act]');
-  if(!act) return;
-  const card = e.target.closest('.card');
-  const code = card?.dataset.code; if(!code) return;
-  const prod = state.products.find(p=>p.code===code); if(!prod) return;
-
-  const input = card.querySelector('[data-act="qty"]');
-  const type = act.dataset.act;
-
-  if(type==='inc'){ input.value = Math.max(1, Number(input.value||1)+1); return; }
-  if(type==='dec'){ input.value = Math.max(1, Number(input.value||1)-1); return; }
-
-  if(type==='add'){
-    const addQty = Math.max(1, Number(input.value||1));
-    const current = state.cart[code]?.qty || 0;
-    if(prod.maxPerOrder && current + addQty > prod.maxPerOrder){ alert(`1回のご注文は最大${prod.maxPerOrder}個までです`); return; }
-    if(Number.isFinite(prod.stock) && prod.stock>=0 && current + addQty > prod.stock){ alert('在庫数を超えています'); return; }
-    const entry = state.cart[code] || {...prod, qty:0};
-    entry.qty += addQty;
-    state.cart[code] = entry;
-    saveCart();
-    input.value = 1;
-    updateTotals();
-    return;
-  }
-
-  if(type==='detail'){
-    openDrawer(code);
-    return;
-  }
-});
-
-// Drawer events
-qs('#overlay').addEventListener('click', closeDrawer);
-qs('#dwClose').addEventListener('click', closeDrawer);
-qs('#drawer').addEventListener('click', e=>{
-  const vtab = e.target.closest('.vtab');
-  if(vtab){ openDrawer(vtab.dataset.vcode); return; }
-  const btn = e.target.closest('[data-dw]');
-  if(!btn) return;
-  const prod = state.products.find(p=>p.code===state.drawerCode); if(!prod) return;
-  const type = btn.dataset.dw;
-  const qtyEl = qs('#dwQty');
-  if(type==='inc'){ qtyEl.value = Math.max(1, Number(qtyEl.value||1)+1); return; }
-  if(type==='dec'){ qtyEl.value = Math.max(1, Number(qtyEl.value||1)-1); return; }
-  if(type==='add'){
-    const addQty = Math.max(1, Number(qtyEl.value||1));
-    const current = state.cart[prod.code]?.qty || 0;
-    if(prod.maxPerOrder && current + addQty > prod.maxPerOrder){ alert(`1回のご注文は最大${prod.maxPerOrder}個までです`); return; }
-    if(Number.isFinite(prod.stock) && prod.stock>=0 && current + addQty > prod.stock){ alert('在庫数を超えています'); return; }
-    const entry = state.cart[prod.code] || {...prod, qty:0};
-    entry.qty += addQty;
-    state.cart[prod.code] = entry;
-    saveCart();
-    closeDrawer();
-    updateTotals();
-  }
-});
-
-// Category bar
-qs('#catBar').addEventListener('click', e=>{
-  const chip = e.target.closest('.chip');
-  if(!chip) return;
-  state.filterCat = chip.dataset.cat;
-  buildCatBar();
-  renderProducts();
-});
-
-// Header links
-qs('#toCheckoutLink').addEventListener('click', ()=>{ setActive('checkout'); renderCart(); setDateBounds(); buildPrefillHref(); });
-
-qsa('#custName,#custTel,#custDate,#custSlot,#custNote').forEach(el=>{
-  el.addEventListener('input', buildPrefillHref);
-  el.addEventListener('change', buildPrefillHref);
-});
-
-// カート内数量操作（+/-/削除）
-qs('#cartList').addEventListener('click', e=>{
-  const btn = e.target.closest('[data-cart]');
-  if(!btn) return;
-  const row = e.target.closest('.cartrow');
-  const code = row?.dataset.code; if(!code) return;
-  const entry = state.cart[code]; if(!entry) return;
-  const type = btn.dataset.cart;
-  if(type==='inc'){ setCartQty(code, (entry.qty||0)+1); }
-  else if(type==='dec'){ setCartQty(code, (entry.qty||0)-1); }
-  else if(type==='remove'){ setCartQty(code, 0); }
-});
-
-qs('#cartList').addEventListener('input', e=>{
-  const input = e.target.closest('.cartqty');
-  if(!input) return;
-  const row = e.target.closest('.cartrow');
-  const code = row?.dataset.code; if(!code) return;
-  const v = Math.max(0, Number(input.value||0));
-  setCartQty(code, v);
-});
-
-qs('#reload').addEventListener('click', ()=>{ fetchProducts(true).catch(err=>alert('再読込に失敗しました')); });
-qs('#openForm')?.addEventListener('click', ()=>{ buildPrefillHref(); });
-
-qsa('.tab').forEach(tab=>tab.addEventListener('click', ()=> setActive(tab.dataset.tab)));
-
-function setActive(key){
-  qsa('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===key));
-  qsa('.panel').forEach(p=>p.classList.toggle('active', p.id === 'panel-'+key));
-  const showTop = key==='catalog';
-  const howto = qs('.howto'); if(howto) howto.style.display = showTop ? '' : 'none';
-  const catbar = qs('#catBar'); if(catbar) catbar.style.display = showTop ? '' : 'none';
-}
-
-/** =========================
- * 起動
- * ========================= */
-(async function init(){
-  loadCart();
-  qs('#howtoText').innerHTML = CONFIG.HOWTO_HTML;
-  await fetchProducts().catch(err=>alert('商品データの取得に失敗しました'));
-  setDateBounds();
-  buildPrefillHref();
+    if(add){
+      const id = String(add.dataset.add);
+      const p = (window.productById && window.productById.get(id)) || (window.PRODUCTS||[]).find(x=>String(x.id)===id);
+      if(!p) return;
+      if(Number(p.stock ?? 0) <= 0) return;
+      if(typeof addToCart==='function') addToCart(p,1);
+    }
+    if(later){
+      const id = String(later.dataset.later);
+      const key = 'later:'+id;
+      const set = localStorage.getItem(key)==='1' ? '0' : '1';
+      localStorage.setItem(key, set);
+      later.textContent = set==='1' ? 'あとで買う済' : 'あとで買う';
+      later.classList.toggle('ghost', set!=='1');
+    }
+    if(fav){ fav.toggleAttribute('data-active'); }
+    if(more){ ev.preventDefault(); }
+    if(vbtn){ ev.preventDefault(); }
+  }, {passive:false});
 })();
+
+/* ===== カートバー（最低限） ===== */
+const cartCountEl=document.getElementById('cartCount');
+const miniCountEl=document.getElementById('miniCount');
+const cartTotalEl=document.getElementById('cartTotal');
+const cartMinDateEl=document.getElementById('cartMinDate');
+
+function addToCart(p,q){ state.cart[p.id]=state.cart[p.id]||{...p,qty:0}; state.cart[p.id].qty+=q; renderCartBar(); }
+function cartChangedCount(){ const cnt=cartCount(); if(cartCountEl) cartCountEl.textContent=`${cnt}点`; if(miniCountEl) miniCountEl.textContent=String(cnt); }
+function calcMinPickupDate(){
+  const items = cartItems();
+  if(items.length===0) return null;
+  const maxLead = items.reduce((m,i)=>Math.max(m, Number(i.leadDays||1)), 1);
+  const now = new Date();
+  const isAfterCutoff = now.getHours() >= CUTOFF_HOUR;
+  const offset = (isAfterCutoff?1:0) + (Number(maxLead)||1);
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()+offset);
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}/${m}/${day}`;
+}
+function renderCartBar(){
+  cartChangedCount();
+  if(cartTotalEl) cartTotalEl.textContent = yen(cartTotal());
+  const md = calcMinPickupDate();
+  if(cartMinDateEl) cartMinDateEl.textContent = `最短受取 ${md || '—'}`;
+}
+
+/* ===== データロード ===== */
+async function loadProducts(){
+  try{
+    const res = await fetch(PRODUCTS_URL, {cache:'no-store'});
+    const data = await res.json();
+    const _rows = Array.isArray(data) ? data : (data.items || []);
+    PRODUCTS = _rows.map(x => ({ 
+      id: String(x.id ?? x.code ?? x.sku ?? ''),
+      name: x.name || x.title || '',
+      price: Number(x.price || 0),
+      cat: x.cat || x.category || 'その他',
+      catGroup: x.catGroup || '',
+      subcatGroup: x.subcatGroup || '',
+      desc: x.desc || '',
+      prenote: x.prenote || '',
+      unitNote: x.unitNote || '',
+      var1Id: x.var1Id || '',  var1Label: x.var1Label || '',
+      var2Id: x.var2Id || '',  var2Label: x.var2Label || '',
+      badges: Array.isArray(x.badges) ? x.badges : (typeof x.badges==='string' && x.badges ? x.badges.split(/[,、\s]+/).filter(Boolean) : []),
+      img: x.img || '',
+      stock: (x.stock === '' || x.stock == null) ? NaN : Number(x.stock),
+      active: (x.active === '' || x.active == null) ? true : !['false','0','no'].includes(String(x.active).toLowerCase()),
+      leadDays: Number(x.leadDays || 1)
+    }));
+    productById = new Map(PRODUCTS.map(p=>[String(p.id), p]));
+    renderProducts();
+  }catch(e){ console.error(e); }
+}
+
+loadProducts();
+renderCartBar();
 </script>
+
 </body>
 </html>
