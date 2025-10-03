@@ -14,18 +14,21 @@ jobs:
       - name: Deploy with FTP-Deploy-Action (FTPS strict)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_HOST }}      # 例: www1049.onamae.ne.jp
-          username: ${{ secrets.FTP_USER }}    # 例: ppp_ftp@ping-pong-pang.jp
+          server: ${{ secrets.FTP_HOST }}      # www1049.onamae.ne.jp
+          username: ${{ secrets.FTP_USER }}    # ppp_ftp@ping-pong-pang.jp
           password: ${{ secrets.FTP_PASS }}
           protocol: ftps
           port: 21
           security: strict
-          local-dir: ./                        # リポジトリ直下の中身だけ
-          server-dir: order-dev/               # ← ログイン直後が ping-pong-pang.jp/ なので相対指定
-          log-level: verbose                   # 失敗時のログを詳細化
+          local-dir: ./
+          server-dir: order-dev/
+          log-level: verbose
           dangerous-clean-slate: false
           exclude: |
+            **/.git/**
             **/.git*
+            .git/**
+            .git*
             **/.github/**
             **/node_modules/**
             **/*.map
