@@ -2,7 +2,7 @@ name: Deploy to Onamae RS via FTPS (order-dev only)
 
 on:
   push:
-    branches: ["main", "dev"]  # どちらにpushしても order-dev にのみ反映
+    branches: ["main", "dev"]
 
 jobs:
   deploy:
@@ -14,15 +14,16 @@ jobs:
       - name: Deploy with FTP-Deploy-Action (FTPS strict)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_HOST }}          # 例: www1049.onamae.ne.jp
-          username: ${{ secrets.FTP_USER }}        # 例: ppp_ftp@ping-pong-pang.jp
+          server: ${{ secrets.FTP_HOST }}      # 例: www1049.onamae.ne.jp
+          username: ${{ secrets.FTP_USER }}    # 例: ppp_ftp@ping-pong-pang.jp
           password: ${{ secrets.FTP_PASS }}
           protocol: ftps
           port: 21
           security: strict
-          local-dir: ./                            # リポジトリ直下（=サイトの中身だけ）
-          server-dir: /order-dev/                  # ← ログイン直後が ping-pong-pang.jp/ なのでココだけ
-          dangerous-clean-slate: false             # 既存ファイル保持
+          local-dir: ./                        # リポジトリ直下の中身だけ
+          server-dir: order-dev/               # ← ログイン直後が ping-pong-pang.jp/ なので相対指定
+          log-level: verbose                   # 失敗時のログを詳細化
+          dangerous-clean-slate: false
           exclude: |
             **/.git*
             **/.github/**
