@@ -20,3 +20,6 @@ pnpm-debug.log*
 # Env/Secrets（置かない運用推奨）
 .env
 .env.*
+
+
+.ftp-deploy-sync-state.json
