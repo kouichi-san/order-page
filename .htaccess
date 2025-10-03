@@ -1,25 +1,19 @@
-RewriteEngine On
-RewriteCond %{HTTPS} !=on
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# index.html をデフォルトに
+DirectoryIndex index.html
 
-# 外部への fetch を許可（GAS／関連ドメイン）
+RewriteEngine On
+
+# すでに /order-dev/index.html なら何もしない
+RewriteRule ^index\.html$ - [L]
+
+# /order-dev/ に来たら内部的に index.html を表示（リダイレクトしない）
+RewriteRule ^$ index.html [L]
+
+# HTTPS強制（すでにHTTPSなら二重にならない）
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# GASへのfetch許可のためのCSP
 <IfModule mod_headers.c>
   Header always set Content-Security-Policy "default-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://ssl.gstatic.com; img-src * data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
 </IfModule>
-
-<FilesMatch ".*">
-  Header set X-Robots-Tag "noindex, nofollow"
-</FilesMatch>
-
-# HTMLは都度更新
-<FilesMatch "\.html?$">
-  Header set Cache-Control "no-store, must-revalidate"
-</FilesMatch>
-# アセットは長期キャッシュ（ファイル名にバージョンを付ける前提）
-<FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|webp)$">
-  Header set Cache-Control "public, max-age=31536000, immutable"
-</FilesMatch>
-# ドットファイル遮断
-<FilesMatch "^\.">
-  Require all denied
-</FilesMatch>
