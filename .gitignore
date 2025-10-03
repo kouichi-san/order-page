@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Node/Build 系（将来ビルド導入しても安心）
+node_modules/
+dist/
+build/
+*.map
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# GitHub
+# （ワークフローは必要なので .github は除外しない）
+!.github/
+
+# Env/Secrets（置かない運用推奨）
+.env
+.env.*

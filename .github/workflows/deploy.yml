@@ -1,8 +1,8 @@
-name: Deploy to Onamae RS via FTPS
+name: Deploy to Onamae RS via FTPS (order-dev only)
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["main", "dev"]  # どちらにpushしても order-dev にのみ反映
 
 jobs:
   deploy:
@@ -11,30 +11,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Decide target dir
-        id: paths
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "SERVER_DIR=/public_html/ping-pong-pang.jp/order/" >> $GITHUB_OUTPUT
-          else
-            echo "SERVER_DIR=/public_html/ping-pong-pang.jp/order-dev/" >> $GITHUB_OUTPUT
-          fi
-
       - name: Deploy with FTP-Deploy-Action (FTPS strict)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USER }}
+          server: ${{ secrets.FTP_HOST }}          # 例: www1049.onamae.ne.jp
+          username: ${{ secrets.FTP_USER }}        # 例: ppp_ftp@ping-pong-pang.jp
           password: ${{ secrets.FTP_PASS }}
           protocol: ftps
           port: 21
           security: strict
-          local-dir: ./
-          server-dir: ${{ steps.paths.outputs.SERVER_DIR }}
-          dangerous-clean-slate: false
+          local-dir: ./                            # リポジトリ直下（=サイトの中身だけ）
+          server-dir: /order-dev/                  # ← ログイン直後が ping-pong-pang.jp/ なのでココだけ
+          dangerous-clean-slate: false             # 既存ファイル保持
           exclude: |
             **/.git*
             **/.github/**
             **/node_modules/**
             **/*.map
+            **/.DS_Store
             README*.md
+            LICENSE
