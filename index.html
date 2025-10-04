@@ -19,18 +19,18 @@
   .tag{font-size:12px;color:var(--muted)}
   .head-badge{margin-left:auto;font-size:12px;background:#f1f5f9;border:1px solid #e2e8f0;color:#0f172a;border-radius:999px;padding:4px 10px;white-space:nowrap}
 
-  .menubar{position:sticky;top:0;z-index:25;background:#fff;border-bottom:1px solid var(--border)}
-  .menubar .inner{display:flex;align-items:center;gap:12px;padding:8px 0}
-  .toolbar{margin-left:auto;display:flex;gap:8px}
-  .iconbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;min-height:44px}
-  .iconbtn .dot{min-width:20px;height:20px;border-radius:999px;display:grid;place-items:center;background:#111;color:#fff;font-size:12px}
-
   .section{padding:16px 0}
   .lead{color:var(--muted);font-size:14px}
 
-  /* 新カード */
-  #productGrid.ppp-grid{display:grid;grid-template-columns:repeat(2,540px);justify-content:space-between;gap:0}
+  /* ===== 商品カード ===== */
+  #productGrid.ppp-grid {
+    display:grid;
+    grid-template-columns:repeat(2,540px);
+    justify-content:space-between;
+    gap:0;
+  }
   .ppp-card{width:540px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden}
+
   .ppp-crumbrow{display:grid;grid-template-columns:3fr 7fr;gap:8px;align-items:center;padding:10px 12px 0}
   .ppp-badges{display:flex;gap:6px;justify-content:flex-end;overflow:hidden}
   .ppp-badge{min-width:72px;height:22px;display:inline-grid;place-items:center;padding:0 8px;
@@ -38,23 +38,30 @@
   .ppp-titlebar{display:flex;gap:8px;align-items:flex-start;padding:4px 12px 8px}
   .ppp-name{flex:1;font-weight:800;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .ppp-fav{width:32px;height:32px;border-radius:8px;background:#fff;border:1px solid #e5e7eb;display:grid;place-items:center;cursor:pointer}
+
   .ppp-mi{display:grid;grid-template-columns:6fr 4fr;align-items:start;gap:12px;padding:0 12px}
   .ppp-img{height:260px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
   .ppp-img>img{width:100%;height:100%;object-fit:contain;display:block}
+
   .ppp-prenote{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:13px;color:#334155}
   .ppp-price{font-weight:900;font-size:22px}
   .ppp-unit{font-size:12px;color:#6b7280;text-align:right}
+
   .ppp-actions{display:grid;grid-template-columns:3fr 2fr;gap:8px}
   .ppp-btn{appearance:none;border:1px solid #e5e7eb;background:#fff;color:#0ea5e9;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:800;min-height:44px}
   .ppp-btn.add{background:#0ea5e9;color:#fff}
+
   .ppp-vars{display:flex;gap:8px;flex-wrap:wrap}
   .ppp-pill{border:1px solid #e5e7eb;background:#fff;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px}
+
   .ppp-descwrap{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;padding:0 12px 12px}
   .ppp-desc{font-size:13px;color:#6b7280;line-height:1.5;min-height:calc(1.5*3*1em);
              display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .ppp-more{font-size:13px;color:#0ea5e9;text-decoration:underline}
+
+  /* ===== レスポンシブ (SP) ===== */
   @media(max-width:720px){
-    #productGrid{grid-template-columns:1fr;gap:12px}
+    #productGrid.ppp-grid{grid-template-columns:1fr;gap:12px}
     .ppp-card{width:auto}
     .ppp-badges .ppp-badge:nth-child(n+4){display:none!important}
     .ppp-prenote{margin:6px 12px 0}
@@ -62,6 +69,27 @@
     .ppp-more{display:none!important}
     .ppp-descwrap::after{content:"→";position:absolute;right:16px;bottom:12px;font-weight:700;opacity:.55;pointer-events:none}
   }
+
+  /* ===== フッター（カートバー） ===== */
+  .cart {
+    position:sticky;
+    bottom:0;
+    z-index:30;
+    background:#000;
+    color:#fff;
+  }
+  .cart .wrap {
+    max-width:var(--wrap);
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 16px;
+    padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  }
+  .cart .pill{background:#111;border:1px solid #333;border-radius:999px;padding:6px 10px;font-size:13px}
+  .cart .spacer{flex:1 1 auto}
+  .cart .total{font-weight:800}
 </style>
 </head>
 <body>
@@ -110,7 +138,6 @@ function yen(n){return '¥'+Number(n||0).toLocaleString();}
 function cartItems(){return Object.values(state.cart);}
 function cartCount(){return cartItems().reduce((s,i)=>s+i.qty,0);}
 function cartTotal(){return cartItems().reduce((s,i)=>s+i.qty*i.price,0);}
-
 function addToCart(p,q){state.cart[p.id]=state.cart[p.id]||{...p,qty:0};state.cart[p.id].qty+=q;renderCartBar();}
 function calcMinPickupDate(){const items=cartItems();if(items.length===0)return null;const maxLead=items.reduce((m,i)=>Math.max(m,Number(i.leadDays||1)),1);const now=new Date();const isAfterCutoff=now.getHours()>=CUTOFF_HOUR;const offset=(isAfterCutoff?1:0)+(Number(maxLead)||1);const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+offset);return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;}
 function renderCartBar(){document.getElementById('cartCount').textContent=`${cartCount()}点`;document.getElementById('cartTotal').textContent=yen(cartTotal());document.getElementById('cartMinDate').textContent=`最短受取 ${calcMinPickupDate()||'—'}`;}
