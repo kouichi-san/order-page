@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ping-Pong-Pang｜翌日受け取り 注文2253</title>
+<title>Ping-Pong-Pang｜翌日受け取り 注文</title>
 <style>
   :root{
     --bg:#fafafa; --ink:#1f2937; --muted:#6b7280; --brand:#0ea5e9; --border:#e5e7eb;
@@ -13,168 +13,58 @@
   body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;color:var(--ink);background:var(--bg)}
   .wrap{max-width:var(--wrap);margin:0 auto;padding:0 16px}
 
-  /* ヘッダー：スクロールで上に流れる */
   header{position:static;background:#fff;border-bottom:1px solid var(--border)}
   .header-in{display:flex;gap:12px;align-items:center;padding:12px 0}
   .brand{font-size:20px;font-weight:800;letter-spacing:.01em}
   .tag{font-size:12px;color:var(--muted)}
   .head-badge{margin-left:auto;font-size:12px;background:#f1f5f9;border:1px solid #e2e8f0;color:#0f172a;border-radius:999px;padding:4px 10px;white-space:nowrap}
 
-  /* メインメニュー：常時表示（sticky） */
   .menubar{position:sticky;top:0;z-index:25;background:#fff;border-bottom:1px solid var(--border)}
-  .menubar.scrolled{box-shadow:0 4px 12px rgba(0,0,0,.06)}
   .menubar .inner{display:flex;align-items:center;gap:12px;padding:8px 0}
-  .seg{display:inline-flex;gap:6px;background:#f5f7fa;border:1px solid var(--border);border-radius:12px;padding:4px}
-  .seg button{appearance:none;border:0;background:transparent;padding:8px 12px;border-radius:8px;font-weight:700;color:#374151;cursor:pointer}
-  .seg button.active{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06)}
   .toolbar{margin-left:auto;display:flex;gap:8px}
   .iconbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;min-height:44px}
   .iconbtn .dot{min-width:20px;height:20px;border-radius:999px;display:grid;place-items:center;background:#111;color:#fff;font-size:12px}
 
-  /* ページセクション */
   .section{padding:16px 0}
   .lead{color:var(--muted);font-size:14px}
 
-  /* 商品グリッド：PC=2列、他=1列 */
-  .grid{display:grid;grid-template-columns:1fr;gap:16px}
-  @media(min-width:960px){ .grid{grid-template-columns:1fr 1fr} }
-
-  /* カード */
-  .card{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
-  .inner{display:grid;grid-template-columns:1fr;gap:12px}
-  @media(min-width:640px){ .inner{grid-template-columns:0.9fr 1fr;align-items:start} }
-
-  .thumb{position:relative;background:#fff}
-  .thumb img{width:100%;height:auto;aspect-ratio:3/4;object-fit:contain;display:block;background:#fff}
-  .fav{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.9);border:1px solid #e5e7eb;display:grid;place-items:center;cursor:pointer;font-size:18px}
-  .fav[data-active="1"]{background:#fee2e2;border-color:#fecaca}
-
-  .info{padding:12px;display:flex;flex-direction:column;gap:10px}
-  .crumb{font-size:12px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .name{margin:.2em 0 0;font-weight:800;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .meta{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .price{font-weight:900}
-  .unitnote{font-size:12px;color:#6b7280}
-
-  .actions{display:flex;gap:8px}
-  .btn{appearance:none;border:0;background:var(--brand);color:#fff;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700;min-height:44px}
-  .btn.ghost{background:transparent;color:var(--brand);border:1px solid var(--brand)}
-
-  .vars{display:flex;gap:8px;flex-wrap:wrap}
-  .varbtn{appearance:none;border:1px solid #e5e7eb;background:#fff;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px}
-
-  .desc{font-size:13px;color:#6b7280;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .more{font-size:13px;margin-left:6px;text-decoration:underline;color:#0ea5e9}
-
-  .soldout{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);color:#fff;font-weight:800;font-size:18px}
-
-  /* 固定カートバー：全幅背景／中身は.wrapで中央寄せ */
-  .cart{position:sticky;bottom:0;z-index:30;background:#000;color:#fff}
-  .cart .wrap{display:flex;align-items:center;gap:12px;padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
-
-  .pill{background:#111;border:1px solid #333;border-radius:999px;padding:6px 10px;font-size:13px}
-  .spacer{flex:1 1 auto}
-  .total{font-weight:800}
-
-  /* モーダル */
-  dialog#itemModal{width:min(960px,92vw);border:1px solid var(--border);border-radius:16px;padding:0}
-  dialog::backdrop{background:rgba(0,0,0,.35)}
-  .modal-close{position:absolute;top:10px;right:10px;background:#fff;border:1px solid var(--border);width:40px;height:40px;border-radius:999px;cursor:pointer}
-  .modal-inner{display:grid;grid-template-columns:1fr;gap:0}
-  @media(min-width:768px){ .modal-inner{grid-template-columns:1.1fr 1fr} }
-  .modal-media{padding:16px;border-right:1px solid #f1f1f1}
-  .modal-media img{width:100%;height:auto;aspect-ratio:3/4;object-fit:contain;background:#fff;border-radius:12px}
-  .modal-body{padding:16px;display:flex;flex-direction:column;gap:12px}
-  .modal-crumb{font-size:12px;color:#666}
-  .modal-name{font-size:18px;font-weight:800;line-height:1.35}
-  .modal-price{font-weight:900;font-size:18px}
-  .modal-actions{margin-top:auto;display:flex;gap:8px}
-
-  /* アクセシビリティ */
-  :focus-visible{outline:3px solid #0ea5e9;outline-offset:2px;border-radius:8px}
-
-/* === 1002最終：カード新仕様（ppp-） + #productGrid を新カード用グリッドに === */
-#productGrid.ppp-grid, #productGrid{
-  display:grid;
-  grid-template-columns: repeat(2, 540px);
-  justify-content: space-between;
-  gap: 0;
-}
-.ppp-card{
-  width:540px;
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:16px;
-  overflow:hidden;
-}
-.ppp-head{ padding:10px 12px 0; }
-.ppp-crumbrow{ display:grid; grid-template-columns:3fr 7fr; gap:8px; align-items:center; }
-.ppp-crumb{ font-size:12px; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ppp-badges{ display:flex; gap:6px; justify-content:flex-end; overflow:hidden; }
-.ppp-badge{ min-width:72px; height:22px; display:inline-grid; place-items:center; padding:0 8px;
-            border:1px solid #e5e7eb; border-radius:999px; font-size:11px; color:#0f172a; background:#f1f5f9; white-space:nowrap; }
-.ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px; }
-.ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid #e5e7eb; display:grid; place-items:center; cursor:pointer; }
-
-.ppp-mi{ display:grid; grid-template-columns:6fr 4fr; align-items:start; gap:12px; padding:0 12px; }
-.ppp-media{ position:relative; }
-.ppp-img{ height:260px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-.ppp-img > img{ width:100%; height:100%; object-fit:contain; display:block; }
-
-.ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155; }
-.ppp-price{ font-weight:900; font-size:22px; }
-.ppp-unit{ font-size:12px; color:#6b7280; text-align:right; }
-
-.ppp-actions{ display:grid; grid-template-columns:3fr 2fr; gap:8px; }
-.ppp-btn{ appearance:none; border:1px solid #e5e7eb; background:#fff; color:#0ea5e9; padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:800; min-height:44px }
-.ppp-btn.add{ background:#0ea5e9; color:#fff; }
-.ppp-vars{ display:flex; gap:8px; flex-wrap:wrap; }
-.ppp-pill{ border:1px solid #e5e7eb; background:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
-
-.ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px; }
-.ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height: calc(1.5 * 3 * 1em);
-           display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-.ppp-more{ font-size:13px; color:#0ea5e9; text-decoration:underline; }
-
-/* SP only */
-@media(max-width: 720px){
-  #productGrid{ grid-template-columns: 1fr; gap:12px; }
-  .ppp-card{ width:auto; }
-
-  .ppp-badges .ppp-badge:nth-child(n+4){ display:none !important; } /* 4つ目以降は非表示 */
-  .ppp-prenote{ margin:6px 12px 0; } /* タイトル直下に移動（JSでDOM移動） */
-
-  .ppp-descwrap{ grid-template-columns:1fr; position:relative; cursor:pointer; }
-  .ppp-more{ display:none !important; }
-  .ppp-descwrap::after{
-    content:"→"; position:absolute; right:16px; bottom:12px; font-weight:700; opacity:.55; pointer-events:none;
+  /* 新カード */
+  #productGrid.ppp-grid{display:grid;grid-template-columns:repeat(2,540px);justify-content:space-between;gap:0}
+  .ppp-card{width:540px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden}
+  .ppp-crumbrow{display:grid;grid-template-columns:3fr 7fr;gap:8px;align-items:center;padding:10px 12px 0}
+  .ppp-badges{display:flex;gap:6px;justify-content:flex-end;overflow:hidden}
+  .ppp-badge{min-width:72px;height:22px;display:inline-grid;place-items:center;padding:0 8px;
+             border:1px solid #e5e7eb;border-radius:999px;font-size:11px;color:#0f172a;background:#f1f5f9;white-space:nowrap}
+  .ppp-titlebar{display:flex;gap:8px;align-items:flex-start;padding:4px 12px 8px}
+  .ppp-name{flex:1;font-weight:800;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .ppp-fav{width:32px;height:32px;border-radius:8px;background:#fff;border:1px solid #e5e7eb;display:grid;place-items:center;cursor:pointer}
+  .ppp-mi{display:grid;grid-template-columns:6fr 4fr;align-items:start;gap:12px;padding:0 12px}
+  .ppp-img{height:260px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .ppp-img>img{width:100%;height:100%;object-fit:contain;display:block}
+  .ppp-prenote{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:13px;color:#334155}
+  .ppp-price{font-weight:900;font-size:22px}
+  .ppp-unit{font-size:12px;color:#6b7280;text-align:right}
+  .ppp-actions{display:grid;grid-template-columns:3fr 2fr;gap:8px}
+  .ppp-btn{appearance:none;border:1px solid #e5e7eb;background:#fff;color:#0ea5e9;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:800;min-height:44px}
+  .ppp-btn.add{background:#0ea5e9;color:#fff}
+  .ppp-vars{display:flex;gap:8px;flex-wrap:wrap}
+  .ppp-pill{border:1px solid #e5e7eb;background:#fff;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px}
+  .ppp-descwrap{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;padding:0 12px 12px}
+  .ppp-desc{font-size:13px;color:#6b7280;line-height:1.5;min-height:calc(1.5*3*1em);
+             display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .ppp-more{font-size:13px;color:#0ea5e9;text-decoration:underline}
+  @media(max-width:720px){
+    #productGrid{grid-template-columns:1fr;gap:12px}
+    .ppp-card{width:auto}
+    .ppp-badges .ppp-badge:nth-child(n+4){display:none!important}
+    .ppp-prenote{margin:6px 12px 0}
+    .ppp-descwrap{grid-template-columns:1fr;position:relative;cursor:pointer}
+    .ppp-more{display:none!important}
+    .ppp-descwrap::after{content:"→";position:absolute;right:16px;bottom:12px;font-weight:700;opacity:.55;pointer-events:none}
   }
-
-  /* 右→中央ドロワー */
-  .drawer-backdrop{
-    position:fixed; inset:0; background:rgba(0,0,0,.35);
-    opacity:0; visibility:hidden; transition:opacity .25s ease; z-index:9998;
-  }
-  .drawer{
-    position:fixed; top:50%; left:50%;
-    width:min(92vw, 520px); height:min(80vh, 640px);
-    background:#fff; color:#111; border-radius:16px;
-    box-shadow:0 20px 50px rgba(0,0,0,.35);
-    transform: translate(150%, -50%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
-    z-index:9999; display:flex; flex-direction:column; will-change: transform;
-  }
-  .drawer.open{ transform: translate(-50%, -50%); }
-  .drawer-backdrop.open{ opacity:1; visibility:visible; }
-  .drawer .handle{ align-self:center; width:48px; height:4px; border-radius:2px; background:#e5e7eb; margin:12px 0 6px; }
-  .drawer .content{ padding:12px 16px 24px; overflow:auto; -webkit-overflow-scrolling:touch; font-size:14px; line-height:1.6; }
-  .drawer .close{ position:absolute; right:12px; top:8px; width:36px; height:36px; border-radius:18px; border:none; background:#f3f3f3; font-size:20px; cursor:pointer; }
-}
-
 </style>
 </head>
 <body>
-
 <header>
   <div class="wrap header-in">
     <div>
@@ -185,37 +75,19 @@
   </div>
 </header>
 
-<!-- メインメニュー（sticky） -->
-<div class="menubar">
-  <div class="wrap inner">
-    <div class="seg" role="tablist" aria-label="表示設定">
-      <button id="btnFilter" class="active" role="tab">絞り込み</button>
-      <button id="btnSort" role="tab">並べ替え</button>
-    </div>
-    <div class="toolbar">
-      <button class="iconbtn" id="btnFav"><span>♡</span><span>お気に入り</span></button>
-      <button class="iconbtn" id="btnCartView"><span>🛒</span><span>カートを見る</span><span class="dot" id="miniCount">0</span></button>
-    </div>
-  </div>
-</div>
-
 <main class="wrap">
   <section class="section">
     <h1 style="margin:.2em 0 0">翌日受け取り 予約注文</h1>
     <p class="lead">本ページは「取り置き予約（店頭受け取り）」の受付です。オンライン決済は行いません。お支払いは受け取り時に店頭にて。</p>
   </section>
 
-  <!-- 商品一覧（PC=2列、他=1列） -->
   <section class="grid" id="productGrid"></section>
 
   <section class="section">
-    <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">
-      写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。
-    </p>
+    <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。</p>
   </section>
 </main>
 
-<!-- 固定フッター（カートバー）：グリッド幅に合わせて中央寄せ -->
 <div class="cart" id="cartBar">
   <div class="wrap">
     <div id="cartCount" class="pill">0点</div>
@@ -226,213 +98,64 @@
   </div>
 </div>
 
-<!-- モーダル（もっと見る） -->
-<dialog id="itemModal">
-  <button class="modal-close" aria-label="閉じる">✕</button>
-  <div class="modal-inner">
-    <div class="modal-media"><img id="mImg" alt=""></div>
-    <div class="modal-body">
-      <div class="modal-crumb" id="mCrumb"></div>
-      <div class="modal-name" id="mName"></div>
-      <div class="modal-price" id="mPrice"></div>
-      <div class="lead" id="mDesc" style="font-size:14px;color:#6b7280"></div>
-      <div class="modal-actions">
-        <button class="btn" id="mAddBtn">カートに入れる</button>
-        <button class="btn line" id="mMoreBtn" style="display:none">別ページで見る</button>
-      </div>
-    </div>
-  </div>
-</dialog>
-
-
-
-
-
-
 <script>
-/* ===== 設定（必要最小限） ===== */
-const FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
-const ENTRY = { customerName:"entry.1872572951", phone:"entry.823790722", pickupDate:"entry.1515941336", orderJson:"entry.1388699337", minPossible:"entry.1229502757" };
-const CUTOFF_HOUR = 20;
-const IMG_BUST = String(Date.now());
-const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
+const FORM_BASE="https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
+const ENTRY={customerName:"entry.1872572951",phone:"entry.823790722",pickupDate:"entry.1515941336",orderJson:"entry.1388699337",minPossible:"entry.1229502757"};
+const CUTOFF_HOUR=20;
+const IMG_BUST=String(Date.now());
+const PRODUCTS_URL="https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 
-/* ===== 状態 ===== */
-let PRODUCTS = [];
-let productById = new Map();
-const state = { cart:{} };
+let PRODUCTS=[]; let productById=new Map(); const state={cart:{}};
+function yen(n){return '¥'+Number(n||0).toLocaleString();}
+function cartItems(){return Object.values(state.cart);}
+function cartCount(){return cartItems().reduce((s,i)=>s+i.qty,0);}
+function cartTotal(){return cartItems().reduce((s,i)=>s+i.qty*i.price,0);}
 
-/* ===== ユーティリティ ===== */
-function yen(n){ return '¥' + Number(n||0).toLocaleString(); }
-function cartItems(){ return Object.values(state.cart); }
-function cartCount(){ return cartItems().reduce((s,i)=>s+i.qty,0); }
-function cartTotal(){ return cartItems().reduce((s,i)=>s+i.qty*i.price,0); }
+function addToCart(p,q){state.cart[p.id]=state.cart[p.id]||{...p,qty:0};state.cart[p.id].qty+=q;renderCartBar();}
+function calcMinPickupDate(){const items=cartItems();if(items.length===0)return null;const maxLead=items.reduce((m,i)=>Math.max(m,Number(i.leadDays||1)),1);const now=new Date();const isAfterCutoff=now.getHours()>=CUTOFF_HOUR;const offset=(isAfterCutoff?1:0)+(Number(maxLead)||1);const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+offset);return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;}
+function renderCartBar(){document.getElementById('cartCount').textContent=`${cartCount()}点`;document.getElementById('cartTotal').textContent=yen(cartTotal());document.getElementById('cartMinDate').textContent=`最短受取 ${calcMinPickupDate()||'—'}`;}
 
-/* ===== ppp-カード描画（新カードのみ） ===== */
-(function(){
-  const grid = document.getElementById('productGrid');
-  if(grid) grid.classList.add('ppp-grid');
-
-  window.renderProducts = function renderProducts(){
-    if(!grid) return;
-    grid.innerHTML = '';
-    const isSP = window.matchMedia('(max-width: 720px)').matches;
-
-    (window.PRODUCTS||[]).filter(p=>p.active).forEach(p=>{
-      const soldout = Number(p.stock ?? 0) <= 0;
-      const crumb = [p.catGroup, p.subcatGroup].filter(Boolean).join(' › ');
-      const vars = [];
-      if(p.var1Id && p.var1Label) vars.push({id:String(p.var1Id), label:p.var1Label});
-      if(p.var2Id && p.var2Label) vars.push({id:String(p.var2Id), label:p.var2Label});
-
-      const badges = (p.badges && Array.isArray(p.badges) ? p.badges : []);
-      const bHTML = badges.map(txt=>`<span class="ppp-badge">${txt}</span>`).join('');
-
-      const el = document.createElement('article');
-      el.className = 'ppp-card';
-      el.setAttribute('data-id', p.id);
-      el.innerHTML = `
-        <div class="ppp-head">
-          <div class="ppp-crumbrow">
-            <div class="ppp-crumb">${crumb || ''}</div>
-            <div class="ppp-badges">${bHTML}</div>
-          </div>
+function renderProducts(){
+  const grid=document.getElementById('productGrid'); if(!grid) return; grid.classList.add('ppp-grid'); grid.innerHTML='';
+  (PRODUCTS||[]).filter(p=>p.active).forEach(p=>{
+    const soldout=Number(p.stock??0)<=0;
+    const crumb=[p.catGroup,p.subcatGroup].filter(Boolean).join(' › ');
+    const bHTML=(p.badges||[]).map(txt=>`<span class="ppp-badge">${txt}</span>`).join('');
+    const vars=[]; if(p.var1Id&&p.var1Label) vars.push({id:String(p.var1Id),label:p.var1Label}); if(p.var2Id&&p.var2Label) vars.push({id:String(p.var2Id),label:p.var2Label});
+    const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
+    const el=document.createElement('article'); el.className='ppp-card'; el.setAttribute('data-id',p.id);
+    el.innerHTML=`
+      <div class="ppp-crumbrow"><div class="ppp-crumb">${crumb||''}</div><div class="ppp-badges">${bHTML}</div></div>
+      <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
+      <div class="ppp-mi">
+        <div class="ppp-media"><div class="ppp-img"><img src="${p.img?(p.img+(p.img.includes('?')?'&':'?')+'v='+IMG_BUST):'https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image'}" alt="${p.name}" loading="lazy" decoding="async" referrerpolicy="no-referrer"></div></div>
+        <div class="ppp-info">
+          ${p.prenote?`<div class="ppp-prenote">${p.prenote}</div>`:''}
+          <div class="ppp-price">${(p.price>0&&!isNaN(p.price))?yen(p.price):'店頭価格'}</div>
+          ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
+          <div class="ppp-actions"><button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''}>${soldout?'品切れ':'カートに入れる'}</button><button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで買う済':'あとで買う'}</button></div>
+          ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
         </div>
-
-        <div class="ppp-titlebar">
-          <div class="ppp-name">${p.name||''}</div>
-          <button class="ppp-fav" data-fav="${p.id}" aria-label="お気に入り">♡</button>
-        </div>
-
-        <div class="ppp-mi">
-          <div class="ppp-media">
-            <div class="ppp-img">
-              <img src="${p.img ? (p.img + (p.img.includes('?') ? '&' : '?') + 'v=' + (window.IMG_BUST||'')) : 'https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image'}"
-                   alt="${(p.name||'').replace(/"/g,'&quot;')}"
-                   loading="lazy" decoding="async" referrerpolicy="no-referrer"
-                   onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';">
-            </div>
-          </div>
-          <div class="ppp-info">
-            ${p.prenote ? `<div class="ppp-prenote">${p.prenote}</div>` : ''}
-            <div class="ppp-price">${(p.price>0 && !isNaN(p.price)) ? (typeof yen==='function'?yen(p.price):p.price) : '店頭価格'}</div>
-            ${p.unitNote ? `<div class="ppp-unit">${p.unitNote}</div>` : ''}
-
-            <div class="ppp-actions">
-              <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''}>${soldout?'品切れ':'カートに入れる'}</button>
-              <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで買う済':'あとで買う'}</button>
-            </div>
-
-            ${vars.length ? `<div class="ppp-vars">${vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('')}</div>` : ''}
-          </div>
-        </div>
-
-        <div class="ppp-descwrap" data-detail="${p.id}">
-          <div class="ppp-desc" data-full="${(p.desc||'').replace(/"/g,'&quot;')}">${p.desc||''}</div>
-          <a class="ppp-more" href="#" data-detail="${p.id}">もっと見る</a>
-        </div>
-      `;
-      grid.appendChild(el);
-    });
-
-    if (isSP){
-      document.querySelectorAll('.ppp-card').forEach(card=>{
-        const namebar = card.querySelector('.ppp-titlebar');
-        const prenote = card.querySelector('.ppp-prenote');
-        if(namebar && prenote && !prenote.dataset.movedSp){
-          namebar.insertAdjacentElement('afterend', prenote);
-          prenote.dataset.movedSp = '1';
-        }
-      });
-    }
-  };
-
-  document.addEventListener('click', (ev)=>{
-    const add = ev.target.closest('.ppp-btn.add[data-add]');
-    const later = ev.target.closest('.ppp-btn[data-later]');
-    const fav = ev.target.closest('.ppp-fav[data-fav]');
-    const more = ev.target.closest('[data-detail]');
-    const vbtn = ev.target.closest('.ppp-pill[data-var]');
-
-    if(add){
-      const id = String(add.dataset.add);
-      const p = (window.productById && window.productById.get(id)) || (window.PRODUCTS||[]).find(x=>String(x.id)===id);
-      if(!p) return;
-      if(Number(p.stock ?? 0) <= 0) return;
-      if(typeof addToCart==='function') addToCart(p,1);
-    }
-    if(later){
-      const id = String(later.dataset.later);
-      const key = 'later:'+id;
-      const set = localStorage.getItem(key)==='1' ? '0' : '1';
-      localStorage.setItem(key, set);
-      later.textContent = set==='1' ? 'あとで買う済' : 'あとで買う';
-      later.classList.toggle('ghost', set!=='1');
-    }
-    if(fav){ fav.toggleAttribute('data-active'); }
-    if(more){ ev.preventDefault(); }
-    if(vbtn){ ev.preventDefault(); }
-  }, {passive:false});
-})();
-
-/* ===== カートバー（最低限） ===== */
-const cartCountEl=document.getElementById('cartCount');
-const miniCountEl=document.getElementById('miniCount');
-const cartTotalEl=document.getElementById('cartTotal');
-const cartMinDateEl=document.getElementById('cartMinDate');
-
-function addToCart(p,q){ state.cart[p.id]=state.cart[p.id]||{...p,qty:0}; state.cart[p.id].qty+=q; renderCartBar(); }
-function cartChangedCount(){ const cnt=cartCount(); if(cartCountEl) cartCountEl.textContent=`${cnt}点`; if(miniCountEl) miniCountEl.textContent=String(cnt); }
-function calcMinPickupDate(){
-  const items = cartItems();
-  if(items.length===0) return null;
-  const maxLead = items.reduce((m,i)=>Math.max(m, Number(i.leadDays||1)), 1);
-  const now = new Date();
-  const isAfterCutoff = now.getHours() >= CUTOFF_HOUR;
-  const offset = (isAfterCutoff?1:0) + (Number(maxLead)||1);
-  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate()+offset);
-  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
-  return `${y}/${m}/${day}`;
-}
-function renderCartBar(){
-  cartChangedCount();
-  if(cartTotalEl) cartTotalEl.textContent = yen(cartTotal());
-  const md = calcMinPickupDate();
-  if(cartMinDateEl) cartMinDateEl.textContent = `最短受取 ${md || '—'}`;
+      </div>
+      <div class="ppp-descwrap" data-detail="${p.id}"><div class="ppp-desc">${p.desc||''}</div><a class="ppp-more" href="#" data-detail="${p.id}">もっと見る</a></div>`;
+    grid.appendChild(el);
+  });
 }
 
-/* ===== データロード ===== */
 async function loadProducts(){
   try{
-    const res = await fetch(PRODUCTS_URL, {cache:'no-store'});
-    const data = await res.json();
-    const _rows = Array.isArray(data) ? data : (data.items || []);
-    PRODUCTS = _rows.map(x => ({ 
-      id: String(x.id ?? x.code ?? x.sku ?? ''),
-      name: x.name || x.title || '',
-      price: Number(x.price || 0),
-      cat: x.cat || x.category || 'その他',
-      catGroup: x.catGroup || '',
-      subcatGroup: x.subcatGroup || '',
-      desc: x.desc || '',
-      prenote: x.prenote || '',
-      unitNote: x.unitNote || '',
-      var1Id: x.var1Id || '',  var1Label: x.var1Label || '',
-      var2Id: x.var2Id || '',  var2Label: x.var2Label || '',
-      badges: Array.isArray(x.badges) ? x.badges : (typeof x.badges==='string' && x.badges ? x.badges.split(/[,、\s]+/).filter(Boolean) : []),
-      img: x.img || '',
-      stock: (x.stock === '' || x.stock == null) ? NaN : Number(x.stock),
-      active: (x.active === '' || x.active == null) ? true : !['false','0','no'].includes(String(x.active).toLowerCase()),
-      leadDays: Number(x.leadDays || 1)
-    }));
-    productById = new Map(PRODUCTS.map(p=>[String(p.id), p]));
-    renderProducts();
-  }catch(e){ console.error(e); }
+    const res=await fetch(PRODUCTS_URL,{cache:'no-store'}); const data=await res.json();
+    PRODUCTS=(data.items||[]).map(x=>({id:String(x.id),name:x.name,price:Number(x.price||0),catGroup:x.catGroup||'',subcatGroup:x.subcatGroup||'',desc:x.desc||'',prenote:x.prenote||'',unitNote:x.unitNote||'',var1Id:x.var1Id||'',var1Label:x.var1Label||'',var2Id:x.var2Id||'',var2Label:x.var2Label||'',badges:Array.isArray(x.badges)?x.badges:[],img:x.img||'',stock:Number(x.stock||0),active:Boolean(x.active),leadDays:Number(x.leadDays||1)}));
+    productById=new Map(PRODUCTS.map(p=>[p.id,p])); renderProducts();
+  }catch(e){console.error(e);}
 }
 
-loadProducts();
-renderCartBar();
-</script>
+document.addEventListener('click',ev=>{
+  const add=ev.target.closest('.ppp-btn.add[data-add]'); if(add){const p=productById.get(add.dataset.add); if(p) addToCart(p,1);}
+  const later=ev.target.closest('.ppp-btn[data-later]'); if(later){const id=later.dataset.later;const key='later:'+id;const set=localStorage.getItem(key)==='1'?'0':'1';localStorage.setItem(key,set);later.textContent=set==='1'?'あとで買う済':'あとで買う';}
+},{passive:false});
 
+loadProducts(); renderCartBar();
+</script>
 </body>
 </html>
