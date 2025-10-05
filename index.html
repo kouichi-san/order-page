@@ -5,156 +5,157 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ping-Pong-Pang｜翌日以降受け取り 注文</title>
 <style>
-  :root{
-    --bg:#fafafa; 
-    --ink:#1f2937; 
-    --muted:#6b7280; 
-    --brand:#10b981; 
-    --brand-ink:#064e3b;
-    --border:#e5e7eb;
-    --wrap:1080px; 
-    --btn-h:44px; 
-    --z-sticky:50;
-  }
-  *{ box-sizing:border-box }
-  body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; color:var(--ink); background:#fff }
-  .wrap{ max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px }
+:root{
+  --bg:#fafafa;
+  --ink:#1f2937;
+  --muted:#6b7280;
+  --brand:#10b981;
+  --brand-ink:#064e3b;
+  --border:#e5e7eb;
+  --wrap:1080px;
+  --btn-h:44px;
+  --z-sticky:50;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif;
+  color:var(--ink); background:#fff;
+}
+.wrap{max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px}
 
-  /* ===== ヘッダー ===== */
-  header{ background:#fff; border-bottom:1px solid var(--border) }
-  .header-in{ display:flex; gap:12px; align-items:center; padding:12px 0 }
-  .head-col{ display:flex; flex-direction:column; gap:2px; min-width:0 }
-  .brand{ 
-    font-size:20px; font-weight:800; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    text-indent:.4em; position:relative;
-  }
-  .brand::before{
-    content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
-    width:4px; height:1.2em; border-radius:2px; background:var(--brand);
-  }
+/* ===== ヘッダー ===== */
+header{background:#fff; border-bottom:1px solid var(--border)}
+.header-in{display:flex; align-items:center; padding:12px 0}
+.brand{
+  font-size:20px; font-weight:800; text-indent:.4em; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.brand::before{
+  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:4px; height:1.2em; border-radius:2px; background:var(--brand);
+}
 
-  /* ===== メニューバー ===== */
-  .menubar{
-    position:sticky; top:0; z-index:var(--z-sticky);
-    background:#fff; border-bottom:1px solid var(--border);
-  }
-  .menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0 }
-  .menu-btn{
-    appearance:none; border:1px solid var(--border); background:#fff; border-radius:10px;
-    padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
-  }
-  .menu-spacer{ flex:1 }
-  .menu-pill{ font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px; white-space:nowrap; cursor:pointer; }
+/* ===== メニューバー ===== */
+.menubar{position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border)}
+.menubar-in{display:flex; gap:8px; align-items:center; padding:10px 0}
+.menu-btn{
+  border:1px solid var(--border); background:#fff; border-radius:10px;
+  padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
+}
+.menu-spacer{flex:1}
+.menu-pill{
+  font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9;
+  border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px; white-space:nowrap; cursor:pointer;
+}
 
-  /* ===== 商品カード（既定レイアウト） ===== */
-  #productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
-  .ppp-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden }
-  .ppp-crumbrow{ display:block; padding:10px 12px 0 }
-  .ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
-  .ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px }
-  .ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
-  .ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid var(--border); display:grid; place-items:center; cursor:pointer }
-  .ppp-mi{
-    display:grid; grid-template-columns: minmax(160px, 6fr) minmax(140px, 4fr);
-    column-gap:12px; align-items:start; padding:0 12px;
-  }
-  .ppp-mi > .ppp-media, .ppp-mi > .ppp-info { min-width:0; }
-  .ppp-img{ aspect-ratio:4/3; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
-  .ppp-img>img{ width:100%; height:100%; object-fit:contain; display:block }
-  .ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .ppp-price{ font-weight:900; font-size:22px }
-  .ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
-  .ppp-actions{ display:grid; grid-template-columns:7fr 3fr; gap:8px; margin-bottom:10px; }
-  .ppp-btn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-weight:800; display:inline-flex; align-items:center; justify-content:center; height:var(--btn-h); white-space:nowrap; min-width:0; padding:0 12px; font-size: clamp(13px, 1.6vw, 16px); }
-  .ppp-btn.add{ background:var(--brand); color:#fff; border-color:transparent; }
-  .ppp-btn.add:active{ transform:translateY(1px) }
-  .ppp-vars{ display:flex; flex-direction:column; gap:4px; margin-top:2px; }
-  .ppp-pill{ width:100%; padding:6px 8px; border:1px solid var(--border); background:#fff; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px; }
-  .ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px }
-  .ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height:calc(1.5 * 3 * 1em); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
-  .ppp-more{ display:inline-flex; align-items:center; justify-content:center; text-decoration:none; color:#0ea5e9; }
-  .more--chev{ width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff }
-  .more--chev::before{ content:"›"; font-size:18px; line-height:1; }
-  .more--chev:active{ transform: translateY(1px); }
+/* ===== 商品カード ===== */
+#productGrid.ppp-grid{
+  display:grid; grid-template-columns:repeat(2,540px);
+  justify-content:space-between; gap:0;
+}
+.ppp-card{
+  width:540px; background:#fff; border:1px solid var(--border);
+  border-radius:16px; overflow:hidden;
+}
+.ppp-crumbrow{ display:block; padding:10px 12px 0 }
+.ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
+.ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px }
+.ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+.ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid var(--border); display:grid; place-items:center; cursor:pointer }
+.ppp-mi{ display:grid; grid-template-columns:minmax(160px,6fr) minmax(140px,4fr); column-gap:12px; align-items:start; padding:0 12px }
+.ppp-mi > .ppp-media, .ppp-mi > .ppp-info { min-width:0 }
+.ppp-img{ aspect-ratio:4/3; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
+.ppp-img>img{ width:100%; height:100%; object-fit:contain; display:block }
+.ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.ppp-price{ font-weight:900; font-size:22px }
+.ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
+.ppp-actions{ display:grid; grid-template-columns:7fr 3fr; gap:8px; margin-bottom:10px }
+.ppp-btn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-weight:800; display:inline-flex; align-items:center; justify-content:center; height:var(--btn-h); white-space:nowrap; min-width:0; padding:0 12px; font-size:clamp(13px,1.6vw,16px) }
+.ppp-btn.add{ background:var(--brand); color:#fff; border-color:transparent }
+.ppp-btn.add:active{ transform:translateY(1px) }
+.ppp-vars{ display:flex; flex-direction:column; gap:4px; margin-top:2px }
+.ppp-pill{ width:100%; padding:6px 8px; border:1px solid var(--border); background:#fff; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
+.ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px }
+.ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height:calc(1.5 * 3 * 1em); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
+.ppp-more{ display:inline-flex; align-items:center; justify-content:center; text-decoration:none; color:#0ea5e9 }
+.more--chev{ width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff }
+.more--chev::before{ content:"›"; font-size:18px; line-height:1 }
+.more--chev:active{ transform: translateY(1px) }
 
-  /* SPはカード1列 */
-  @media(max-width:720px){
-    #productGrid.ppp-grid{ grid-template-columns:1fr; gap:12px }
-    .ppp-card{ width:auto }
-  }
+@media(max-width:720px){
+  #productGrid.ppp-grid{ grid-template-columns:1fr; gap:12px }
+  .ppp-card{ width:auto }
+}
 
-  /* ===== カートバー（PC既定） ===== */
-  .cart{ position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border); }
-  .cart .wrap{ padding:8px 16px; }
+/* ===== フッター（共通ベース） ===== */
+.cart{ position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border) }
+.cart .wrap{ padding:0 16px }
+.cart-box{
+  display:flex; align-items:center; gap:12px;
+  justify-content:space-between;
+  padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom));
+}
+.pill{
+  font-size:14px; background:#f0fdf4; color:var(--brand-ink);
+  border:1px solid #d1fae5; border-radius:999px;
+  padding:6px 14px; white-space:nowrap;
+}
+.count{font-size:14px}
+.total{font-weight:900; font-size:18px}
+.btn-cart{
+  background:var(--brand); color:#fff; border:none;
+  border-radius:10px; padding:10px 18px;
+  cursor:pointer; font-weight:800; white-space:nowrap;
+}
+.btn-cart:active{ transform:translateY(1px) }
+
+/* ===== PC整列（カード幅中央・左寄り解消） ===== */
+@media(min-width:721px){
+  .cart .wrap{ max-width:var(--wrap); margin:0 auto }
+  .cart-box{ justify-content:flex-end; gap:16px }
+  .cart-left{ margin-right:auto; display:flex; align-items:center; gap:12px }
+  .count, .total{ min-width:60px; text-align:right }
+}
+
+/* ===== SP版（2行グリッド：点数復活／合計右寄せ／下隙間なし） ===== */
+@media(max-width:420px){
   .cart-box{
-    display:flex; align-items:center; gap:12px; 
-    background:#fff; border:0; border-radius:0;
-    padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom));
-    box-shadow:none;
+    display:grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap:6px 10px; align-items:center;
+    padding:8px 0; padding-bottom:calc(8px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--border);
   }
-  .pill{ 
-    font-size:14px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; 
-    border-radius:999px; padding:6px 14px; text-align:center; white-space:nowrap;
-  }
-  .count{ white-space:nowrap } /* PCで使う想定（SPは後述で非表示） */
-  .total{ font-weight:900; font-size:18px; color:#0f172a; white-space:nowrap }
-  .btn-cart{ background:var(--brand); color:#fff; border:none; border-radius:10px; padding:10px 18px; cursor:pointer; min-height:40px; white-space:nowrap; font-weight:800; }
-  .btn-cart:active{ transform:translateY(1px) }
-
-  /* ===== SP専用のカートバー最適化 ===== */
-  @media(max-width:420px){
-    /* 2行グリッドで余裕を作り、要素が消えない */
-    .cart-box{
-      display:grid;
-      grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto;
-      gap:8px 10px;
-      padding:8px 0; /* 下に隙間が出ないよう最小化（safe-areaは下段で吸収） */
-      padding-bottom:calc(8px + env(safe-area-inset-bottom));
-      background:#fff;
-      box-shadow:none;  /* 浮遊感の影をオフ＝下の隙間感を解消 */
-      border-top:1px solid var(--border);
-    }
-    /* 最短受取：1行目で左に広く。省略しない */
-    .cart-min { grid-column:1 / 2; grid-row:1; }
-    .pill.cart-min{
-      font-size:14px; padding:6px 14px;
-      min-width:0; max-width:100%;
-      white-space:nowrap; overflow:visible; text-overflow:clip;
-    }
-    /* 商品点数はSPではトリ（非表示） */
-    .count{ display:none; }
-    /* 合計は2行目の左 */
-    .total{ grid-column:1 / 2; grid-row:2; font-size:16px; }
-    /* カートボタンは右で上下2段をまたいで常に表示 */
-    .btn-cart{ grid-column:2 / 3; grid-row:1 / 3; align-self:stretch; padding:10px 14px; border-radius:10px; }
-    /* 最下部の黒バー（ホームインジケータ）と視覚的な隙間が出ないよう背景を連続させる */
-    .cart{ background:#fff; }
-    .cart::after{
-      content:""; display:block; height:env(safe-area-inset-bottom); background:#fff;
-    }
-  }
+  /* 1段目：最短受取（全表示）＋右にボタン（ボタンは2段分） */
+  .cart-min { grid-column:1/2; grid-row:1 }
+  .pill.cart-min{ min-width:0; max-width:100%; overflow:visible; text-overflow:clip; white-space:nowrap }
+  .btn-cart{ grid-column:2/3; grid-row:1/3; align-self:stretch; padding:10px 14px; min-width:72px; border-radius:10px }
+  /* 2段目：左＝点数、右＝合計（右寄せ） */
+  .cart-mid { grid-column:1/2; grid-row:2; display:flex; align-items:center; justify-content:space-between; gap:12px }
+  .cart-mid .total{ text-align:right; flex:1 }
+  /* 画面下の隙間を完全に吸収 */
+  .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
+}
 </style>
 </head>
 <body>
 <header>
   <div class="wrap header-in">
-    <div class="head-col">
-      <div class="brand">Ping-Pong-Pang</div>
-    </div>
+    <div class="brand">Ping-Pong-Pang</div>
   </div>
 </header>
 
 <main class="wrap">
   <section class="section">
     <h1 style="margin:.2em 0 0">翌日以降受取予約注文</h1>
-    <p class="lead" style="color:#6b7280; font-size:14px; margin:.3em 0 0;">
+    <p style="color:#6b7280; font-size:14px; margin:.3em 0 0">
       本ページは「取り置き予約（店頭受け取り）」の受付です。オンライン決済は行いません。お支払いは受け取り時に店頭にて。
     </p>
   </section>
 </main>
 
-<nav class="menubar" id="menubar">
+<nav class="menubar">
   <div class="wrap menubar-in">
     <button class="menu-btn">すべて</button>
     <button class="menu-btn">カテゴリ</button>
@@ -165,7 +166,7 @@
 </nav>
 
 <main class="wrap">
-  <section class="grid" id="productGrid"></section>
+  <section id="productGrid" class="ppp-grid"></section>
   <section class="section">
     <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">
       写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。
@@ -173,13 +174,17 @@
   </section>
 </main>
 
-<!-- フッター（SPは2行グリッド） -->
+<!-- ===== フッター（SP2行・PC中央整列） ===== -->
 <div class="cart" id="cartBar">
   <div class="wrap">
     <div class="cart-box">
-      <div id="cartMinDate" class="pill cart-min">最短受取 2025/10/06(月)</div>
-      <div id="cartCount" class="pill count">0点</div>
-      <div class="total" id="cartTotal">¥0</div>
+      <div class="cart-left">
+        <div id="cartMinDate" class="pill cart-min">最短受取 —</div>
+      </div>
+      <div class="cart-mid">
+        <div class="count" id="cartCount">0点</div>
+        <div class="total" id="cartTotal">¥0</div>
+      </div>
       <button class="btn-cart" id="checkoutBtn2">カート</button>
     </div>
   </div>
@@ -218,8 +223,8 @@ function renderCartBar(){
   const t=totals();
   const totalEl=document.getElementById('cartTotal');
   const countEl=document.getElementById('cartCount');
-  if(totalEl) totalEl.textContent=yen(t.total);
-  if(countEl)  countEl.textContent=`${t.items.reduce((a,b)=>a+b.qty,0)}点`;
+  totalEl.textContent=yen(t.total);
+  countEl.textContent=`${t.items.reduce((a,b)=>a+b.qty,0)}点`;
 }
 
 function renderMinDate(){
@@ -227,13 +232,11 @@ function renderMinDate(){
   state.minDateISO = isoDate(d);
   const label = `最短受取 ${fmtJP(d)}`;
   const el = document.getElementById('cartMinDate');
-  if (el) el.textContent = label; // SPでは省略なしで表示
+  if (el) el.textContent = label; // SPは省略なしで全表示
 }
 
 function addToCart(p,qty){ const q=Number(state.cart[p.id]||0)+Number(qty||1);
   state.cart[p.id]=q; localStorage.setItem('cart',JSON.stringify(state.cart)); renderCartBar(); }
-
-try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(e){ state.cart={} }
 
 /** ========= 商品描画 ========= **/
 function renderProducts(){
@@ -314,7 +317,7 @@ document.addEventListener('click',ev=>{
 /** ========= 初期化 ========= **/
 (function init(){
   try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
-  renderMinDate();   // ページオープン時点で表示（SPは省略なし）
+  renderMinDate();
   renderCartBar();
   loadProducts();
 })();
