@@ -17,46 +17,25 @@
   --z-sticky:50;
 }
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif;
-  color:var(--ink); background:#fff;
-}
-.wrap{max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px}
+body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; color:var(--ink); background:#fff }
+.wrap{ max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px }
 
 /* ===== ヘッダー ===== */
-header{background:#fff; border-bottom:1px solid var(--border)}
-.header-in{display:flex; align-items:center; padding:12px 0}
-.brand{
-  font-size:20px; font-weight:800; text-indent:.4em; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.brand::before{
-  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
-  width:4px; height:1.2em; border-radius:2px; background:var(--brand);
-}
+header{ background:#fff; border-bottom:1px solid var(--border) }
+.header-in{ display:flex; align-items:center; padding:12px 0 }
+.brand{ font-size:20px; font-weight:800; text-indent:.4em; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.brand::before{ content:""; position:absolute; left:0; top:50%; transform:translateY(-50%); width:4px; height:1.2em; border-radius:2px; background:var(--brand) }
 
 /* ===== メニューバー ===== */
-.menubar{position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border)}
-.menubar-in{display:flex; gap:8px; align-items:center; padding:10px 0}
-.menu-btn{
-  border:1px solid var(--border); background:#fff; border-radius:10px;
-  padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
-}
-.menu-spacer{flex:1}
-.menu-pill{
-  font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9;
-  border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px; white-space:nowrap; cursor:pointer;
-}
+.menubar{ position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border) }
+.menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0 }
+.menu-btn{ border:1px solid var(--border); background:#fff; border-radius:10px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap }
+.menu-spacer{ flex:1 }
+.menu-pill{ font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px; white-space:nowrap; cursor:pointer }
 
-/* ===== 商品カード ===== */
-#productGrid.ppp-grid{
-  display:grid; grid-template-columns:repeat(2,540px);
-  justify-content:space-between; gap:0;
-}
-.ppp-card{
-  width:540px; background:#fff; border:1px solid var(--border);
-  border-radius:16px; overflow:hidden;
-}
+/* ===== 商品カード（既存） ===== */
+#productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
+.ppp-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden }
 .ppp-crumbrow{ display:block; padding:10px 12px 0 }
 .ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
 .ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px }
@@ -95,46 +74,54 @@ header{background:#fff; border-bottom:1px solid var(--border)}
   justify-content:space-between;
   padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom));
 }
-.pill{
-  font-size:14px; background:#f0fdf4; color:var(--brand-ink);
-  border:1px solid #d1fae5; border-radius:999px;
-  padding:6px 14px; white-space:nowrap;
-}
-.count{font-size:14px}
-.total{font-weight:900; font-size:18px}
-.btn-cart{
-  background:var(--brand); color:#fff; border:none;
-  border-radius:10px; padding:10px 18px;
-  cursor:pointer; font-weight:800; white-space:nowrap;
-}
+.pill{ font-size:14px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; border-radius:999px; padding:6px 14px; white-space:nowrap }
+.count{ font-size:14px }
+.total{ font-weight:900; font-size:18px }
+.btn-cart{ background:var(--brand); color:#fff; border:none; border-radius:10px; padding:10px 18px; cursor:pointer; font-weight:800; white-space:nowrap }
 .btn-cart:active{ transform:translateY(1px) }
 
-/* ===== PC整列（カード幅中央・左寄り解消） ===== */
+/* ===== PC整列（カード幅中央揃え） ===== */
 @media(min-width:721px){
   .cart .wrap{ max-width:var(--wrap); margin:0 auto }
   .cart-box{ justify-content:flex-end; gap:16px }
   .cart-left{ margin-right:auto; display:flex; align-items:center; gap:12px }
   .count, .total{ min-width:60px; text-align:right }
+  /* PCでは最短受取は1行表示に戻す */
+  .min-label{ display:none }
+  .min-date::before{ content:"最短受取 " }
 }
 
-/* ===== SP版（2行グリッド：点数復活／合計右寄せ／下隙間なし） ===== */
+/* ===== SP版（2行・行間詰め・点数を価格の上） ===== */
 @media(max-width:420px){
   .cart-box{
     display:grid;
     grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
-    gap:6px 10px; align-items:center;
-    padding:8px 0; padding-bottom:calc(8px + env(safe-area-inset-bottom));
+    gap:4px 10px;              /* ← 行間を詰める */
+    align-items:center;
+    padding:6px 0;             /* ← 余白を詰める */
+    padding-bottom:calc(6px + env(safe-area-inset-bottom));
     border-top:1px solid var(--border);
   }
-  /* 1段目：最短受取（全表示）＋右にボタン（ボタンは2段分） */
-  .cart-min { grid-column:1/2; grid-row:1 }
-  .pill.cart-min{ min-width:0; max-width:100%; overflow:visible; text-overflow:clip; white-space:nowrap }
+  /* 1段目：最短受取（2行化） */
+  .cart-min{ grid-column:1/2; grid-row:1 }
+  .pill.cart-min{
+    white-space:normal;         /* 2行許可 */
+    line-height:1.2;            /* 行間を詰める */
+    padding:6px 10px;
+  }
+  .min-label{ display:block; font-size:12px; color:#065f46; opacity:.9 }
+  .min-date{ display:block; font-weight:700; font-size:14px }
+  /* 2段目：点数が上、金額が下（右寄せ） */
+  .cart-mid{
+    grid-column:1/2; grid-row:2;
+    display:flex; flex-direction:column; align-items:flex-end; gap:2px; /* ←縦積み・行間詰め */
+  }
+  .cart-mid .count{ font-size:12px; opacity:.9 }
+  .cart-mid .total{ font-size:17px; text-align:right }
+  /* カートボタンは2段またぎで常時表示 */
   .btn-cart{ grid-column:2/3; grid-row:1/3; align-self:stretch; padding:10px 14px; min-width:72px; border-radius:10px }
-  /* 2段目：左＝点数、右＝合計（右寄せ） */
-  .cart-mid { grid-column:1/2; grid-row:2; display:flex; align-items:center; justify-content:space-between; gap:12px }
-  .cart-mid .total{ text-align:right; flex:1 }
-  /* 画面下の隙間を完全に吸収 */
+  /* 下端の黒バーと隙間が出ないよう吸収 */
   .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
 }
 </style>
@@ -174,12 +161,15 @@ header{background:#fff; border-bottom:1px solid var(--border)}
   </section>
 </main>
 
-<!-- ===== フッター（SP2行・PC中央整列） ===== -->
+<!-- ===== フッター（SP2行：最短受取2行／点数は価格の上） ===== -->
 <div class="cart" id="cartBar">
   <div class="wrap">
     <div class="cart-box">
       <div class="cart-left">
-        <div id="cartMinDate" class="pill cart-min">最短受取 —</div>
+        <div id="cartMinDate" class="pill cart-min">
+          <span class="min-label">最短受取日</span>
+          <span class="min-date">—</span>
+        </div>
       </div>
       <div class="cart-mid">
         <div class="count" id="cartCount">0点</div>
@@ -221,18 +211,15 @@ function totals(){
 
 function renderCartBar(){
   const t=totals();
-  const totalEl=document.getElementById('cartTotal');
-  const countEl=document.getElementById('cartCount');
-  totalEl.textContent=yen(t.total);
-  countEl.textContent=`${t.items.reduce((a,b)=>a+b.qty,0)}点`;
+  document.getElementById('cartTotal').textContent=yen(t.total);
+  document.getElementById('cartCount').textContent=`${t.items.reduce((a,b)=>a+b.qty,0)}点`;
 }
 
 function renderMinDate(){
   const d = calcMinDate();
   state.minDateISO = isoDate(d);
-  const label = `最短受取 ${fmtJP(d)}`;
-  const el = document.getElementById('cartMinDate');
-  if (el) el.textContent = label; // SPは省略なしで全表示
+  const elDate = document.querySelector('#cartMinDate .min-date');
+  if (elDate) elDate.textContent = fmtJP(d); // 2行目だけ更新（1行目は固定の「最短受取日」）
 }
 
 function addToCart(p,qty){ const q=Number(state.cart[p.id]||0)+Number(qty||1);
@@ -259,7 +246,7 @@ function renderProducts(){
           <div class="ppp-price">${(p.price>0&&!isNaN(p.price))?yen(p.price):'店頭価格'}</div>
           ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
           <div class="ppp-actions">
-            <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''} aria-label="カート追加"><span class="label">${soldout?'品切れ':'カート追加'}</span></button>
+            <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''}><span class="label">${soldout?'品切れ':'カート追加'}</span></button>
             <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで済':'あとで'}</button>
           </div>
           ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
@@ -317,7 +304,7 @@ document.addEventListener('click',ev=>{
 /** ========= 初期化 ========= **/
 (function init(){
   try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
-  renderMinDate();
+  renderMinDate();   // SPは2行、PCはCSSで1行に見せる
   renderCartBar();
   loadProducts();
 })();
