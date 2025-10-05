@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Ping-Pong-Pang｜翌日受け取り 注文</title>
 <style>
-  :root{ --bg:#fafafa; --ink:#1f2937; --muted:#6b7280; --brand:#0ea5e9; --border:#e5e7eb; --wrap:1080px; --btn-h:44px; }
+  :root{
+    --bg:#fafafa; --ink:#1f2937; --muted:#6b7280; --brand:#0ea5e9; --border:#e5e7eb;
+    --wrap:1080px; --btn-h:44px;
+  }
   *{ box-sizing:border-box }
   body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; color:var(--ink); background:var(--bg) }
   .wrap{ max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px }
@@ -32,7 +35,7 @@
   .ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
   .ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid var(--border); display:grid; place-items:center; cursor:pointer }
 
-  /* C) 画像は比率可変。SPでもINFOを下に回り込ませず横並び維持 */
+  /* C) 画像は比率可変。SPでもINFOを下に回り込ませず常に横並び */
   .ppp-mi{
     display:grid;
     grid-template-columns: minmax(160px, 6fr) minmax(140px, 4fr); /* 6:4 */
@@ -41,7 +44,7 @@
     padding:0 12px;
   }
   .ppp-mi > .ppp-media,
-  .ppp-mi > .ppp-info { min-width:0; } /* 押し出し防止（超重要） */
+  .ppp-mi > .ppp-info { min-width:0; } /* 押し出し防止 */
 
   .ppp-img{ aspect-ratio:4/3; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
   .ppp-img>img{ width:100%; height:100%; object-fit:contain; display:block }
@@ -54,8 +57,8 @@
   .ppp-price{ font-weight:900; font-size:22px }
   .ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
 
-  /* 2ボタン（横並び・可変幅/可変文字・折返し禁止・高さ固定） */
-  .ppp-actions{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+  /* 2ボタン（7:3／横並び・可変幅/可変文字・折返し禁止・高さ固定） */
+  .ppp-actions{ display:grid; grid-template-columns:7fr 3fr; gap:8px }
   .ppp-btn{
     appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-weight:800;
     display:inline-flex; align-items:center; justify-content:center; height:var(--btn-h); line-height:var(--btn-h);
@@ -68,7 +71,7 @@
   @media (max-width: 420px){
     .ppp-btn.add::before{ content:"🛒"; display:inline-block; margin-right:.35em; }
     .ppp-btn.add .label{
-      position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0); overflow:hidden; /* 画面外へ */
+      position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0); overflow:hidden;
     }
     .ppp-btn.add::after{ content:"追加"; }
   }
@@ -80,13 +83,17 @@
   .ppp-vars{ display:grid; grid-template-rows:repeat(2,auto); gap:6px }
   .ppp-pill{ width:100%; border:1px solid var(--border); background:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
 
-  /* D) 説明＋もっと見る */
+  /* D) 説明＋パターン1「›」だけのスマートトリガー */
   .ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px }
   .ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height:calc(1.5 * 3 * 1em);
              display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
-  .ppp-more{ font-size:13px; color:var(--brand); text-decoration:underline }
 
-  /* カード1列化は維持（SPはカードが縦並び。ただしカード内は常に2カラム） */
+  .ppp-more{ display:inline-flex; align-items:center; justify-content:center; text-decoration:none; color:#0ea5e9; }
+  .more--chev{ width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff }
+  .more--chev::before{ content:"›"; font-size:18px; line-height:1; }
+  .more--chev:active{ transform: translateY(1px); }
+
+  /* カードはSPで1列化（カード内は常に2カラム維持） */
   @media(max-width:720px){
     #productGrid.ppp-grid{ grid-template-columns:1fr; justify-content:stretch; gap:12px }
     .ppp-card{ width:auto }
@@ -139,6 +146,7 @@
 const FORM_BASE="https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
 const ENTRY={customerName:"entry.1872572951",phone:"entry.823790426",pickup:"entry.1058935046",memo:"entry.2090841286",orderJson:"entry.1388699337",minPossible:"entry.1229502757"};
 const CUTOFF_HOUR=20;
+/* ← ご自身のGAS WebアプリURLに置き換え可 */
 const PRODUCTS_URL="https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 
 let PRODUCTS=[]; let productById=new Map(); const state={cart:{}};
@@ -205,16 +213,16 @@ function renderProducts(){
           ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
           <div class="ppp-actions">
             <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''} aria-label="カートに入れる"><span class="label">${soldout?'品切れ':'カートに入れる'}</span></button>
-            <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで買う済':'あとで買う'}</button>
+            <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで済':'あとで'}</button>
           </div>
           ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
         </div>
       </div>
 
-      <!-- D) 説明＋もっと見る -->
+      <!-- D) 説明＋パターン1（›だけのスマートトリガー） -->
       <div class="ppp-descwrap" data-detail="${p.id}">
         <div class="ppp-desc">${p.desc||''}</div>
-        <a class="ppp-more" href="#" data-detail="${p.id}">もっと見る</a>
+        <a class="ppp-more more--chev" href="#" data-detail="${p.id}" aria-label="詳しく"></a>
       </div>`;
     grid.appendChild(el);
   });
@@ -226,10 +234,10 @@ async function loadProducts(){
     const res=await fetch(PRODUCTS_URL,{cache:'no-store'});
     const data=await res.json();
     PRODUCTS=(data.items||[]).map(x=>({
-      id:String(x.id || x.code || ''), // ← GASがcodeを返す場合に対応
+      id:String(x.id || x.code || ''),     // codeでも拾う
       name:x.name,
       price:Number(x.price||0),
-      img:x.img || x.imageUrl || '',   // ← 堅牢に
+      img:x.img || x.imageUrl || '',       // 堅牢に
       desc:x.desc||'',
       prenote:x.prenote||'',
       unitNote:x.unitNote||'',
@@ -238,7 +246,7 @@ async function loadProducts(){
       var1Id:x.var1Id||'', var1Label:x.var1Label||'',
       var2Id:x.var2Id||'', var2Label:x.var2Label||'',
       stock:(x.stock!==undefined?Number(x.stock):undefined),
-      active:(x.active===undefined ? true : Boolean(x.active)), // ← 未定義なら表示
+      active:(x.active===undefined ? true : Boolean(x.active)), // 未定義は表示
       leadDays:Number(x.leadDays||1)
     }));
     productById=new Map(PRODUCTS.map(p=>[p.id,p]));
@@ -248,17 +256,33 @@ async function loadProducts(){
 
 /* ===== events ===== */
 document.addEventListener('click',ev=>{
+  // 追加
   const add=ev.target.closest('.ppp-btn.add[data-add]');
   if(add){ ev.preventDefault(); const p=productById.get(add.dataset.add); if(p) addToCart(p,1); }
 
+  // あとでトグル
   const later=ev.target.closest('.ppp-btn[data-later]');
-  if(later){ ev.preventDefault(); const key='later:'+later.dataset.later; const set=(localStorage.getItem(key)==='1'?'0':'1');
-    localStorage.setItem(key,set); later.textContent=set==='1'?'あとで買う済':'あとで買う';
+  if(later){
+    ev.preventDefault();
+    const key='later:'+later.dataset.later;
+    const set=(localStorage.getItem(key)==='1'?'0':'1');
+    localStorage.setItem(key,set);
+    later.textContent=set==='1'?'あとで済':'あとで';
+  }
+
+  // もっと見る（ドロワー起動用のフック。ここでは prevent のみ）
+  const more=ev.target.closest('.ppp-more[data-detail]');
+  if(more){
+    ev.preventDefault();
+    const pid = more.dataset.detail;
+    // ここで右→中央ドロワーを開くハンドラに接続してください（別実装想定）
+    console.log('open drawer for', pid);
   }
 },{passive:false});
 
 /* init */
-loadProducts(); renderCartBar();
+loadProducts();
+renderCartBar();
 </script>
 </body>
 </html>
