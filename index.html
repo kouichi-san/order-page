@@ -19,7 +19,7 @@
   .section{ padding:16px 0 }
   .lead{ color:var(--muted); font-size:14px }
 
-  /* ===== グリッド/カード ===== */
+  /* ===== 商品カードグリッド ===== */
   #productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
   .ppp-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden }
 
@@ -32,22 +32,49 @@
   .ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
   .ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid var(--border); display:grid; place-items:center; cursor:pointer }
 
-  /* C) 画像は比率可変 / INFO */
-  .ppp-mi{ display:grid; grid-template-columns:6fr 4fr; align-items:start; gap:12px; padding:0 12px }
-  .ppp-img{ aspect-ratio:4/3; border:1px solid var(--border); border-radius:12px; overflow:hidden }
+  /* C) 画像は比率可変。SPでもINFOを下に回り込ませず横並び維持 */
+  .ppp-mi{
+    display:grid;
+    grid-template-columns: minmax(160px, 6fr) minmax(140px, 4fr); /* 6:4 */
+    column-gap:12px;
+    align-items:start;
+    padding:0 12px;
+  }
+  .ppp-mi > .ppp-media,
+  .ppp-mi > .ppp-info { min-width:0; } /* 押し出し防止（超重要） */
+
+  .ppp-img{ aspect-ratio:4/3; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
   .ppp-img>img{ width:100%; height:100%; object-fit:contain; display:block }
 
-  .ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155;
-                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ppp-prenote{
+    background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px;
+    font-size:13px; color:#334155;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; /* 1行固定 */
+  }
   .ppp-price{ font-weight:900; font-size:22px }
   .ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
 
   /* 2ボタン（横並び・可変幅/可変文字・折返し禁止・高さ固定） */
   .ppp-actions{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
-  .ppp-btn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-weight:800;
-            display:inline-flex; align-items:center; justify-content:center; height:var(--btn-h); line-height:var(--btn-h);
-            white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; font-size:clamp(13px,1.6vw,16px); padding:0 12px }
+  .ppp-btn{
+    appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-weight:800;
+    display:inline-flex; align-items:center; justify-content:center; height:var(--btn-h); line-height:var(--btn-h);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; padding:0 12px;
+    font-size: clamp(13px, 1.6vw, 16px);
+  }
   .ppp-btn.add{ background:var(--brand); color:#fff; border-color:transparent }
+
+  /* 狭幅での短縮表示：🛒 追加 → 極小はアイコンのみ（aria-labelで担保） */
+  @media (max-width: 420px){
+    .ppp-btn.add::before{ content:"🛒"; display:inline-block; margin-right:.35em; }
+    .ppp-btn.add .label{
+      position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0); overflow:hidden; /* 画面外へ */
+    }
+    .ppp-btn.add::after{ content:"追加"; }
+  }
+  @media (max-width: 340px){
+    .ppp-btn.add::after{ content:""; }
+  }
 
   /* バリエーション：縦積み2段（最大2件） */
   .ppp-vars{ display:grid; grid-template-rows:repeat(2,auto); gap:6px }
@@ -59,18 +86,15 @@
              display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
   .ppp-more{ font-size:13px; color:var(--brand); text-decoration:underline }
 
-  /* SP */
+  /* カード1列化は維持（SPはカードが縦並び。ただしカード内は常に2カラム） */
   @media(max-width:720px){
     #productGrid.ppp-grid{ grid-template-columns:1fr; justify-content:stretch; gap:12px }
     .ppp-card{ width:auto }
-    .ppp-mi{ grid-template-columns:1fr }
-    .ppp-price{ font-size:20px }
-    .ppp-name{-webkit-line-clamp:2}
   }
 
-  /* 下部カートバー（既存） */
+  /* 下部カートバー */
   .cart{ position:sticky; bottom:0; left:0; right:0; background:#0f172a; color:#fff; border-top:1px solid #111827 }
-  .cart .wrap{ display:flex; gap:12px; align-items:center; padding:10px 16px }
+  .cart .wrap{ display:flex; gap:12px; align-items:center; padding:10px 16px; padding-bottom:calc(10px + env(safe-area-inset-bottom)) }
   .cart .pill{ font-size:12px; background:#111827; border:1px solid #1f2937; border-radius:999px; padding:6px 10px }
   .cart .spacer{ flex:1 }
   .cart .total{ font-weight:900; font-size:18px }
@@ -146,7 +170,7 @@ function renderProducts(){
   const grid=document.getElementById('productGrid');
   grid.className='ppp-grid'; grid.innerHTML='';
 
-  PRODUCTS.filter(p=>p.active!==false).forEach(p=>{
+  (PRODUCTS||[]).filter(p => p.active !== false).forEach(p=>{
     const soldout=(p.stock!==undefined && Number(p.stock)<=0);
     const crumb=[p.catGroup,p.subcatGroup].filter(Boolean).join(' › ');
     const vars=[]; if(p.var1Id&&p.var1Label) vars.push({id:String(p.var1Id),label:p.var1Label});
@@ -158,9 +182,7 @@ function renderProducts(){
 
     el.innerHTML=`
       <!-- A) パンくずのみ（1行省略） -->
-      <div class="ppp-crumbrow">
-        <div class="ppp-crumb">${crumb||''}</div>
-      </div>
+      <div class="ppp-crumbrow"><div class="ppp-crumb">${crumb||''}</div></div>
 
       <!-- B) タイトル+お気に入り -->
       <div class="ppp-titlebar">
@@ -168,17 +190,21 @@ function renderProducts(){
         <button class="ppp-fav" data-fav="${p.id}">♡</button>
       </div>
 
-      <!-- C) 画像（比率可変） × INFO -->
+      <!-- C) 画像（比率可変） × INFO（SPでも横並び維持） -->
       <div class="ppp-mi">
         <div class="ppp-media">
-          <div class="ppp-img"><img src="${p.img||''}" loading="lazy" decoding="async" referrerpolicy="no-referrer"></div>
+          <div class="ppp-img">
+            <img src="${p.img||''}" alt="${p.name||''}"
+                 loading="lazy" decoding="async" referrerpolicy="no-referrer"
+                 onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';">
+          </div>
         </div>
         <div class="ppp-info">
           ${p.prenote?`<div class="ppp-prenote">${p.prenote}</div>`:''}
           <div class="ppp-price">${(p.price>0&&!isNaN(p.price))?yen(p.price):'店頭価格'}</div>
           ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
           <div class="ppp-actions">
-            <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''}>${soldout?'品切れ':'カートに入れる'}</button>
+            <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''} aria-label="カートに入れる"><span class="label">${soldout?'品切れ':'カートに入れる'}</span></button>
             <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで買う済':'あとで買う'}</button>
           </div>
           ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
@@ -194,41 +220,45 @@ function renderProducts(){
   });
 }
 
-/* ===== events ===== */
-document.addEventListener('click',ev=>{
-  const add=ev.target.closest('.ppp-btn.add[data-add]');
-  if(add){ ev.preventDefault(); const p=productById.get(add.dataset.add); if(p) addToCart(p,1); }
-
-  const later=ev.target.closest('.ppp-btn[data-later]');
-  if(later){ ev.preventDefault(); const key='later:'+later.dataset.later;
-    const set=(localStorage.getItem(key)==='1'?'0':'1');
-    localStorage.setItem(key,set);
-    later.textContent=set==='1'?'あとで買う済':'あとで買う';
-  }
-},{passive:false});
-
 /* ===== data ===== */
 async function loadProducts(){
   try{
     const res=await fetch(PRODUCTS_URL,{cache:'no-store'});
     const data=await res.json();
     PRODUCTS=(data.items||[]).map(x=>({
-      id:String(x.id), name:x.name, price:Number(x.price||0), img:x.imageUrl,
-      active:Boolean(x.active), leadDays:Number(x.leadDays||1),
+      id:String(x.id || x.code || ''), // ← GASがcodeを返す場合に対応
+      name:x.name,
+      price:Number(x.price||0),
+      img:x.img || x.imageUrl || '',   // ← 堅牢に
+      desc:x.desc||'',
+      prenote:x.prenote||'',
+      unitNote:x.unitNote||'',
+      catGroup:x.catGroup||x.cat||'',
+      subcatGroup:x.subcatGroup||'',
+      var1Id:x.var1Id||'', var1Label:x.var1Label||'',
+      var2Id:x.var2Id||'', var2Label:x.var2Label||'',
       stock:(x.stock!==undefined?Number(x.stock):undefined),
-      var1Id:x.var1Id, var1Label:x.var1Label, var2Id:x.var2Id, var2Label:x.var2Label,
-      catGroup:x.catGroup, subcatGroup:x.subcatGroup,
-      prenote:x.prenote, unitNote:x.unitNote, desc:x.desc,
-      badges:Array.isArray(x.badges)?x.badges:((x.badges&&String(x.badges).trim())?String(x.badges).split(',').map(s=>s.trim()):[])
+      active:(x.active===undefined ? true : Boolean(x.active)), // ← 未定義なら表示
+      leadDays:Number(x.leadDays||1)
     }));
     productById=new Map(PRODUCTS.map(p=>[p.id,p]));
     renderProducts();
   }catch(e){ console.error(e); }
 }
 
+/* ===== events ===== */
+document.addEventListener('click',ev=>{
+  const add=ev.target.closest('.ppp-btn.add[data-add]');
+  if(add){ ev.preventDefault(); const p=productById.get(add.dataset.add); if(p) addToCart(p,1); }
+
+  const later=ev.target.closest('.ppp-btn[data-later]');
+  if(later){ ev.preventDefault(); const key='later:'+later.dataset.later; const set=(localStorage.getItem(key)==='1'?'0':'1');
+    localStorage.setItem(key,set); later.textContent=set==='1'?'あとで買う済':'あとで買う';
+  }
+},{passive:false});
+
 /* init */
-loadProducts();
-renderCartBar();
+loadProducts(); renderCartBar();
 </script>
 </body>
 </html>
