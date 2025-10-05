@@ -9,7 +9,7 @@
     --bg:#fafafa; 
     --ink:#1f2937; 
     --muted:#6b7280; 
-    --brand:#10b981; /* 落ち着いたエメラルド系で楽しいトーン */
+    --brand:#10b981;     /* 落ち着いたエメラルド系 */
     --brand-ink:#064e3b;
     --border:#e5e7eb;
     --wrap:1080px; 
@@ -33,7 +33,7 @@
     content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
     width:4px; height:1.2em; border-radius:2px; background:var(--brand);
   }
-  /* .tag はトリ（削除） */
+  /* 店名下のサブ行はトリ */
 
   .section{ padding:16px 0 }
   .lead{ color:var(--muted); font-size:14px; margin:.35em 0 0 } /* 見出しとの距離を詰め */
@@ -49,7 +49,7 @@
     padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
   }
   .menu-spacer{ flex:1 }
-  .menu-pill{ font-size:12px; color:#0f172a; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:999px; padding:6px 10px }
+  .menu-pill{ font-size:12px; color:#0f172a; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:999px; padding:6px 10px; white-space:nowrap }
 
   /* ===== 商品カード ===== */
   #productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
@@ -111,26 +111,40 @@
     .ppp-card{ width:auto }
   }
 
-  /* ===== 画面下部のカートバー =====
-     ・両端に色がつかない：全幅の背景色を廃止し、中央のwrapだけ着色
-     ・暗すぎた色を白基調＋ほんのり影＆ボーダーへ
-  */
+  /* ===== カートバー（カード開始位置に揃え、端の色を出さない） ===== */
   .cart{ position:sticky; bottom:0; left:0; right:0; background:transparent; }
-  .cart .wrap{ 
-    display:flex; gap:12px; align-items:center; 
+  .cart .wrap{ padding:8px 16px; } /* .wrapに合わせて中央整列 */
+  .cart-box{
+    display:flex; align-items:center; gap:12px; 
     background:#fff; border:1px solid var(--border); 
     border-radius:16px;
-    margin:8px 16px; 
     padding:10px 16px; 
     padding-bottom:calc(10px + env(safe-area-inset-bottom));
     box-shadow:0 6px 20px rgba(0,0,0,.06);
+    overflow:hidden; /* 右端切れ対策 */
   }
-  .cart .pill{ font-size:12px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; border-radius:999px; padding:6px 10px }
-  .cart .spacer{ flex:1 }
-  .cart .total{ font-weight:900; font-size:18px; color:#0f172a }
-  .cart .btn{ background:var(--brand); color:#fff; border:none; border-radius:12px; padding:10px 16px; cursor:pointer; min-height:44px;
-              white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .cart .pill{ 
+    font-size:12px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; 
+    border-radius:999px; padding:4px 8px; 
+    white-space:nowrap; max-width:50%; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cart .spacer{ flex:1; min-width:8px }
+  .cart .total{ font-weight:900; font-size:18px; color:#0f172a; white-space:nowrap }
+  .cart .count{ white-space:nowrap } /* 2行化防止 */
+  .cart .btn{ 
+    background:var(--brand); color:#fff; border:none; border-radius:12px; 
+    padding:10px 14px; cursor:pointer; min-height:40px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0;
+  }
   .cart .btn:active{ transform:translateY(1px) }
+
+  /* SPでの見切れ対策（幅375px想定） */
+  @media(max-width:420px){
+    .cart-box{ gap:8px; padding:8px 12px }
+    .cart .pill{ max-width:40%; font-size:11px; padding:3px 6px }
+    .cart .total{ font-size:16px }
+    .cart .btn{ padding:8px 12px; min-height:38px }
+  }
 </style>
 </head>
 <body>
@@ -138,7 +152,7 @@
   <div class="wrap header-in">
     <div class="head-col">
       <div class="brand">Ping-Pong-Pang</div>
-      <!-- 店名下の「翌日以降受取注文」はトリ -->
+      <!-- サブ行（翌日以降受取注文）はトリ -->
     </div>
   </div>
 </header>
@@ -158,25 +172,28 @@
     <button class="menu-btn" data-menu="cat">カテゴリ</button>
     <button class="menu-btn" data-menu="sort">並べ替え</button>
     <div class="menu-spacer"></div>
-    <div id="menuMinDate" class="menu-pill">最短受取 —</div>
+    <div id="menuRightAction" class="menu-pill">カートを見る</div>
   </div>
 </nav>
 
 <main class="wrap">
   <section class="grid" id="productGrid"></section>
+
   <section class="section">
     <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。</p>
   </section>
 </main>
 
-<!-- 画面下カートバー（中央だけ着色） -->
+<!-- カートバー（カード開始位置に揃う） -->
 <div class="cart" id="cartBar">
   <div class="wrap">
-    <div id="cartMinDate" class="pill">最短受取 —</div>
-    <div class="spacer"></div>
-    <div id="cartCount" class="pill">0点</div>
-    <div class="total" id="cartTotal">¥0</div>
-    <button class="btn" id="checkoutBtn2">注文へ進む</button>
+    <div class="cart-box">
+      <div id="cartMinDate" class="pill">最短受取 —</div>
+      <div class="spacer"></div>
+      <div id="cartCount" class="pill count">0点</div>
+      <div class="total" id="cartTotal">¥0</div>
+      <button class="btn" id="checkoutBtn2">カート</button>
+    </div>
   </div>
 </div>
 
@@ -220,9 +237,8 @@ function renderMinDateEverywhere(){
   state.minDateISO = isoDate(d);
   const label = `最短受取 ${fmtJP(d)}`;
   const el1 = document.getElementById('cartMinDate');
-  const el2 = document.getElementById('menuMinDate');
   if (el1) el1.textContent = label;
-  if (el2) el2.textContent = label;
+  // メニューバーは固定文言「カートを見る」に変更したため更新しない
 }
 
 function addToCart(p,qty){ const q=Number(state.cart[p.id]||0)+Number(qty||1);
@@ -293,8 +309,8 @@ document.addEventListener('click',ev=>{
   const more=ev.target.closest('.ppp-more[data-detail]');
   if(more){ev.preventDefault();const pid=more.dataset.detail;console.log('open drawer for',pid);}
 
-  const menuBtn=ev.target.closest('.menu-btn');
-  if(menuBtn){ ev.preventDefault(); console.log('menu:', menuBtn.dataset.menu); }
+  const menuCart=ev.target.closest('#menuRightAction');
+  if(menuCart){ ev.preventDefault(); document.getElementById('cartBar')?.scrollIntoView({behavior:'smooth', block:'end'}); }
 
   const checkout=ev.target.closest('#checkoutBtn2');
   if(checkout){
@@ -305,14 +321,14 @@ document.addEventListener('click',ev=>{
     if (beforeISO && afterISO && beforeISO !== afterISO){
       alert('最短受取日が更新されました：' + afterISO.replaceAll('-','/'));
     }
-    console.log('go checkout with minDate:', afterISO);
+    console.log('open cart with minDate:', afterISO);
   }
 },{passive:false});
 
 /** ========= 初期化 ========= **/
 (function init(){
   try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
-  renderMinDateEverywhere();   // ページオープン時点で表示
+  renderMinDateEverywhere();   // ページオープン時点で表示（フッターのみ更新）
   renderCartBar();
   loadProducts();
 })();
