@@ -57,8 +57,13 @@
   .ppp-price{ font-weight:900; font-size:22px }
   .ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
 
-  /* 2ボタン（7:3／横並び・可変幅/可変文字・折返し禁止・高さ固定） */
-  .ppp-actions{ display:grid; grid-template-columns:7fr 3fr; gap:8px }
+  /* 追加／あとで：7:3、下に空間を残す */
+  .ppp-actions{
+    display:grid;
+    grid-template-columns:7fr 3fr;
+    gap:8px;
+    margin-bottom:10px; /* ← 下に余白を確保 */
+  }
   .ppp-btn{
     appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-weight:800;
     display:inline-flex; align-items:center; justify-content:center; height:var(--btn-h); line-height:var(--btn-h);
@@ -79,11 +84,25 @@
     .ppp-btn.add::after{ content:""; }
   }
 
-  /* バリエーション：縦積み2段（最大2件） */
-  .ppp-vars{ display:grid; grid-template-rows:repeat(2,auto); gap:6px }
-  .ppp-pill{ width:100%; border:1px solid var(--border); background:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
+  /* バリエーション：縦積み＆行間を詰める */
+  .ppp-vars{
+    display:flex;
+    flex-direction:column;
+    gap:4px;          /* ← 行間を詰める */
+    margin-top:2px;   /* actions との距離は最小限 */
+  }
+  .ppp-pill{
+    width:100%;
+    padding:6px 8px;  /* コンパクト */
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:13px;
+  }
 
-  /* D) 説明＋パターン1「›」だけのスマートトリガー */
+  /* D) 説明＋パターン1（›だけのスマートトリガー） */
   .ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px }
   .ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height:calc(1.5 * 3 * 1em);
              display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
@@ -198,7 +217,7 @@ function renderProducts(){
         <button class="ppp-fav" data-fav="${p.id}">♡</button>
       </div>
 
-      <!-- C) 画像（比率可変） × INFO（SPでも横並び維持） -->
+      <!-- C) 画像（比率可変） × INFO（常に横並び） -->
       <div class="ppp-mi">
         <div class="ppp-media">
           <div class="ppp-img">
@@ -270,12 +289,12 @@ document.addEventListener('click',ev=>{
     later.textContent=set==='1'?'あとで済':'あとで';
   }
 
-  // もっと見る（ドロワー起動用のフック。ここでは prevent のみ）
+  // もっと見る（ドロワー起動フック）
   const more=ev.target.closest('.ppp-more[data-detail]');
   if(more){
     ev.preventDefault();
     const pid = more.dataset.detail;
-    // ここで右→中央ドロワーを開くハンドラに接続してください（別実装想定）
+    // ここで右→中央ドロワーを開くハンドラに接続（別実装想定）
     console.log('open drawer for', pid);
   }
 },{passive:false});
