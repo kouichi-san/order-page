@@ -6,8 +6,15 @@
 <title>Ping-Pong-Pang｜翌日以降受け取り 注文</title>
 <style>
   :root{
-    --bg:#fafafa; --ink:#1f2937; --muted:#6b7280; --brand:#0ea5e9; --border:#e5e7eb;
-    --wrap:1080px; --btn-h:44px; --z-sticky:50;
+    --bg:#fafafa; 
+    --ink:#1f2937; 
+    --muted:#6b7280; 
+    --brand:#10b981; /* 落ち着いたエメラルド系で楽しいトーン */
+    --brand-ink:#064e3b;
+    --border:#e5e7eb;
+    --wrap:1080px; 
+    --btn-h:44px; 
+    --z-sticky:50;
   }
   *{ box-sizing:border-box }
   body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; color:var(--ink); background:var(--bg) }
@@ -17,9 +24,16 @@
   header{ background:#fff; border-bottom:1px solid var(--border) }
   .header-in{ display:flex; gap:12px; align-items:center; padding:12px 0 }
   .head-col{ display:flex; flex-direction:column; gap:2px; min-width:0 }
-  .brand{ font-size:20px; font-weight:800; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-  .tag{ font-size:12px; color:var(--muted); line-height:1; }
-  /* 右側バッジ（今回はトリ＝削除） */
+  .brand{ 
+    font-size:20px; font-weight:800; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    text-indent:.4em; /* インデント */
+    position:relative;
+  }
+  .brand::before{ /* さりげないアクセントバー */
+    content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+    width:4px; height:1.2em; border-radius:2px; background:var(--brand);
+  }
+  /* .tag はトリ（削除） */
 
   .section{ padding:16px 0 }
   .lead{ color:var(--muted); font-size:14px; margin:.35em 0 0 } /* 見出しとの距離を詰め */
@@ -76,8 +90,7 @@
     font-size: clamp(13px, 1.6vw, 16px);
   }
   .ppp-btn.add{ background:var(--brand); color:#fff; border-color:transparent; }
-  .ppp-btn.add::before,.ppp-btn.add::after{ content:none!important; }
-  .ppp-btn.add .label{ position:static!important; width:auto!important; height:auto!important; margin:0!important; padding:0!important; border:0!important; clip:auto!important; overflow:visible!important; }
+  .ppp-btn.add:active{ transform:translateY(1px) }
 
   /* バリエーション：縦積み＆行間詰め */
   .ppp-vars{ display:flex; flex-direction:column; gap:4px; margin-top:2px; }
@@ -98,14 +111,26 @@
     .ppp-card{ width:auto }
   }
 
-  /* ===== 画面下部のカートバー（点数を右側に集約） ===== */
-  .cart{ position:sticky; bottom:0; left:0; right:0; background:#0f172a; color:#fff; border-top:1px solid #111827 }
-  .cart .wrap{ display:flex; gap:12px; align-items:center; padding:10px 16px; padding-bottom:calc(10px + env(safe-area-inset-bottom)) }
-  .cart .pill{ font-size:12px; background:#111827; border:1px solid #1f2937; border-radius:999px; padding:6px 10px }
+  /* ===== 画面下部のカートバー =====
+     ・両端に色がつかない：全幅の背景色を廃止し、中央のwrapだけ着色
+     ・暗すぎた色を白基調＋ほんのり影＆ボーダーへ
+  */
+  .cart{ position:sticky; bottom:0; left:0; right:0; background:transparent; }
+  .cart .wrap{ 
+    display:flex; gap:12px; align-items:center; 
+    background:#fff; border:1px solid var(--border); 
+    border-radius:16px;
+    margin:8px 16px; 
+    padding:10px 16px; 
+    padding-bottom:calc(10px + env(safe-area-inset-bottom));
+    box-shadow:0 6px 20px rgba(0,0,0,.06);
+  }
+  .cart .pill{ font-size:12px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; border-radius:999px; padding:6px 10px }
   .cart .spacer{ flex:1 }
-  .cart .total{ font-weight:900; font-size:18px }
-  .cart .btn{ background:#0ea5e9; color:#fff; border:none; border-radius:12px; padding:10px 16px; cursor:pointer; min-height:44px;
+  .cart .total{ font-weight:900; font-size:18px; color:#0f172a }
+  .cart .btn{ background:var(--brand); color:#fff; border:none; border-radius:12px; padding:10px 16px; cursor:pointer; min-height:44px;
               white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .cart .btn:active{ transform:translateY(1px) }
 </style>
 </head>
 <body>
@@ -113,9 +138,8 @@
   <div class="wrap header-in">
     <div class="head-col">
       <div class="brand">Ping-Pong-Pang</div>
-      <div class="tag">翌日以降受取注文</div>
+      <!-- 店名下の「翌日以降受取注文」はトリ -->
     </div>
-    <!-- head-badge はトリ -->
   </div>
 </header>
 
@@ -140,13 +164,12 @@
 
 <main class="wrap">
   <section class="grid" id="productGrid"></section>
-
   <section class="section">
     <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。</p>
   </section>
 </main>
 
-<!-- 画面下カートバー：点数と合計を右側に集約 -->
+<!-- 画面下カートバー（中央だけ着色） -->
 <div class="cart" id="cartBar">
   <div class="wrap">
     <div id="cartMinDate" class="pill">最短受取 —</div>
@@ -169,10 +192,7 @@ function toJst(d=new Date()){ return new Date(new Intl.DateTimeFormat('en-US',{t
 function fmtJP(d){ const y=d.getFullYear(), m=d.getMonth()+1, day=d.getDate(); const w='日月火水木金土'[d.getDay()]; return `${y}/${String(m).padStart(2,'0')}/${String(day).padStart(2,'0')}(${w})`; }
 function isoDate(d){ return d.toISOString().slice(0,10); }
 
-/** ビジネスデイ境界(AM2)での最短受取日
- *  businessDay = (現地時刻の時刻<2なら) 今日-1日, それ以外は今日
- *  minDate = businessDay + 1日
- */
+/** AM2基準の最短受取日ロジック */
 function calcMinDate(){
   const now = toJst();
   const bd = new Date(now);
@@ -274,19 +294,17 @@ document.addEventListener('click',ev=>{
   if(more){ev.preventDefault();const pid=more.dataset.detail;console.log('open drawer for',pid);}
 
   const menuBtn=ev.target.closest('.menu-btn');
-  if(menuBtn){ ev.preventDefault(); console.log('menu:', menuBtn.dataset.menu); /* ここにカテゴリ絞り／並べ替えなどを結線 */ }
+  if(menuBtn){ ev.preventDefault(); console.log('menu:', menuBtn.dataset.menu); }
 
   const checkout=ev.target.closest('#checkoutBtn2');
   if(checkout){
     ev.preventDefault();
-    // 進む直前に最短受取日を再チェックして更新（必要あれば注意喚起も可）
     const beforeISO = state.minDateISO;
-    renderMinDateEverywhere();
+    renderMinDateEverywhere(); // 進む直前に再チェック
     const afterISO = state.minDateISO;
     if (beforeISO && afterISO && beforeISO !== afterISO){
       alert('最短受取日が更新されました：' + afterISO.replaceAll('-','/'));
     }
-    // ここでGoogleフォームのプリフィルに遷移する実装と接続
     console.log('go checkout with minDate:', afterISO);
   }
 },{passive:false});
