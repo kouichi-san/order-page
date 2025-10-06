@@ -583,6 +583,99 @@ document.addEventListener('click',ev=>{
     });
   }
 
+    // サブカテゴリ面を開く
+  function openSubcats(catId){
+    const catName = (PPP_TAXONOMY?.categories || []).find(x=>x.id===catId)?.name || catId;
+    title.textContent = `サブカテゴリを選ぶ（${catName}）`;
+    back.classList.remove('hidden');
+    queryI.value = '';
+    renderSubcats(catId, catName);
+  }
+
+  // サブカテゴリ面の描画
+  function renderSubcats(catId, catName){
+    grid.innerHTML = '';
+    // 先頭に「すべて（カテゴリ）」ボタン
+    grid.insertAdjacentHTML('beforeend',
+      `<button type="button" data-cat="${esc(catId)}" data-sub="">
+        <div class="ttl">すべて（${esc(catName)}）</div>
+      </button>`);
+
+    const q = queryI.value.trim();
+    const list = (PPP_TAXONOMY?.subcategories?.[catId] || []).filter(s=>!q || s.name.includes(q));
+    if (!list.length){
+      grid.insertAdjacentHTML('beforeend',
+        `<div style="color:#9ca3af;font-size:13px;padding:16px">サブカテゴリが見つかりません</div>`);
+      return;
+    }
+
+    list.forEach(s=>{
+      const cnt = PPP_COUNTS?.subCount?.[s.id] || { avail:0, total:0 };
+      const badge = PPP_COUNTS ? `<div class="badge">${cnt.avail}/${cnt.total}</div>` : '';
+      grid.insertAdjacentHTML('beforeend',
+        `<button type="button" data-cat="${esc(catId)}" data-sub="${esc(s.id)}">
+          <div class="ttl">${esc(s.name)}</div>
+          ${badge}
+        </button>`);
+    });
+  }
+
+  // 入力で再描画（カテゴリ面/サブ面を自動判定）
+  queryI.addEventListener('input', ()=>{
+    // back が表示されていればサブ面、なければカテゴリ面
+    if (!back.classList.contains('hidden')) {
+      // タイトルから catId を逆引きするのは難なので、直前に開いたcatを保持
+      // 簡易に grid 最初のボタンの data-cat を参照（「すべて（カテゴリ）」ボタン）
+      const first = grid.querySelector('button[data-cat]');
+      const catId = first?.dataset?.cat;
+      const catName = (PPP_TAXONOMY?.categories || []).find(x=>x.id===catId)?.name || catId;
+      if (catId) renderSubcats(catId, catName);
+    } else {
+      renderCategories();
+    }
+  });
+
+  // 戻る・クリア・閉じるの挙動を仕上げ
+  back.addEventListener('click', ()=>{
+    title.textContent = 'カテゴリを選ぶ';
+    back.classList.add('hidden');
+    queryI.value = '';
+    renderCategories();
+  });
+  clear.addEventListener('click', ()=>{
+    applyAndClose(null, null); // すべて解除
+  });
+
+  // 決定→保存→URL反映→（あれば）再描画→閉じる
+  function applyAndClose(catId, subId){
+    PPP_STATE.cat = catId || null;
+    PPP_STATE.sub = subId || null;
+
+    // 最近使ったカテゴリ（簡易10件）
+    if (catId){
+      const recent = JSON.parse(localStorage.getItem('ppp_recentCats')||'[]').filter(x=>x!==catId);
+      recent.unshift(catId);
+      localStorage.setItem('ppp_recentCats', JSON.stringify(recent.slice(0,10)));
+    }
+
+    // URL & 保存
+    const p = new URLSearchParams(location.search);
+    PPP_STATE.cat ? p.set('cat', PPP_STATE.cat) : p.delete('cat');
+    PPP_STATE.sub ? p.set('sub', PPP_STATE.sub) : p.delete('sub');
+    PPP_STATE.sort ? p.set('sort', PPP_STATE.sort) : p.delete('sort');
+    history.pushState(PPP_STATE, '', `?${p.toString()}`);
+    localStorage.setItem('ppp_state', JSON.stringify(PPP_STATE));
+
+    // メニューボタンのラベル更新（未定義なら空の関数で安全化）
+    if (typeof pppUpdateMenuLabel === 'function') { pppUpdateMenuLabel(); }
+
+    // 商品の再描画（filterは次の手順で入れるので、今は存在すれば呼ぶだけ）
+    if (typeof rerenderProducts === 'function') { rerenderProducts(); }
+
+    // 閉じる
+    closeDrawer();
+  }
+
   // 配線
   btnCat.addEventListener('click', ()=>{
     // taxonomy が未ロードならロードしてから開く
@@ -598,14 +691,29 @@ document.addEventListener('click',ev=>{
   clear.addEventListener('click', ()=>{ /* 選択解除は次の手順で実装 */ closeDrawer(); });
   back.addEventListener('click', ()=>{ /* サブカテゴリから戻るは次の手順で */ });
 
-  // クリック：カテゴリ選択（いまは確認ログのみ。次手順でサブカテゴリ遷移を実装）
-  grid.addEventListener('click', (e)=>{
-    const b = e.target.closest('button[data-cat]');
-    if (!b) return;
-    const catId = b.dataset.cat;
-    console.log('[カテゴリ選択]', catId);
-    // 次の手順で：サブカテゴリ面に切替＆「すべて（カテゴリ）」ボタン表示＆件数バッジ
-  });
+// クリック：カテゴリ or サブカテゴリ
+grid.addEventListener('click', (e)=>{
+  const b = e.target.closest('button');
+  if (!b) return;
+  const cat = b.dataset.cat;
+  const sub = b.dataset.sub;
+
+  // サブカテゴリが undefined → カテゴリ面のボタン
+  if (typeof sub === 'undefined') {
+    // サブカテゴリが存在するならサブ面へ、なければ即決定
+    const hasSubs = (PPP_TAXONOMY?.subcategories?.[cat] || []).length > 0;
+    if (hasSubs) {
+      openSubcats(cat);
+    } else {
+      applyAndClose(cat, null); // catのみ選択
+    }
+    return;
+  }
+
+  // sub === '' は「すべて（カテゴリ）」、それ以外は特定のサブカテゴリ
+  applyAndClose(cat, sub || null);
+});
+
 })();
 </script>
 
