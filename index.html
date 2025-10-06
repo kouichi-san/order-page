@@ -523,6 +523,92 @@ document.addEventListener('click',ev=>{
   function esc(s){ return String(s).replace(/[&<>"]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m])); }
 </script>
 
+<script>
+(function(){
+  // 要素参照
+  const drawer = document.getElementById('catDrawer');
+  const panel  = drawer?.querySelector('.ppp-drawer__panel');
+  const scrim  = drawer?.querySelector('.ppp-drawer__scrim');
+  const title  = document.getElementById('catDrawerTitle');
+  const back   = document.getElementById('catDrawerBack');
+  const clear  = document.getElementById('catDrawerClear');
+  const closeB = document.getElementById('catDrawerClose');
+  const grid   = document.getElementById('catDrawerGrid');
+  const chips  = document.getElementById('catDrawerChips');
+  const queryI = document.getElementById('catDrawerQuery');
+  const btnCat = document.getElementById('btnCat');
+
+  if (!drawer || !btnCat) return;
+
+  // 開く（カテゴリ面）
+  function openCategories(){
+    drawer.setAttribute('aria-hidden','false');
+    title.textContent = 'カテゴリを選ぶ';
+    back.classList.add('hidden');
+    chips.innerHTML = '';
+    queryI.value = '';
+    renderCategories();
+    // フォーカス
+    setTimeout(()=>{ try{ queryI.focus(); }catch(_){} }, 30);
+    // Escで閉じる
+    window.addEventListener('keydown', onKeydown);
+  }
+
+  // 閉じる
+  function closeDrawer(){
+    drawer.setAttribute('aria-hidden','true');
+    window.removeEventListener('keydown', onKeydown);
+  }
+  function onKeydown(e){ if(e.key === 'Escape') closeDrawer(); }
+
+  // カテゴリ一覧をグリッドに描画
+  function renderCategories(){
+    grid.innerHTML = '';
+    const q = queryI.value.trim();
+    const list = (PPP_TAXONOMY?.categories || []).filter(c => !q || c.name.includes(q));
+
+    if (!list.length){
+      grid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">カテゴリが見つかりません</div>';
+      return;
+    }
+
+    list.forEach(c=>{
+      const cnt = PPP_COUNTS?.catCount?.[c.id] || { avail:0, total:0 };
+      const badge = PPP_COUNTS ? `<div class="badge">${cnt.avail}/${cnt.total}</div>` : '';
+      grid.insertAdjacentHTML('beforeend',
+        `<button type="button" data-cat="${esc(c.id)}">
+           <div class="ttl">${esc(c.name)}</div>
+           ${badge}
+         </button>`);
+    });
+  }
+
+  // 配線
+  btnCat.addEventListener('click', ()=>{
+    // taxonomy が未ロードならロードしてから開く
+    if (!PPP_TAXONOMY) {
+      pppInitTaxonomy().then(openCategories).catch(()=>openCategories());
+    } else {
+      openCategories();
+    }
+  });
+  queryI.addEventListener('input', renderCategories);
+  scrim.addEventListener('click', closeDrawer);
+  closeB.addEventListener('click', closeDrawer);
+  clear.addEventListener('click', ()=>{ /* 選択解除は次の手順で実装 */ closeDrawer(); });
+  back.addEventListener('click', ()=>{ /* サブカテゴリから戻るは次の手順で */ });
+
+  // クリック：カテゴリ選択（いまは確認ログのみ。次手順でサブカテゴリ遷移を実装）
+  grid.addEventListener('click', (e)=>{
+    const b = e.target.closest('button[data-cat]');
+    if (!b) return;
+    const catId = b.dataset.cat;
+    console.log('[カテゴリ選択]', catId);
+    // 次の手順で：サブカテゴリ面に切替＆「すべて（カテゴリ）」ボタン表示＆件数バッジ
+  });
+})();
+</script>
+
 
 </body>
 </html>
