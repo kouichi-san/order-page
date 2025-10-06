@@ -343,7 +343,7 @@ function addToCart(p,qty){
 function renderProducts(){
   const grid=document.getElementById('productGrid');
   grid.className='ppp-grid'; grid.innerHTML='';
-  (PRODUCTS||[]).filter(p=>p.active!==false).forEach(p=>{
+  (PRODUCTS||[]).filter(p=>p.active!==false).filter(filterByCatSub).forEach(p=>{
     const soldout=(p.stock!==undefined&&Number(p.stock)<=0);
     const crumb=[p.catGroup,p.subcatGroup].filter(Boolean).join(' › ');
     const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label});
@@ -434,6 +434,22 @@ document.addEventListener('click',ev=>{
   renderCartBar();             // 合計・点数
   loadProducts();              // 商品読み込み＆描画
 })();
+
+// ① カテゴリ／サブカテゴリで絞り込む（Products の列名に合わせています）
+function filterByCatSub(p){
+  if (!window.PPP_STATE) return true;           // まだ未定義なら素通し
+  const c = PPP_STATE.cat;
+  const s = PPP_STATE.sub;
+  if (c && String(p.catGroup)    !== String(c)) return false;
+  if (s && String(p.subcatGroup) !== String(s)) return false;
+  return true;
+}
+
+// ② 既存コードから呼べるように安全なラッパー（前の手順で使っています）
+if (typeof window.rerenderProducts !== 'function') {
+  window.rerenderProducts = function(){ renderProducts(); };
+}
+
 </script>
 
 <script>
