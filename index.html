@@ -1,805 +1,415 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Ping-Pong-Pang｜翌日以降受け取り 注文</title>
-<style>
-:root{
-  --bg:#fafafa;
-  --ink:#1f2937;
-  --muted:#6b7280;
-  --brand:#10b981;
-  --brand-ink:#064e3b;
-  --border:#e5e7eb;
-  --wrap:1080px;
-  --btn-h:44px;
-  --btn-radius:10px;
-  --z-sticky:50;
-}
-*{box-sizing:border-box}
-body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; color:var(--ink); background:#fff }
-.wrap{ max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Ping-Pong-Pang 受注ページ</title>
+  <meta name="color-scheme" content="light dark">
 
-/* ===== ヘッダー ===== */
-header{ background:#fff; border-bottom:1px solid var(--border) }
-.header-in{ display:flex; align-items:center; padding:12px 0 }
-.brand{
-  font-size:20px; font-weight:800; text-indent:.4em; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.brand::before{
-  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
-  width:4px; height:1.2em; border-radius:2px; background:var(--brand);
-}
+  <!-- ===== Base (最小限のリセット) ===== -->
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,'Helvetica Neue','Hiragino Kaku Gothic ProN','Noto Sans JP',Meiryo,system-ui,sans-serif;line-height:1.6;color:#111;background:#fff}
+    img{max-width:100%;display:block}
+    button{cursor:pointer}
+    .wrap{max-width:1080px;margin:0 auto;padding:12px}
+    .hidden{display:none!important}
+    .muted{color:#6b7280}
+    /* ドロワー表示中のページスクロール抑止 */
+    html.ppp-no-scroll, body.ppp-no-scroll{overflow:hidden!important;touch-action:none!important}
+  </style>
 
-/* ===== メニューバー ===== */
-.menubar{ position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border) }
-.menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0 }
-.menu-btn{
-  border:1px solid var(--border); background:#fff; border-radius:var(--btn-radius);
-  padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
-}
-.menu-spacer{ flex:1 }
-.menu-pill{
-  font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9;
-  border:1px solid #e2e8f0; border-radius:var(--btn-radius); padding:8px 12px; white-space:nowrap; cursor:pointer;
-}
+  <!-- ===== Drawer Styles（黒被り/スクロール/右→中央仕様） ===== -->
+  <style>
+    /* コンテナ */
+    .ppp-drawer{position:fixed;inset:0;z-index:4000;display:none}
+    .ppp-drawer[aria-hidden="false"]{display:block}
 
-/* ===== 商品カード ===== */
-#productGrid.ppp-grid{
-  display:grid; grid-template-columns:repeat(2,540px);
-  justify-content:space-between; gap:0;
-}
-.ppp-card{
-  width:540px; background:#fff; border:1px solid var(--border);
-  border-radius:16px; overflow:hidden;
-}
-.ppp-crumbrow{ display:block; padding:10px 12px 0 }
-.ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
-.ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px }
-.ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
-.ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid var(--border); display:grid; place-items:center; cursor:pointer }
-.ppp-mi{ display:grid; grid-template-columns:minmax(160px,6fr) minmax(140px,4fr); column-gap:12px; align-items:start; padding:0 12px }
-.ppp-mi > .ppp-media, .ppp-mi > .ppp-info { min-width:0 }
-.ppp-img{ aspect-ratio:4/3; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
-.ppp-img>img{ width:100%; height:100%; object-fit:contain; display:block }
-.ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.ppp-price{ font-weight:900; font-size:22px }
-.ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
-.ppp-actions{ display:grid; grid-template-columns:7fr 3fr; gap:8px; margin-bottom:10px }
-.ppp-btn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-weight:800; display:inline-flex; align-items:center; justify-content:center; height:var(--btn-h); white-space:nowrap; min-width:0; padding:0 12px; font-size:clamp(13px,1.6vw,16px) }
-.ppp-btn.add{ background:var(--brand); color:#fff; border-color:transparent }
-.ppp-btn.add:active{ transform:translateY(1px) }
-.ppp-vars{ display:flex; flex-direction:column; gap:4px; margin-top:2px }
-.ppp-pill{ width:100%; padding:6px 8px; border:1px solid var(--border); background:#fff; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
-.ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px }
-.ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height:calc(1.5 * 3 * 1em); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
-.ppp-more{ display:inline-flex; align-items:center; justify-content:center; text-decoration:none; color:#0ea5e9 }
-.more--chev{ width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff }
-.more--chev::before{ content:"›"; font-size:18px; line-height:1 }
-.more--chev:active{ transform: translateY(1px) }
+    /* 暗幕：前面に被り過ぎない＆パネルの下 */
+    .ppp-drawer__scrim{
+      position:absolute;inset:0;background:rgba(0,0,0,.18);
+      opacity:0;transition:opacity .18s ease;z-index:0;
+    }
+    .ppp-drawer[aria-hidden="false"] .ppp-drawer__scrim{opacity:1}
 
-@media(max-width:720px){
-  #productGrid.ppp-grid{ grid-template-columns:1fr; gap:12px }
-  .ppp-card{ width:auto }
-}
+    /* パネル：右からスライドイン */
+    .ppp-drawer__panel{
+      position:absolute;top:0;right:0;height:100%;
+      width:min(960px,92vw);background:#fff;color:inherit;
+      box-shadow:-10px 0 24px rgba(0,0,0,.16);
+      transform:translateX(100%);transition:transform .24s ease;
+      display:grid;grid-template-rows:auto auto auto 1fr auto; /* header, search, chips, list(scroll), footer */
+      overflow:hidden;padding-bottom:env(safe-area-inset-bottom);
+      z-index:1;
+    }
+    .ppp-drawer[aria-hidden="false"] .ppp-drawer__panel{transform:translateX(0)}
 
-/* ===== フッター（ベース：PC横一列） ===== */
-.cart{ position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border) }
-.cart .wrap{ padding:0 16px }
-.cart-box{
-  display:flex; align-items:center; gap:16px;
-  justify-content:flex-end;
-  padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom));
-}
-.cart-left{ margin-right:auto; display:flex; align-items:center; gap:12px }
-.inline-pill{
-  font-size:14px; background:#f0fdf4; color:var(--brand-ink);
-  border:1px solid #d1fae5; border-radius:999px; padding:6px 14px; white-space:nowrap;
-}
-.count{ min-width:60px; text-align:right; font-size:14px }
-.total{ min-width:80px; text-align:right; font-weight:900; font-size:18px }
-.btn-cart{ background:var(--brand); color:#fff; border:none; border-radius:var(--btn-radius); padding:10px 18px; cursor:pointer; font-weight:800; white-space:nowrap }
-.btn-cart:active{ transform:translateY(1px) }
+    /* ヘッダーバー */
+    .ppp-drawer__bar{
+      display:flex;align-items:center;gap:8px;
+      padding:12px 14px;border-bottom:1px solid #e5e7eb;
+    }
+    .ppp-drawer__title{font-weight:700;font-size:16px;flex:1}
+    .ppp-iconbtn{appearance:none;border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:8px 10px}
+    .ppp-iconbtn:active{transform:translateY(1px)}
 
-/* ===== SP版フッター：2行×3列（上：最短受取日｜商品点数｜ボタン／下：日付｜合計金額｜） ===== */
-@media(max-width:420px){
-  .cart-box{
-    display:grid;
-    grid-template-columns: 1fr 1fr auto;   /* 左=最短受取 / 中=点数/合計 / 右=ボタン */
-    grid-template-rows: auto auto;         /* 上=ラベル/値（点数） / 下=値（合計） */
-    gap:4px 12px;                           /* 行間を詰めてスッキリ */
-    align-items:center;
-    padding:6px 0;
-    padding-bottom:calc(6px + env(safe-area-inset-bottom));
-  }
-  /* PC用ピルはSPでは非表示 */
-  .inline-pill{ display:none }
+    /* 検索行 */
+    .ppp-drawer__search{padding:10px 14px;border-bottom:1px solid #f1f5f9}
+    .ppp-input{width:100%;font-size:16px;padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#fff}
 
-  /* 1段目（左/中のセル） */
-  .lbl-min{ grid-column:1; grid-row:1; font-size:12px; color:#065f46; opacity:.95 }
-  /* 商品点数は値を表示しつつ見出しも入れる */
-  .count{ grid-column:2; grid-row:1; text-align:right; font-weight:700; }
-  .count::before{ content:"商品点数 "; font-size:12px; font-weight:600; opacity:.9; margin-right:4px }
+    /* 選択済みチップ領域 */
+    .ppp-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 14px;border-bottom:1px dashed #eef2f7}
+    .ppp-chip{display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;font-size:12px}
+    .ppp-chip .x{border:none;background:transparent;font-size:14px;line-height:1}
 
-  /* 2段目（左=日付、 中=合計金額） */
-  .val-date{ grid-column:1; grid-row:2; font-weight:700; font-size:14px; white-space:nowrap }
-  .total{ grid-column:2; grid-row:2; text-align:right; font-size:17px }
-  .total::before{ content:"合計金額 "; font-size:12px; font-weight:600; opacity:.9; margin-right:4px }
+    /* スクロール領域（カテゴリ/サブカテゴリ） */
+    .ppp-listwrap{overflow:auto;-webkit-overflow-scrolling:touch}
+    .ppp-listpad{padding:10px 12px 16px}
 
-  /* カートボタンは上下2行ぶち抜きで常時表示 */
-  .btn-cart{ grid-column:3; grid-row:1 / 3; align-self:stretch; padding:10px 14px; min-width:72px }
+    /* グリッド */
+    .ppp-catgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    @media (min-width:720px){ .ppp-catgrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+    @media (min-width:960px){ .ppp-catgrid{grid-template-columns:repeat(4,minmax(0,1fr))} }
 
-  /* safe-areaの黒帯と隙間を吸収 */
-  .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
-}
+    .ppp-catbtn{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:10px 12px;
+      text-align:left;font-size:14px
+    }
+    .ppp-catbtn .name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ppp-catbtn .badge{display:none} /* 0/0 バッジ非表示 */
+    .ppp-catbtn:active{transform:translateY(1px)}
 
-/* === Category Drawer (right -> center) ================================== */
-/* ドロワー本体（右→中央へスライド） */
-.ppp-drawer{position:fixed;inset:0;z-index:4000;display:none}
-.ppp-drawer[aria-hidden="false"]{display:block}
-.ppp-drawer__scrim{position:absolute;inset:0;background:rgba(0,0,0,.35);opacity:0;transition:opacity .18s ease}
-.ppp-drawer[aria-hidden="false"] .ppp-drawer__scrim{opacity:1}
-
-.ppp-drawer__panel{
-  position:absolute;top:0;right:0;height:100%;width:min(960px,92vw);
-  background:#fff;color:inherit;box-shadow:-10px 0 24px rgba(0,0,0,.16);
-  transform:translateX(100%);transition:transform .24s ease;
-  display:grid;grid-template-rows:auto auto auto 1fr auto;overflow:hidden;
-  padding-bottom:env(safe-area-inset-bottom);
-}
-.ppp-drawer[aria-hidden="false"] .ppp-drawer__panel{transform:translateX(0)}
-
-.ppp-drawer__head,.ppp-drawer__foot{
-  display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:#fff
-}
-.ppp-drawer__foot{border-top:1px solid var(--border);border-bottom:none;justify-content:flex-start}
-.ppp-drawer__title{font-weight:700}
-
-/* 検索・チップ */
-.ppp-drawer__search{padding:8px 16px;border-bottom:1px solid #f5f5f5;background:#fff}
-.ppp-drawer__search input{
-  width:100%;height:40px;padding:0 12px;border:1px solid #ddd;border-radius:10px;outline:none
-}
-.ppp-drawer__search input:focus{border-color:#9ca3af}
-.ppp-chips{display:flex;gap:8px;overflow:auto;padding:8px 16px;border-bottom:1px solid #f7f7f7;background:#fff}
-.ppp-chips .chip{
-  flex:0 0 auto;border:1px solid #ddd;border-radius:999px;padding:6px 10px;font-size:12px;background:#fff
-}
-
-/* 3+ 列カテゴリ・サブカテゴリ用グリッド（商品グリッド .ppp-grid と分離） */
-.ppp-catgrid{
-  padding:12px 16px;display:grid;gap:10px;grid-template-columns:repeat(3,1fr);
-  overflow:auto;-webkit-overflow-scrolling:touch;background:#fff
-}
-@media (min-width:768px){ .ppp-catgrid{grid-template-columns:repeat(4,1fr)} }
-@media (min-width:1100px){ .ppp-catgrid{grid-template-columns:repeat(6,minmax(128px,1fr))} }
-
-.ppp-catgrid button{
-  min-height:44px;border:1px solid #e6e6e6;border-radius:12px;padding:10px 12px;
-  text-align:left;position:relative;background:#fff;cursor:pointer
-}
-.ppp-catgrid button:focus-visible{outline:2px solid rgba(0,122,255,.6);outline-offset:2px}
-.ppp-catgrid .ttl{
-  font-size:14px;line-height:1.25;max-height:2.5em;overflow:hidden;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical
-}
-.ppp-catgrid .badge{position:absolute;top:6px;right:8px;font-size:11px;opacity:.75}
-
-/* ドロワー内で使う補助 */
-.ppp-btn.ghost{background:transparent} /* 既存 .ppp-btn を利用し「ghost」だけ追加 */
-.ppp-link{border:none;background:none;color:#007aff;font:inherit;cursor:pointer}
-.hidden{display:none!important}
-
-/* 端末がアニメ減らす指定ならアニメ無効 */
-@media (prefers-reduced-motion:reduce){
-  .ppp-drawer__panel,.ppp-drawer__scrim{transition:none}
-}
-
-</style>
+    /* フッター操作 */
+    .ppp-drawer__footer{display:flex;gap:10px;padding:10px 14px;border-top:1px solid #e5e7eb;background:#fafafa}
+    .ppp-btn{flex:1;appearance:none;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:12px 14px;font-weight:600}
+    .ppp-btn.primary{background:#1e40af;color:#fff;border-color:#1e40af}
+    .ppp-btn.warn{background:#fee2e2;border-color:#fecaca}
+  </style>
 </head>
 <body>
-<header>
-  <div class="wrap header-in">
-    <div class="brand">Ping-Pong-Pang</div>
-  </div>
-</header>
+  <header class="wrap" style="display:flex;align-items:center;gap:10px">
+    <h1 style="margin:.2em 0 0;font-size:18px;flex:1">翌日以降受取予約注文</h1>
+    <!-- カテゴリボタン（IDは既存運用に合わせて） -->
+    <button id="btnCategories" class="ppp-iconbtn" aria-haspopup="dialog" aria-controls="catDrawer">カテゴリ</button>
+  </header>
 
-<main class="wrap">
-  <section class="section">
-    <h1 style="margin:.2em 0 0">翌日以降受取予約注文</h1>
-    <p style="color:#6b7280; font-size:14px; margin:.3em 0 0">
-      本ページは「取り置き予約（店頭受け取り）」の受付です。オンライン決済は行いません。お支払いは受け取り時に店頭にて。
-    </p>
-  </section>
-</main>
+  <main class="wrap">
+    <!-- ここに商品カードが描画される想定（既存のあなたのJSが担当） -->
+    <div id="productList" class="section"></div>
+  </main>
 
-<nav class="menubar">
-  <div class="wrap menubar-in">
-    <button class="menu-btn">すべて</button>
-    <button id="btnCat" class="menu-btn">カテゴリ</button>
-    <button class="menu-btn">並べ替え</button>
-    <div class="menu-spacer"></div>
-    <div id="menuRightAction" class="menu-pill">カートを見る</div>
-  </div>
-</nav>
+  <footer class="wrap" style="padding:16px 12px;border-top:1px solid #e5e7eb;margin-top:24px">
+    <div class="muted">最短受取やカートUIなど既存の実装をここに</div>
+  </footer>
 
-<!-- === Category Drawer (right -> center) === -->
-<div id="catDrawer" class="ppp-drawer" role="dialog" aria-modal="true" aria-labelledby="catDrawerTitle" aria-hidden="true">
-  <div class="ppp-drawer__panel" role="document">
-    <div class="ppp-drawer__head">
-      <button id="catDrawerClose" class="ppp-link" aria-label="閉じる" type="button">×</button>
-      <div id="catDrawerTitle" class="ppp-drawer__title">カテゴリを選ぶ</div>
-      <button id="catDrawerClear" class="ppp-link" type="button">クリア</button>
-    </div>
-
-    <div class="ppp-drawer__search">
-      <input id="catDrawerQuery" type="search" placeholder="カテゴリ名やサブカテゴリ名を検索" autocomplete="off" />
-    </div>
-
-    <div id="catDrawerChips" class="ppp-chips" aria-live="polite"></div>
-
-    <!-- グリッドは既存の .ppp-grid と衝突しないようクラス名を分離 -->
-    <div id="catDrawerGrid" class="ppp-catgrid"></div>
-
-    <div class="ppp-drawer__foot">
-      <button id="catDrawerBack" class="ppp-btn ghost hidden" type="button">← カテゴリ一覧</button>
-    </div>
-  </div>
-
-  <div class="ppp-drawer__scrim" tabindex="-1"></div>
-</div>
-
-
-<main class="wrap">
-  <section id="productGrid" class="ppp-grid"></section>
-  <section class="section">
-    <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">
-      写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。
-    </p>
-  </section>
-</main>
-
-<!-- ===== フッター（SP：2行×3列／PC：横一列） ===== -->
-<div class="cart" id="cartBar">
-  <div class="wrap">
-    <div class="cart-box">
-      <!-- PC用：左側に最短受取ピル（SPでは非表示） -->
-      <div class="cart-left">
-        <span class="inline-pill" id="cartMinDateInline">最短受取 —</span>
+  <!-- ===== Category Drawer ===== -->
+  <div id="catDrawer" class="ppp-drawer" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="ppp-drawer__scrim"></div>
+    <section class="ppp-drawer__panel" role="document" aria-labelledby="catDrawerTitle">
+      <!-- bar -->
+      <div class="ppp-drawer__bar">
+        <button class="ppp-iconbtn" id="catBackBtn" title="戻る" aria-label="戻る">←</button>
+        <div class="ppp-drawer__title" id="catDrawerTitle">カテゴリを選ぶ</div>
+        <button class="ppp-iconbtn" id="catCloseBtn" title="閉じる" aria-label="閉じる">✕</button>
       </div>
-
-      <!-- SP 1段目：最短受取日ラベル／点数（値＋ラベル） -->
-      <div class="lbl-min">最短受取日</div>
-      <div class="count" id="cartCount">0点</div>
-
-      <!-- SP 2段目：日付（値）／合計金額（値＋ラベル） -->
-      <div class="val-date" id="cartMinDate">—</div>
-      <div class="total" id="cartTotal">¥0</div>
-
-      <!-- 共通：カートボタン -->
-      <button class="btn-cart" id="checkoutBtn2">カート</button>
-    </div>
-  </div>
-</div>
-
-<script>
-/** ========= 設定 ========= **/
-const PRODUCTS_URL="https://script.google.com/macros/s/AKfycbzaMJ8p9_Fj9pr7dgFBzl0cApTQn0llr6-I1b9YhyKPGwbD461NBA6_U6WEzPqOpf4b/exec?endpoint=products";
-const CUTOVER_HOUR = 2; // AM2:00で「翌日」表示に切替
-let PRODUCTS=[]; let productById=new Map();
-const state={cart:{}, minDateISO:null};
-
-/** ========= ユーティリティ ========= **/
-function yen(n){ try{ return Number(n||0).toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}); }catch(e){ return '¥'+(n||0); } }
-function toJst(d=new Date()){ return new Date(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo'}).format(d)+' '+d.toTimeString().split(' ')[0]); }
-function fmtJP(d){ const y=d.getFullYear(), m=d.getMonth()+1, day=d.getDate(); const w='日月火水木金土'[d.getDay()]; return `${y}/${String(m).padStart(2,'0')}/${String(day).padStart(2,'0')}(${w})`; }
-function isoDate(d){ return d.toISOString().slice(0,10); }
-
-/** ========= 最短受取日ロジック（AM2:00切替） ========= **/
-function calcMinDate(){
-  const now = toJst();
-  const base = new Date(now);
-  if (now.getHours() < CUTOVER_HOUR){ base.setDate(base.getDate()-1); }
-  const min = new Date(base); min.setDate(min.getDate()+1); min.setHours(0,0,0,0);
-  return min;
-}
-function renderMinDateEverywhere(){
-  const d = calcMinDate();
-  state.minDateISO = isoDate(d);
-  const labelPill = `最短受取 ${fmtJP(d)}`;
-  const spDate = document.getElementById('cartMinDate');
-  const pcPill = document.getElementById('cartMinDateInline');
-  if (spDate) spDate.textContent = fmtJP(d); // SP下段：日付のみ
-  if (pcPill) pcPill.textContent = labelPill; // PC横並び
-}
-
-/** ========= 合計・点数 ========= **/
-function totals(){
-  const ids=Object.keys(state.cart); let total=0; let count=0;
-  ids.forEach(id=>{
-    const p=productById.get(id); const qty=Number(state.cart[id]||0);
-    if(p && qty>0){ total+=(p.price||0)*qty; count+=qty; }
-  });
-  return {total,count};
-}
-function renderCartBar(){
-  const t=totals();
-  const totalEl=document.getElementById('cartTotal');
-  const countEl=document.getElementById('cartCount');
-  if(totalEl) totalEl.textContent = yen(t.total);
-  if(countEl)  countEl.textContent  = `${t.count}点`;
-}
-
-/** ========= カート操作 ========= **/
-function addToCart(p,qty){
-  const q=Number(state.cart[p.id]||0)+Number(qty||1);
-  state.cart[p.id]=q;
-  localStorage.setItem('cart',JSON.stringify(state.cart));
-  renderCartBar();
-}
-
-/** ========= 商品描画 ========= **/
-function renderProducts(){
-  const grid=document.getElementById('productGrid');
-  grid.className='ppp-grid'; grid.innerHTML='';
-  (PRODUCTS||[]).filter(p=>p.active!==false).filter(filterByCatSub).forEach(p=>{
-    const soldout=(p.stock!==undefined&&Number(p.stock)<=0);
-    const crumb=[p.catGroup,p.subcatGroup].filter(Boolean).join(' › ');
-    const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label});
-                   if(p.var2Id&&p.var2Label)vars.push({id:String(p.var2Id),label:p.var2Label});
-    const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
-    const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id;
-    el.innerHTML=`
-      <div class="ppp-crumbrow"><div class="ppp-crumb">${crumb||''}</div></div>
-      <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
-      <div class="ppp-mi">
-        <div class="ppp-media">
-          <div class="ppp-img"><img src="${p.img||''}" alt="${p.name||''}"
-            loading="lazy" decoding="async" referrerpolicy="no-referrer"
-            onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';"></div>
-        </div>
-        <div class="ppp-info">
-          ${p.prenote?`<div class="ppp-prenote">${p.prenote}</div>`:''}
-          <div class="ppp-price">${(p.price>0&&!isNaN(p.price))?yen(p.price):'店頭価格'}</div>
-          ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
-          <div class="ppp-actions">
-            <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''} aria-label="カート追加">
-              <span class="label">${soldout?'品切れ':'カート追加'}</span>
-            </button>
-            <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで済':'あとで'}</button>
-          </div>
-          ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
+      <!-- search -->
+      <div class="ppp-drawer__search">
+        <input id="catQuery" class="ppp-input" type="search" placeholder="カテゴリ名・サブカテゴリ名で絞り込み">
+      </div>
+      <!-- chips -->
+      <div class="ppp-chips" id="catChips" aria-live="polite"></div>
+      <!-- list (scroll area) -->
+      <div class="ppp-listwrap">
+        <div class="ppp-listpad">
+          <div id="catGrid" class="ppp-catgrid" role="list"></div>
         </div>
       </div>
-      <div class="ppp-descwrap" data-detail="${p.id}">
-        <div class="ppp-desc">${p.desc||''}</div>
-        <a class="ppp-more more--chev" href="#" data-detail="${p.id}" aria-label="詳しく"></a>
-      </div>`;
-    grid.appendChild(el);
-  });
-}
+      <!-- footer -->
+      <div class="ppp-drawer__footer">
+        <button id="catClearBtn" class="ppp-btn warn">クリア</button>
+        <button id="catApplyBtn" class="ppp-btn primary">この条件で絞り込む</button>
+      </div>
+    </section>
+  </div>
 
-/** ========= データ読込 ========= **/
-async function loadProducts(){
-  try{
-    const res=await fetch(PRODUCTS_URL,{cache:'no-store'});
-    const data=await res.json();
-    PRODUCTS=(data.items||[]).map(x=>({
-      id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
-      img:x.img||x.imageUrl||'', desc:x.desc||'', prenote:x.prenote||'', unitNote:x.unitNote||'',
-      catGroup:x.catGroup||x.cat||x.catKey||'',subcatGroup:x.subcatGroup||x.subcat||x.subcatKey||'',
-      var1Id:x.var1Id||'', var1Label:x.var1Label||'', var2Id:x.var2Id||'', var2Label:x.var2Label||'',
-      stock:(x.stock!==undefined?Number(x.stock):undefined),
-      active:(x.active===undefined?true:Boolean(x.active)), leadDays:Number(x.leadDays||1)
-    }));
-    productById=new Map(PRODUCTS.map(p=>[p.id,p]));
-    renderProducts();
-  }catch(e){ console.error(e); }
-}
+  <!-- ===== App Script（カテゴリドロワーは独立モジュール / 最小干渉） ===== -->
+  <script>
+  (function(){
+    "use strict";
 
-/** ========= イベント ========= **/
-document.addEventListener('click',ev=>{
-  const add=ev.target.closest('.ppp-btn.add[data-add]');
-  if(add){ ev.preventDefault(); const p=productById.get(add.dataset.add); if(p) addToCart(p,1); }
+    /* =========== 設定（GASのURLを差し替え） ===========================
+       - PRODUCTS_URL: 商品一覧エンドポイント（既存のあなたの実装で利用）
+       - TAXONOMY_URL: カテゴリ・サブカテゴリ一覧（本ドロワーが利用）
+       例）
+       https://script.google.com/macros/s/AKfycb.../exec?endpoint=taxonomy
+    =================================================================== */
+    const PRODUCTS_URL = 'https://script.google.com/macros/s/AKfycbzaMJ8p9_Fj9pr7dgFBzl0cApTQn0llr6-I1b9YhyKPGwbD461NBA6_U6WEzPqOpf4b/exec?endpoint=products';
+    const TAXONOMY_URL = 'https://script.google.com/macros/s/AKfycbzaMJ8p9_Fj9pr7dgFBzl0cApTQn0llr6-I1b9YhyKPGwbD461NBA6_U6WEzPqOpf4b/exec?endpoint=taxonomy';
 
-  const later=ev.target.closest('.ppp-btn[data-later]');
-  if(later){ ev.preventDefault();
-    const key='later:'+later.dataset.later;
-    const set=(localStorage.getItem(key)==='1'?'0':'1');
-    localStorage.setItem(key,set);
-    later.textContent=set==='1'?'あとで済':'あとで';
-  }
+    /* =========== DOM取得（頻出はキャッシュ） ======================== */
+    const qs  = (s,el=document)=>el.querySelector(s);
+    const qsa = (s,el=document)=>[...el.querySelectorAll(s)];
 
-  const menuCart=ev.target.closest('#menuRightAction');
-  if(menuCart){ ev.preventDefault(); document.getElementById('cartBar')?.scrollIntoView({behavior:'smooth', block:'end'}); }
+    const drawer  = qs('#catDrawer');
+    const scrim   = qs('.ppp-drawer__scrim', drawer);
+    const panel   = qs('.ppp-drawer__panel', drawer);
+    const backBtn = qs('#catBackBtn', drawer);
+    const closeBtn= qs('#catCloseBtn', drawer);
+    const queryI  = qs('#catQuery', drawer);
+    const chips   = qs('#catChips', drawer);
+    const grid    = qs('#catGrid', drawer);
+    const clearBtn= qs('#catClearBtn', drawer);
+    const applyBtn= qs('#catApplyBtn', drawer);
+    const openBtn = qs('#btnCategories');
 
-  const checkout=ev.target.closest('#checkoutBtn2');
-  if(checkout){
-    ev.preventDefault();
-    const beforeISO=state.minDateISO;
-    renderMinDateEverywhere(); // 進む直前に再チェック
-    const afterISO=state.minDateISO;
-    if(beforeISO && afterISO && beforeISO!==afterISO){
-      alert('最短受取日が更新されました：' + afterISO.replaceAll('-','/'));
-    }
-    console.log('go to cart with minDate:', afterISO);
-  }
-},{passive:false});
+    /* =========== 状態 =============================================== */
+    const State = {
+      taxonomy: null,              // { categories: [{name, id, subcategories:[{name,id}]}], ... }
+      phase: 'category',           // 'category' | 'subcategory'
+      selectedCategory: null,      // {id, name} or null
+      selectedSubcategory: null,   // {id, name} or null
+      query: '',
+    };
 
-/** ========= 初期化 ========= **/
-(function init(){
-  try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
-  renderMinDateEverywhere();   // 初期表示
-  renderCartBar();             // 合計・点数
-  loadProducts();              // 商品読み込み＆描画
-})();
-
-// ① カテゴリ／サブカテゴリで絞り込む（Products の列名に合わせています）
-function filterByCatSub(p){
-  if (!window.PPP_STATE) return true;           // まだ未定義なら素通し
-  const c = PPP_STATE.cat;
-  const s = PPP_STATE.sub;
-  if (c && String(p.catGroup)    !== String(c)) return false;
-  if (s && String(p.subcatGroup) !== String(s)) return false;
-  return true;
-}
-
-// ② 既存コードから呼べるように安全なラッパー（前の手順で使っています）
-if (typeof window.rerenderProducts !== 'function') {
-  window.rerenderProducts = function(){ renderProducts(); };
-}
-
-</script>
-
-<script>
-  // ← あなたの taxonomy GAS のデプロイURL（/exec まで）。末尾に ?endpoint=... を後で付けます
-  const TAXONOMY_URL = PRODUCTS_URL.replace(/\?.*$/, ''); // ← /exec だけにする
-
-  // カテゴリ/サブカテゴリの状態（URL・保存と連携）
-  const PPP_STATE = { cat: null, sub: null, sort: 'recommend' };
-
-  // タクソノミーデータ & 件数（GASから取得）
-  let PPP_TAXONOMY = null;  // { ok, categories:[], subcategories:{catId:[...]}, ... }
-  let PPP_COUNTS   = null;  // { ok, catCount:{}, subCount:{} }
-
-  // --- fetch（CORS失敗時はJSONPに自動フォールバック） ---
-  async function fetchJson(url, timeoutMs=8000) {
-    try {
-      const ctrl = new AbortController();
-      const t = setTimeout(()=>ctrl.abort(), timeoutMs);
-      const res = await fetch(url, { signal: ctrl.signal, cache:'no-store' });
-      clearTimeout(t);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return await res.json();
-    } catch (e) {
-      return await fetchJsonp(url, timeoutMs);
-    }
-  }
-  function fetchJsonp(url, timeoutMs=8000) {
-    return new Promise((resolve, reject)=>{
-      const cb = 'jsonp_cb_' + Math.random().toString(36).slice(2);
-      const timer = setTimeout(()=>{cleanup();reject(new Error('JSONP timeout'));}, timeoutMs);
-      function cleanup(){ clearTimeout(timer); delete window[cb]; if (script && script.parentNode) script.parentNode.removeChild(script); }
-      window[cb] = (data)=>{ cleanup(); resolve(data); };
-      const script = document.createElement('script');
-      script.src = url + (url.includes('?')?'&':'?') + 'callback=' + cb;
-      script.onerror = ()=>{ cleanup(); reject(new Error('JSONP load error')); };
-      document.head.appendChild(script);
-    });
-  }
-
-  // --- URL / localStorage から状態を復元 ---
-  function pppRestoreState(){
-    const p = new URLSearchParams(location.search);
-    const saved = localStorage.getItem('ppp_state');
-    if (p.has('cat') || p.has('sub')) {
-      PPP_STATE.cat  = p.get('cat') || null;
-      PPP_STATE.sub  = p.get('sub') || null;
-      PPP_STATE.sort = p.get('sort') || PPP_STATE.sort;
-    } else if (saved) {
-      try {
-        const s = JSON.parse(saved);
-        PPP_STATE.cat  = s.cat ?? null;
-        PPP_STATE.sub  = s.sub ?? null;
-        PPP_STATE.sort = s.sort ?? PPP_STATE.sort;
-      } catch(_){}
-    }
-  }
-
-  // 既存の pppInitTaxonomy を丸ごと置換
-  async function pppInitTaxonomy(){
-    try{
-      // taxonomy を fetch で取得（JSONPは使わない）
-      const tx = await fetchJsonDirect(`${TAXONOMY_URL}?endpoint=taxonomy`);
-      if (tx && tx.ok) PPP_TAXONOMY = tx;
-
-      // counts は“待たない”で後追い
-      fetchJsonDirect(`${TAXONOMY_URL}?endpoint=taxonomy_counts`)
-        .then(ct => { if (ct && ct.ok) PPP_COUNTS = ct; })
-        .catch(()=>{ /* 失敗してもUIは出る */ });
-
-      pppUpdateMenuLabel();
-      console.log('[taxonomy] ready:', PPP_TAXONOMY?.categories?.length ?? 0);
-    }catch(e){
-      console.warn('taxonomy load failed', e);
-    }
-  }
-
-  // --- 初期化フック（既存initとは独立） ---
-  document.addEventListener('DOMContentLoaded', ()=>{
-    pppRestoreState();
-    pppInitTaxonomy();
-  });
-
-  // 戻る/進むでURLが変わったときに状態だけ復元（UI配線は次の手順で）
-  window.addEventListener('popstate', ()=>{
-    pppRestoreState();
-    if (typeof rerenderProducts === 'function') rerenderProducts();
-    pppUpdateMenuLabel();   // ★ これも入れておくと◎
-  });
-
-
-  // ドロワー実装で使う小ユーティリティ（後工程で使用）
-  function esc(s){ return String(s).replace(/[&<>"]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m])); }
-</script>
-
-<script>
-(function(){
-  // 要素参照
-  const drawer = document.getElementById('catDrawer');
-  const panel  = drawer?.querySelector('.ppp-drawer__panel');
-  const scrim  = drawer?.querySelector('.ppp-drawer__scrim');
-  const title  = document.getElementById('catDrawerTitle');
-  const back   = document.getElementById('catDrawerBack');
-  const clear  = document.getElementById('catDrawerClear');
-  const closeB = document.getElementById('catDrawerClose');
-  const grid   = document.getElementById('catDrawerGrid');
-  const chips  = document.getElementById('catDrawerChips');
-  const queryI = document.getElementById('catDrawerQuery');
-  const btnCat = document.getElementById('btnCat');
-
-  if (!drawer || !btnCat) return;
-
-  // 開く（カテゴリ面）
-  function openCategories(){
-    drawer.setAttribute('aria-hidden','false');
-    title.textContent = 'カテゴリを選ぶ';
-    back.classList.add('hidden');
-    chips.innerHTML = '';
-    queryI.value = '';
-    renderCategories();
-    // フォーカス
-    setTimeout(()=>{ try{ queryI.focus(); }catch(_){} }, 30);
-    // Escで閉じる
-    window.addEventListener('keydown', onKeydown);
-  }
-
-  // 閉じる
-  function closeDrawer(){
-    const q = document.getElementById('catDrawerQuery');
-    if (q) q.blur();
-    drawer.setAttribute('aria-hidden','true');
-  }
-  function onKeydown(e){ if(e.key === 'Escape') closeDrawer(); }
-
-  // カテゴリ一覧をグリッドに描画
-  function renderCategories(){
-    grid.innerHTML = '';
-    const q = queryI.value.trim();
-    const list = (PPP_TAXONOMY?.categories || []).filter(c => !q || c.name.includes(q));
-
-    if (!list.length){
-      grid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">カテゴリが見つかりません</div>';
-      return;
+    /* =========== 公開イベント（呼び出し側が受け取る） =================
+       - 'ppp:categoryChange' detail: { category, subcategory }
+       既存のロード関数を触らず、このイベントに反応して絞り込み処理を実装してください。
+    =================================================================== */
+    function dispatchSelection(){
+      const detail = {
+        category: State.selectedCategory,
+        subcategory: State.selectedSubcategory
+      };
+      window.dispatchEvent(new CustomEvent('ppp:categoryChange', { detail }));
     }
 
-    list.forEach(c=>{
-      const cnt = PPP_COUNTS?.catCount?.[c.id] || { avail:0, total:0 };
-      const badge = PPP_COUNTS ? `<div class="badge">${cnt.avail}/${cnt.total}</div>` : '';
-      grid.insertAdjacentHTML('beforeend',
-        `<button type="button" data-cat="${esc(c.id)}">
-           <div class="ttl">${esc(c.name)}</div>
-           ${badge}
-         </button>`);
-    });
-  }
-
-    // サブカテゴリ面を開く
-  function openSubcats(catId){
-    const catName = (PPP_TAXONOMY?.categories || []).find(x=>x.id===catId)?.name || catId;
-    title.textContent = `サブカテゴリを選ぶ（${catName}）`;
-    back.classList.remove('hidden');
-    queryI.value = '';
-    renderSubcats(catId, catName);
-  }
-
-  // サブカテゴリ面の描画
-  function renderSubcats(catId, catName){
-    grid.innerHTML = '';
-    // 先頭に「すべて（カテゴリ）」ボタン
-    grid.insertAdjacentHTML('beforeend',
-      `<button type="button" data-cat="${esc(catId)}" data-sub="">
-        <div class="ttl">すべて（${esc(catName)}）</div>
-      </button>`);
-
-    const q = queryI.value.trim();
-    const list = (PPP_TAXONOMY?.subcategories?.[catId] || []).filter(s=>!q || s.name.includes(q));
-    if (!list.length){
-      grid.insertAdjacentHTML('beforeend',
-        `<div style="color:#9ca3af;font-size:13px;padding:16px">サブカテゴリが見つかりません</div>`);
-      return;
+    /* =========== ネットワーク ======================================= */
+    async function fetchTaxonomy(){
+      if (State.taxonomy) return State.taxonomy;
+      const url = TAXONOMY_URL;
+      const res = await fetch(url, { cache:'no-store' });
+      if(!res.ok) throw new Error('taxonomy fetch failed');
+      const data = await res.json(); // 期待: { categories: [ {id,name,subcategories:[{id,name}]} ] }
+      // 互換: GASが {taxonomy:[...]} などでも拾う
+      State.taxonomy = data.categories || data.taxonomy || data;
+      return State.taxonomy;
     }
 
-    list.forEach(s=>{
-      const cnt = PPP_COUNTS?.subCount?.[s.id] || { avail:0, total:0 };
-      const badge = PPP_COUNTS ? `<div class="badge">${cnt.avail}/${cnt.total}</div>` : '';
-      grid.insertAdjacentHTML('beforeend',
-        `<button type="button" data-cat="${esc(catId)}" data-sub="${esc(s.id)}">
-          <div class="ttl">${esc(s.name)}</div>
-          ${badge}
-        </button>`);
-    });
-  }
-
-  // 入力で再描画（カテゴリ面/サブ面を自動判定）
-  queryI.addEventListener('input', ()=>{
-    // back が表示されていればサブ面、なければカテゴリ面
-    if (!back.classList.contains('hidden')) {
-      // タイトルから catId を逆引きするのは難なので、直前に開いたcatを保持
-      // 簡易に grid 最初のボタンの data-cat を参照（「すべて（カテゴリ）」ボタン）
-      const first = grid.querySelector('button[data-cat]');
-      const catId = first?.dataset?.cat;
-      const catName = (PPP_TAXONOMY?.categories || []).find(x=>x.id===catId)?.name || catId;
-      if (catId) renderSubcats(catId, catName);
-    } else {
-      renderCategories();
-    }
-  });
-
-  // 戻る・クリア・閉じるの挙動を仕上げ
-  back.addEventListener('click', ()=>{
-    title.textContent = 'カテゴリを選ぶ';
-    back.classList.add('hidden');
-    queryI.value = '';
-    renderCategories();
-  });
-  clear.addEventListener('click', ()=>{
-    applyAndClose(null, null); // すべて解除
-  });
-
-  // 決定→保存→URL反映→（あれば）再描画→閉じる
-  function applyAndClose(catId, subId){
-    PPP_STATE.cat = catId || null;
-    PPP_STATE.sub = subId || null;
-
-    // 最近使ったカテゴリ（簡易10件）
-    if (catId){
-      const recent = JSON.parse(localStorage.getItem('ppp_recentCats')||'[]').filter(x=>x!==catId);
-      recent.unshift(catId);
-      localStorage.setItem('ppp_recentCats', JSON.stringify(recent.slice(0,10)));
+    /* =========== レンダリング ======================================= */
+    function renderChips(){
+      const fr = document.createDocumentFragment();
+      chips.innerHTML = '';
+      if(State.selectedCategory){
+        const chip = document.createElement('span');
+        chip.className = 'ppp-chip';
+        chip.innerHTML = `<span>カテゴリ: ${escapeHtml(State.selectedCategory.name)}</span><button class="x" aria-label="カテゴリ解除">×</button>`;
+        chip.querySelector('.x').addEventListener('click', ()=>{
+          State.selectedCategory = null;
+          State.selectedSubcategory = null;
+          State.phase = 'category';
+          render();
+        });
+        fr.appendChild(chip);
+      }
+      if(State.selectedSubcategory){
+        const chip = document.createElement('span');
+        chip.className = 'ppp-chip';
+        chip.innerHTML = `<span>サブ: ${escapeHtml(State.selectedSubcategory.name)}</span><button class="x" aria-label="サブカテゴリ解除">×</button>`;
+        chip.querySelector('.x').addEventListener('click', ()=>{
+          State.selectedSubcategory = null;
+          State.phase = State.selectedCategory ? 'subcategory' : 'category';
+          render();
+        });
+        fr.appendChild(chip);
+      }
+      chips.appendChild(fr);
     }
 
-    // URL & 保存
-    const p = new URLSearchParams(location.search);
-    PPP_STATE.cat ? p.set('cat', PPP_STATE.cat) : p.delete('cat');
-    PPP_STATE.sub ? p.set('sub', PPP_STATE.sub) : p.delete('sub');
-    PPP_STATE.sort ? p.set('sort', PPP_STATE.sort) : p.delete('sort');
-    history.pushState(PPP_STATE, '', `?${p.toString()}`);
-    localStorage.setItem('ppp_state', JSON.stringify(PPP_STATE));
+    function renderCategoryGrid(){
+      const items = (State.taxonomy || []);
+      const q = State.query.trim().toLowerCase();
+      const filtered = q ? items.filter(it => (it.name||'').toLowerCase().includes(q)) : items;
 
-    // メニューボタンのラベル更新（未定義なら空の関数で安全化）
-    if (typeof pppUpdateMenuLabel === 'function') { pppUpdateMenuLabel(); }
-
-    // 商品の再描画（filterは次の手順で入れるので、今は存在すれば呼ぶだけ）
-    if (typeof rerenderProducts === 'function') { rerenderProducts(); }
-
-    // 閉じる
-    closeDrawer();
-  }
-
-  // 配線
-  // 置換：クリックで “まず開く”、未ロードなら裏でロードして埋める
-  btnCat.addEventListener('click', ()=>{
-    openCategories();  // ←先に開く（体感を速く）
-
-    if (!PPP_TAXONOMY) {
-      // プレースホルダ表示
-      const grid = document.getElementById('catDrawerGrid');
-      grid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">読み込み中…</div>';
-
-      // 取得して埋める（↑パッチ1のJSONP版を使う）
-      pppInitTaxonomy().then(()=>{
-        // taxonomy が入ったら本描画
-        if (PPP_TAXONOMY?.categories?.length) {
-          // 検索欄は空にして一覧を確実に出す
-          const q = document.getElementById('catDrawerQuery');
-          if (q) q.value = '';
-          // 既存の renderCategories を呼ぶだけ
-          if (typeof renderCategories === 'function') renderCategories();
-        } else {
-          grid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">カテゴリが見つかりません</div>';
-        }
+      grid.innerHTML = '';
+      const fr = document.createDocumentFragment();
+      filtered.forEach(cat=>{
+        const btn = document.createElement('button');
+        btn.type='button';
+        btn.className='ppp-catbtn';
+        btn.setAttribute('role','listitem');
+        btn.innerHTML = `<span class="name">${escapeHtml(cat.name||'（名称未設定）')}</span><span class="badge"></span>`;
+        btn.addEventListener('click', ()=>{
+          onSelectCategory(cat);
+        });
+        fr.appendChild(btn);
       });
+      grid.appendChild(fr);
     }
-  });
-  queryI.addEventListener('input', renderCategories);
-  scrim.addEventListener('click', closeDrawer);
-  closeB.addEventListener('click', closeDrawer);
-  clear.addEventListener('click', ()=>{ /* 選択解除は次の手順で実装 */ closeDrawer(); });
-  back.addEventListener('click', ()=>{ /* サブカテゴリから戻るは次の手順で */ });
 
-// クリック：カテゴリ or サブカテゴリ
-grid.addEventListener('click', (e)=>{
-  const b = e.target.closest('button');
-  if (!b) return;
-  const cat = b.dataset.cat;
-  const sub = b.dataset.sub;
+    function renderSubcategoryGrid(){
+      const cat = State.selectedCategory;
+      const subs = (cat && (cat.subcategories || cat.children || [])) || [];
+      const q = State.query.trim().toLowerCase();
+      const filtered = q ? subs.filter(s => (s.name||'').toLowerCase().includes(q)) : subs;
 
-  // サブカテゴリが undefined → カテゴリ面のボタン
-  if (typeof sub === 'undefined') {
-    // サブカテゴリが存在するならサブ面へ、なければ即決定
-    const hasSubs = (PPP_TAXONOMY?.subcategories?.[cat] || []).length > 0;
-    if (hasSubs) {
-      openSubcats(cat);
-    } else {
-      applyAndClose(cat, null); // catのみ選択
+      grid.innerHTML = '';
+      const fr = document.createDocumentFragment();
+
+      // 「サブなしでカテゴリだけ適用」ショートカット
+      const btnCatOnly = document.createElement('button');
+      btnCatOnly.type='button';
+      btnCatOnly.className='ppp-catbtn';
+      btnCatOnly.innerHTML = `<span class="name">（サブカテゴリなしで適用）</span>`;
+      btnCatOnly.addEventListener('click', ()=>{
+        State.selectedSubcategory = null;
+        applyAndClose();
+      });
+      fr.appendChild(btnCatOnly);
+
+      filtered.forEach(sub=>{
+        const btn = document.createElement('button');
+        btn.type='button';
+        btn.className='ppp-catbtn';
+        btn.setAttribute('role','listitem');
+        btn.innerHTML = `<span class="name">${escapeHtml(sub.name||'（名称未設定）')}</span><span class="badge"></span>`;
+        btn.addEventListener('click', ()=>{
+          State.selectedSubcategory = { id: sub.id ?? sub.code ?? sub.value ?? String(sub.name), name: sub.name ?? String(sub.id ?? '') };
+          applyAndClose();
+        });
+        fr.appendChild(btn);
+      });
+      grid.appendChild(fr);
     }
-    return;
-  }
 
-  // sub === '' は「すべて（カテゴリ）」、それ以外は特定のサブカテゴリ
-  applyAndClose(cat, sub || null);
-});
+    function render(){
+      renderChips();
+      if(State.phase === 'category'){
+        qs('#catBackBtn').classList.add('hidden');
+        qs('#catDrawerTitle').textContent = 'カテゴリを選ぶ';
+        renderCategoryGrid();
+      }else{
+        qs('#catBackBtn').classList.remove('hidden');
+        qs('#catDrawerTitle').textContent = 'サブカテゴリを選ぶ';
+        renderSubcategoryGrid();
+      }
+    }
 
-})();
-</script>
+    /* =========== 選択ロジック ======================================= */
+    function onSelectCategory(cat){
+      State.selectedCategory = {
+        id: cat.id ?? cat.code ?? cat.value ?? String(cat.name),
+        name: cat.name ?? String(cat.id ?? '')
+      };
+      const subs = cat.subcategories || cat.children || [];
+      if(subs && subs.length){
+        State.phase = 'subcategory';
+        State.selectedSubcategory = null;
+        render();
+      }else{
+        // サブカテゴリが無い → そのまま適用
+        State.selectedSubcategory = null;
+        applyAndClose();
+      }
+    }
 
-<script>
-function pppFindCatName(id){
-  if (!id) return '';
-  return PPP_TAXONOMY?.categories?.find(c=>String(c.id)===String(id))?.name || String(id);
-}
-function pppFindSubName(catId, subId){
-  if (!subId) return '';
-  const list = PPP_TAXONOMY?.subcategories?.[catId] || [];
-  return list.find(s=>String(s.id)===String(subId))?.name || String(subId);
-}
+    function applyAndClose(){
+      dispatchSelection();
+      closeDrawer();
+    }
 
-/** メニューバーの「カテゴリ」ボタンのラベルを現在の状態に合わせて更新 */
-function pppUpdateMenuLabel(){
-  const btn = document.getElementById('btnCat');
-  if (!btn) return;
+    function clearSelection(){
+      State.selectedCategory = null;
+      State.selectedSubcategory = null;
+      State.phase = 'category';
+      State.query = '';
+      queryI.value = '';
+      render();
+    }
 
-  const c = PPP_STATE?.cat || null;
-  const s = PPP_STATE?.sub || null;
+    /* =========== 開閉制御（スクロールロック/誤タップ回避） =========== */
+    function onKeydown(e){
+      if(e.key === 'Escape'){ closeDrawer(); }
+    }
 
-  if (!c && !s) {
-    btn.textContent = 'カテゴリ';
-    return;
-  }
-  const catName = pppFindCatName(c);
-  const subName = pppFindSubName(c, s);
+    async function openCategories(){
+      document.documentElement.classList.add('ppp-no-scroll');
+      document.body.classList.add('ppp-no-scroll');
 
-  if (c && !s) {
-    btn.textContent = `カテゴリ：${catName}`;
-  } else {
-    btn.textContent = `カテゴリ：${catName} / サブ：${subName}`;
-  }
-}
-</script>
-<script>
-async function fetchJsonDirect(url, timeoutMs=8000){
-  const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
-  const res = await fetch(url, { signal: ctrl.signal, cache:'no-store' });
-  clearTimeout(t);
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return await res.json();
-}
-</script>
+      drawer.setAttribute('aria-hidden','false');
+      State.phase = State.selectedCategory ? 'subcategory' : 'category';
+      await fetchTaxonomy(); // 一度取得したらキャッシュ
 
+      render();
+      // 初期フォーカス：preventScrollで背面影響なし
+      setTimeout(()=>{ try{ queryI.focus({preventScroll:true}); }catch(_){} }, 30);
+      window.addEventListener('keydown', onKeydown);
+    }
 
+    function closeDrawer(){
+      document.documentElement.classList.remove('ppp-no-scroll');
+      document.body.classList.remove('ppp-no-scroll');
+      try{ queryI.blur(); }catch(_){}
+      drawer.setAttribute('aria-hidden','true');
+      window.removeEventListener('keydown', onKeydown);
+    }
 
+    /* =========== イベント結線 ======================================= */
+    // トリガーボタン
+    openBtn?.addEventListener('click', openCategories);
+
+    // 暗幕クリック：純粋に暗幕を押したときのみ閉じる
+    scrim.addEventListener('click', (e)=>{
+      if(e.target !== scrim) return;
+      closeDrawer();
+    });
+
+    // 閉じる/戻る
+    closeBtn.addEventListener('click', closeDrawer);
+    backBtn.addEventListener('click', ()=>{
+      if(State.phase === 'subcategory'){
+        State.phase = 'category';
+        render();
+      }else{
+        closeDrawer();
+      }
+    });
+
+    // 検索
+    queryI.addEventListener('input', ()=>{
+      State.query = queryI.value || '';
+      if(State.phase === 'category'){ renderCategoryGrid(); }
+      else { renderSubcategoryGrid(); }
+    });
+
+    // 適用/クリア
+    applyBtn.addEventListener('click', applyAndClose);
+    clearBtn.addEventListener('click', clearSelection);
+
+    // ========== ユーティリティ =======================================
+    function escapeHtml(s){
+      return String(s ?? '')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+
+    /* =========== 参考：呼び出し側のサンプル実装（既存へ影響なし） =====
+       既存の商品描画ロジックを触らず、categoryChangeイベントで
+       Productsのフィルタ/再描画をかけてください。
+       下の「例」はダミーです。あなたの既存関数に合わせて置換可。
+    =================================================================== */
+    window.addEventListener('ppp:categoryChange', (ev)=>{
+      const { category, subcategory } = ev.detail || {};
+      // 例：既存の loadProducts({categoryId, subcategoryId}) に委譲
+      // loadProducts({ categoryId: category?.id ?? null, subcategoryId: subcategory?.id ?? null });
+      console.log('categoryChange', category, subcategory);
+    });
+
+  })();
+  </script>
 </body>
 </html>
