@@ -516,6 +516,7 @@ if (typeof window.rerenderProducts !== 'function') {
       ]);
       if (tx && tx.ok) PPP_TAXONOMY = tx;
       if (ct && ct.ok) PPP_COUNTS   = ct;
+      pppUpdateMenuLabel();   // ★ これを追加
       console.log('[taxonomy] loaded', {
         categories: PPP_TAXONOMY?.categories?.length ?? 0,
         subcatsKeys: PPP_TAXONOMY ? Object.keys(PPP_TAXONOMY.subcategories||{}).length : 0,
@@ -533,7 +534,12 @@ if (typeof window.rerenderProducts !== 'function') {
   });
 
   // 戻る/進むでURLが変わったときに状態だけ復元（UI配線は次の手順で）
-  window.addEventListener('popstate', ()=>{ pppRestoreState(); });
+  window.addEventListener('popstate', ()=>{
+    pppRestoreState();
+    if (typeof rerenderProducts === 'function') rerenderProducts();
+    pppUpdateMenuLabel();   // ★ これも入れておくと◎
+  });
+
 
   // ドロワー実装で使う小ユーティリティ（後工程で使用）
   function esc(s){ return String(s).replace(/[&<>"]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m])); }
@@ -732,6 +738,41 @@ grid.addEventListener('click', (e)=>{
 
 })();
 </script>
+
+<script>
+function pppFindCatName(id){
+  if (!id) return '';
+  return PPP_TAXONOMY?.categories?.find(c=>String(c.id)===String(id))?.name || String(id);
+}
+function pppFindSubName(catId, subId){
+  if (!subId) return '';
+  const list = PPP_TAXONOMY?.subcategories?.[catId] || [];
+  return list.find(s=>String(s.id)===String(subId))?.name || String(subId);
+}
+
+/** メニューバーの「カテゴリ」ボタンのラベルを現在の状態に合わせて更新 */
+function pppUpdateMenuLabel(){
+  const btn = document.getElementById('btnCat');
+  if (!btn) return;
+
+  const c = PPP_STATE?.cat || null;
+  const s = PPP_STATE?.sub || null;
+
+  if (!c && !s) {
+    btn.textContent = 'カテゴリ';
+    return;
+  }
+  const catName = pppFindCatName(c);
+  const subName = pppFindSubName(c, s);
+
+  if (c && !s) {
+    btn.textContent = `カテゴリ：${catName}`;
+  } else {
+    btn.textContent = `カテゴリ：${catName} / サブ：${subName}`;
+  }
+}
+</script>
+
 
 
 </body>
