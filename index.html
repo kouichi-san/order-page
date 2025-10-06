@@ -507,21 +507,20 @@ if (typeof window.rerenderProducts !== 'function') {
     }
   }
 
-  // --- 初期ロード：taxonomy と counts を並列取得（まだUIには繋げない）---
+  // 既存の pppInitTaxonomy を丸ごと置換
   async function pppInitTaxonomy(){
     try{
-      const [tx, ct] = await Promise.all([
-        fetchJson(`${TAXONOMY_URL}?endpoint=taxonomy`),
-        fetchJson(`${TAXONOMY_URL}?endpoint=taxonomy_counts`)
-      ]);
+      // taxonomy を先に・確実に（JSONP直）
+      const tx = await fetchJsonp(`${TAXONOMY_URL}?endpoint=taxonomy`, 6000);
       if (tx && tx.ok) PPP_TAXONOMY = tx;
-      if (ct && ct.ok) PPP_COUNTS   = ct;
-      pppUpdateMenuLabel();   // ★ これを追加
-      console.log('[taxonomy] loaded', {
-        categories: PPP_TAXONOMY?.categories?.length ?? 0,
-        subcatsKeys: PPP_TAXONOMY ? Object.keys(PPP_TAXONOMY.subcategories||{}).length : 0,
-        hasCounts: !!PPP_COUNTS
-      });
+
+      // counts は出たら使う（失敗しても待たない）
+      fetchJsonp(`${TAXONOMY_URL}?endpoint=taxonomy_counts`, 6000)
+        .then(ct => { if (ct && ct.ok) PPP_COUNTS = ct; })
+        .catch(()=>{ /* 無視：バッジ無しでもUIは動く */ });
+
+      pppUpdateMenuLabel();
+      console.log('[taxonomy] ready:', PPP_TAXONOMY?.categories?.length ?? 0, 'cats');
     } catch (e) {
       console.warn('taxonomy load failed', e);
     }
@@ -699,12 +698,28 @@ if (typeof window.rerenderProducts !== 'function') {
   }
 
   // 配線
+  // 置換：クリックで “まず開く”、未ロードなら裏でロードして埋める
   btnCat.addEventListener('click', ()=>{
-    // taxonomy が未ロードならロードしてから開く
+    openCategories();  // ←先に開く（体感を速く）
+
     if (!PPP_TAXONOMY) {
-      pppInitTaxonomy().then(openCategories).catch(()=>openCategories());
-    } else {
-      openCategories();
+      // プレースホルダ表示
+      const grid = document.getElementById('catDrawerGrid');
+      grid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">読み込み中…</div>';
+
+      // 取得して埋める（↑パッチ1のJSONP版を使う）
+      pppInitTaxonomy().then(()=>{
+        // taxonomy が入ったら本描画
+        if (PPP_TAXONOMY?.categories?.length) {
+          // 検索欄は空にして一覧を確実に出す
+          const q = document.getElementById('catDrawerQuery');
+          if (q) q.value = '';
+          // 既存の renderCategories を呼ぶだけ
+          if (typeof renderCategories === 'function') renderCategories();
+        } else {
+          grid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">カテゴリが見つかりません</div>';
+        }
+      });
     }
   });
   queryI.addEventListener('input', renderCategories);
