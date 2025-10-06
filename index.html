@@ -510,18 +510,18 @@ if (typeof window.rerenderProducts !== 'function') {
   // 既存の pppInitTaxonomy を丸ごと置換
   async function pppInitTaxonomy(){
     try{
-      // taxonomy を先に・確実に（JSONP直）
-      const tx = await fetchJsonp(`${TAXONOMY_URL}?endpoint=taxonomy`, 6000);
+      // taxonomy を fetch で取得（JSONPは使わない）
+      const tx = await fetchJsonDirect(`${TAXONOMY_URL}?endpoint=taxonomy`);
       if (tx && tx.ok) PPP_TAXONOMY = tx;
 
-      // counts は出たら使う（失敗しても待たない）
-      fetchJsonp(`${TAXONOMY_URL}?endpoint=taxonomy_counts`, 6000)
+      // counts は“待たない”で後追い
+      fetchJsonDirect(`${TAXONOMY_URL}?endpoint=taxonomy_counts`)
         .then(ct => { if (ct && ct.ok) PPP_COUNTS = ct; })
-        .catch(()=>{ /* 無視：バッジ無しでもUIは動く */ });
+        .catch(()=>{ /* 失敗してもUIは出る */ });
 
       pppUpdateMenuLabel();
-      console.log('[taxonomy] ready:', PPP_TAXONOMY?.categories?.length ?? 0, 'cats');
-    } catch (e) {
+      console.log('[taxonomy] ready:', PPP_TAXONOMY?.categories?.length ?? 0);
+    }catch(e){
       console.warn('taxonomy load failed', e);
     }
   }
@@ -577,8 +577,9 @@ if (typeof window.rerenderProducts !== 'function') {
 
   // 閉じる
   function closeDrawer(){
+    const q = document.getElementById('catDrawerQuery');
+    if (q) q.blur();
     drawer.setAttribute('aria-hidden','true');
-    window.removeEventListener('keydown', onKeydown);
   }
   function onKeydown(e){ if(e.key === 'Escape') closeDrawer(); }
 
@@ -785,6 +786,16 @@ function pppUpdateMenuLabel(){
   } else {
     btn.textContent = `カテゴリ：${catName} / サブ：${subName}`;
   }
+}
+</script>
+<script>
+async function fetchJsonDirect(url, timeoutMs=8000){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+  const res = await fetch(url, { signal: ctrl.signal, cache:'no-store' });
+  clearTimeout(t);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
 }
 </script>
 
