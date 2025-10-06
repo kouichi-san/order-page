@@ -133,6 +133,69 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   /* safe-areaの黒帯と隙間を吸収 */
   .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
 }
+
+/* === Category Drawer (right -> center) ================================== */
+/* ドロワー本体（右→中央へスライド） */
+.ppp-drawer{position:fixed;inset:0;z-index:4000;display:none}
+.ppp-drawer[aria-hidden="false"]{display:block}
+.ppp-drawer__scrim{position:absolute;inset:0;background:rgba(0,0,0,.35);opacity:0;transition:opacity .18s ease}
+.ppp-drawer[aria-hidden="false"] .ppp-drawer__scrim{opacity:1}
+
+.ppp-drawer__panel{
+  position:absolute;top:0;right:0;height:100%;width:min(960px,92vw);
+  background:#fff;color:inherit;box-shadow:-10px 0 24px rgba(0,0,0,.16);
+  transform:translateX(100%);transition:transform .24s ease;
+  display:grid;grid-template-rows:auto auto auto 1fr auto;overflow:hidden;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.ppp-drawer[aria-hidden="false"] .ppp-drawer__panel{transform:translateX(0)}
+
+.ppp-drawer__head,.ppp-drawer__foot{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:#fff
+}
+.ppp-drawer__foot{border-top:1px solid var(--border);border-bottom:none;justify-content:flex-start}
+.ppp-drawer__title{font-weight:700}
+
+/* 検索・チップ */
+.ppp-drawer__search{padding:8px 16px;border-bottom:1px solid #f5f5f5;background:#fff}
+.ppp-drawer__search input{
+  width:100%;height:40px;padding:0 12px;border:1px solid #ddd;border-radius:10px;outline:none
+}
+.ppp-drawer__search input:focus{border-color:#9ca3af}
+.ppp-chips{display:flex;gap:8px;overflow:auto;padding:8px 16px;border-bottom:1px solid #f7f7f7;background:#fff}
+.ppp-chips .chip{
+  flex:0 0 auto;border:1px solid #ddd;border-radius:999px;padding:6px 10px;font-size:12px;background:#fff
+}
+
+/* 3+ 列カテゴリ・サブカテゴリ用グリッド（商品グリッド .ppp-grid と分離） */
+.ppp-catgrid{
+  padding:12px 16px;display:grid;gap:10px;grid-template-columns:repeat(3,1fr);
+  overflow:auto;-webkit-overflow-scrolling:touch;background:#fff
+}
+@media (min-width:768px){ .ppp-catgrid{grid-template-columns:repeat(4,1fr)} }
+@media (min-width:1100px){ .ppp-catgrid{grid-template-columns:repeat(6,minmax(128px,1fr))} }
+
+.ppp-catgrid button{
+  min-height:44px;border:1px solid #e6e6e6;border-radius:12px;padding:10px 12px;
+  text-align:left;position:relative;background:#fff;cursor:pointer
+}
+.ppp-catgrid button:focus-visible{outline:2px solid rgba(0,122,255,.6);outline-offset:2px}
+.ppp-catgrid .ttl{
+  font-size:14px;line-height:1.25;max-height:2.5em;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical
+}
+.ppp-catgrid .badge{position:absolute;top:6px;right:8px;font-size:11px;opacity:.75}
+
+/* ドロワー内で使う補助 */
+.ppp-btn.ghost{background:transparent} /* 既存 .ppp-btn を利用し「ghost」だけ追加 */
+.ppp-link{border:none;background:none;color:#007aff;font:inherit;cursor:pointer}
+.hidden{display:none!important}
+
+/* 端末がアニメ減らす指定ならアニメ無効 */
+@media (prefers-reduced-motion:reduce){
+  .ppp-drawer__panel,.ppp-drawer__scrim{transition:none}
+}
+
 </style>
 </head>
 <body>
@@ -154,12 +217,39 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 <nav class="menubar">
   <div class="wrap menubar-in">
     <button class="menu-btn">すべて</button>
-    <button class="menu-btn">カテゴリ</button>
+    <button id="btnCat" class="menu-btn">カテゴリ</button>
     <button class="menu-btn">並べ替え</button>
     <div class="menu-spacer"></div>
     <div id="menuRightAction" class="menu-pill">カートを見る</div>
   </div>
 </nav>
+
+<!-- === Category Drawer (right -> center) === -->
+<div id="catDrawer" class="ppp-drawer" role="dialog" aria-modal="true" aria-labelledby="catDrawerTitle" aria-hidden="true">
+  <div class="ppp-drawer__panel" role="document">
+    <div class="ppp-drawer__head">
+      <button id="catDrawerClose" class="ppp-link" aria-label="閉じる" type="button">×</button>
+      <div id="catDrawerTitle" class="ppp-drawer__title">カテゴリを選ぶ</div>
+      <button id="catDrawerClear" class="ppp-link" type="button">クリア</button>
+    </div>
+
+    <div class="ppp-drawer__search">
+      <input id="catDrawerQuery" type="search" placeholder="カテゴリ名やサブカテゴリ名を検索" autocomplete="off" />
+    </div>
+
+    <div id="catDrawerChips" class="ppp-chips" aria-live="polite"></div>
+
+    <!-- グリッドは既存の .ppp-grid と衝突しないようクラス名を分離 -->
+    <div id="catDrawerGrid" class="ppp-catgrid"></div>
+
+    <div class="ppp-drawer__foot">
+      <button id="catDrawerBack" class="ppp-btn ghost hidden" type="button">← カテゴリ一覧</button>
+    </div>
+  </div>
+
+  <div class="ppp-drawer__scrim" tabindex="-1"></div>
+</div>
+
 
 <main class="wrap">
   <section id="productGrid" class="ppp-grid"></section>
@@ -345,5 +435,94 @@ document.addEventListener('click',ev=>{
   loadProducts();              // 商品読み込み＆描画
 })();
 </script>
+
+<script>
+  // ← あなたの taxonomy GAS のデプロイURL（/exec まで）。末尾に ?endpoint=... を後で付けます
+  const TAXONOMY_URL = 'https://script.google.com/macros/s/AKfycbwbZBWQHZ_mgWEooDV7bUoYJZAqgu88liGs9EyIhIxbaJFt5_8IS6Kk_eZYODm_xgNfVg/exec';
+
+  // カテゴリ/サブカテゴリの状態（URL・保存と連携）
+  const PPP_STATE = { cat: null, sub: null, sort: 'recommend' };
+
+  // タクソノミーデータ & 件数（GASから取得）
+  let PPP_TAXONOMY = null;  // { ok, categories:[], subcategories:{catId:[...]}, ... }
+  let PPP_COUNTS   = null;  // { ok, catCount:{}, subCount:{} }
+
+  // --- fetch（CORS失敗時はJSONPに自動フォールバック） ---
+  async function fetchJson(url, timeoutMs=8000) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+      const res = await fetch(url, { signal: ctrl.signal, cache:'no-store' });
+      clearTimeout(t);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) {
+      return await fetchJsonp(url, timeoutMs);
+    }
+  }
+  function fetchJsonp(url, timeoutMs=8000) {
+    return new Promise((resolve, reject)=>{
+      const cb = 'jsonp_cb_' + Math.random().toString(36).slice(2);
+      const timer = setTimeout(()=>{cleanup();reject(new Error('JSONP timeout'));}, timeoutMs);
+      function cleanup(){ clearTimeout(timer); delete window[cb]; if (script && script.parentNode) script.parentNode.removeChild(script); }
+      window[cb] = (data)=>{ cleanup(); resolve(data); };
+      const script = document.createElement('script');
+      script.src = url + (url.includes('?')?'&':'?') + 'callback=' + cb;
+      script.onerror = ()=>{ cleanup(); reject(new Error('JSONP load error')); };
+      document.head.appendChild(script);
+    });
+  }
+
+  // --- URL / localStorage から状態を復元 ---
+  function pppRestoreState(){
+    const p = new URLSearchParams(location.search);
+    const saved = localStorage.getItem('ppp_state');
+    if (p.has('cat') || p.has('sub')) {
+      PPP_STATE.cat  = p.get('cat') || null;
+      PPP_STATE.sub  = p.get('sub') || null;
+      PPP_STATE.sort = p.get('sort') || PPP_STATE.sort;
+    } else if (saved) {
+      try {
+        const s = JSON.parse(saved);
+        PPP_STATE.cat  = s.cat ?? null;
+        PPP_STATE.sub  = s.sub ?? null;
+        PPP_STATE.sort = s.sort ?? PPP_STATE.sort;
+      } catch(_){}
+    }
+  }
+
+  // --- 初期ロード：taxonomy と counts を並列取得（まだUIには繋げない）---
+  async function pppInitTaxonomy(){
+    try{
+      const [tx, ct] = await Promise.all([
+        fetchJson(`${TAXONOMY_URL}?endpoint=taxonomy`),
+        fetchJson(`${TAXONOMY_URL}?endpoint=taxonomy_counts`)
+      ]);
+      if (tx && tx.ok) PPP_TAXONOMY = tx;
+      if (ct && ct.ok) PPP_COUNTS   = ct;
+      console.log('[taxonomy] loaded', {
+        categories: PPP_TAXONOMY?.categories?.length ?? 0,
+        subcatsKeys: PPP_TAXONOMY ? Object.keys(PPP_TAXONOMY.subcategories||{}).length : 0,
+        hasCounts: !!PPP_COUNTS
+      });
+    } catch (e) {
+      console.warn('taxonomy load failed', e);
+    }
+  }
+
+  // --- 初期化フック（既存initとは独立） ---
+  document.addEventListener('DOMContentLoaded', ()=>{
+    pppRestoreState();
+    pppInitTaxonomy();
+  });
+
+  // 戻る/進むでURLが変わったときに状態だけ復元（UI配線は次の手順で）
+  window.addEventListener('popstate', ()=>{ pppRestoreState(); });
+
+  // ドロワー実装で使う小ユーティリティ（後工程で使用）
+  function esc(s){ return String(s).replace(/[&<>"]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m])); }
+</script>
+
+
 </body>
 </html>
