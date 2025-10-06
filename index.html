@@ -388,7 +388,7 @@ async function loadProducts(){
     PRODUCTS=(data.items||[]).map(x=>({
       id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
       img:x.img||x.imageUrl||'', desc:x.desc||'', prenote:x.prenote||'', unitNote:x.unitNote||'',
-      catGroup:x.catGroup||x.cat||'', subcatGroup:x.subcatGroup||'',
+      catGroup:x.catGroup||x.cat||x.catKey||'',subcatGroup:x.subcatGroup||x.subcat||x.subcatKey||'',
       var1Id:x.var1Id||'', var1Label:x.var1Label||'', var2Id:x.var2Id||'', var2Label:x.var2Label||'',
       stock:(x.stock!==undefined?Number(x.stock):undefined),
       active:(x.active===undefined?true:Boolean(x.active)), leadDays:Number(x.leadDays||1)
@@ -454,7 +454,7 @@ if (typeof window.rerenderProducts !== 'function') {
 
 <script>
   // ← あなたの taxonomy GAS のデプロイURL（/exec まで）。末尾に ?endpoint=... を後で付けます
-  const TAXONOMY_URL = PRODUCTS_URL;
+  const TAXONOMY_URL = PRODUCTS_URL.replace(/\?.*$/, ''); // ← /exec だけにする
 
   // カテゴリ/サブカテゴリの状態（URL・保存と連携）
   const PPP_STATE = { cat: null, sub: null, sort: 'recommend' };
