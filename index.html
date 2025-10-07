@@ -124,6 +124,8 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppm__btn{border:1px solid var(--border);background:#fff;border-radius:10px;height:40px;padding:0 14px;font-weight:700;cursor:pointer}
 .ppm__btn.ghost{background:transparent}
 .ppm__spacer{flex:1}
+/* 背面スクロール抑止用（モーダル開時に付与） */
+html.modal-open, body.modal-open{overflow:hidden}
 
 </style>
 </head>
@@ -380,21 +382,39 @@ function pppUpdateMenuLabel(){
 </script>
 
 <script>
-// ===== カテゴリ階層モーダル（静的） =====
-const modal = document.getElementById('catModal');
+// ===== カテゴリ階層モーダル（静的／修正版：閉じる配線＆背面スクロール抑止） =====
+const modal   = document.getElementById('catModal');
+const scrim   = modal.querySelector('.ppm__scrim');
 const ppmGrid = document.getElementById('ppmGrid');
 const ppmBack = document.getElementById('ppmBack');
-const ppmClose = document.getElementById('ppmClose');
-const ppmClose2= document.getElementById('ppmClose2');
-const ppmClear = document.getElementById('ppmClear');
-const ppmQuery = document.getElementById('ppmQuery');
-const btnCat   = document.getElementById('btnCat');
-const btnAll   = document.getElementById('btnAll');
+const ppmClose= document.getElementById('ppmClose');
+const ppmClose2=document.getElementById('ppmClose2');
+const ppmClear= document.getElementById('ppmClear');
+const ppmQuery= document.getElementById('ppmQuery');
+const btnCat  = document.getElementById('btnCat');
+const btnAll  = document.getElementById('btnAll');
 
-let CURRENT_CAT = null; // いまサブを表示している親カテゴリID（nullでカテゴリ一覧）
+let CURRENT_CAT = null; // サブカテゴリ表示中の親カテゴリID
+let keydownHandler = null; // Esc解除用に参照を保持
 
-function openModal(){ modal.setAttribute('aria-hidden','false'); ppmQuery.value=''; CURRENT_CAT=null; renderModal(); setTimeout(()=>{ try{ ppmQuery.focus(); }catch(_){ } }, 30); }
-function closeModal(){ modal.setAttribute('aria-hidden','true'); }
+function lockBodyScroll(){ document.documentElement.classList.add('modal-open'); document.body.classList.add('modal-open'); }
+function unlockBodyScroll(){ document.documentElement.classList.remove('modal-open'); document.body.classList.remove('modal-open'); }
+
+function openModal(){
+  modal.setAttribute('aria-hidden','false');
+  lockBodyScroll();
+  ppmQuery.value='';
+  CURRENT_CAT=null;
+  renderModal();
+  setTimeout(()=>{ try{ ppmQuery.focus(); }catch(_){} }, 30);
+  keydownHandler = (e)=>{ if(e.key==='Escape') closeModal(); };
+  document.addEventListener('keydown', keydownHandler);
+}
+function closeModal(){
+  modal.setAttribute('aria-hidden','true');
+  unlockBodyScroll();
+  if (keydownHandler){ document.removeEventListener('keydown', keydownHandler); keydownHandler=null; }
+}
 
 function renderModal(){
   const q = ppmQuery.value.trim();
@@ -414,9 +434,7 @@ function renderModal(){
 
   // 親カテゴリ面
   ppmBack.style.display='none';
-  const list = CATEGORIES.filter(c=>{
-    if(!q) return true; return c.name.includes(q) || c.subs?.some(s=>s.name.includes(q));
-  });
+  const list = CATEGORIES.filter(c=>{ if(!q) return true; return c.name.includes(q) || c.subs?.some(s=>s.name.includes(q)); });
   if(!list.length){ ppmGrid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">カテゴリが見つかりません</div>'; return; }
   list.forEach(c=>{
     // 件数バッジ（任意）
@@ -443,16 +461,15 @@ function applyCategory(catId, subId){
   closeModal();
 }
 
-// 配線
+// 配線（タイポ修正・正しい参照でイベントを張る）
 btnCat?.addEventListener('click', openModal);
 btnAll?.addEventListener('click', ()=>applyCategory(null,null));
-pmppm = (e)=>{ if(e.key==='Escape') closeModal(); };
-document.addEventListener('keydown', pmpm=>{});
-pmQuery.addEventListener('input', renderModal);
-pmBack.addEventListener('click', ()=>{ CURRENT_CAT=null; renderModal(); });
-pmClear.addEventListener('click', ()=>applyCategory(null,null));
-pmClose.addEventListener('click', closeModal);
-pmClose2.addEventListener('click', closeModal);
+ppmQuery.addEventListener('input', renderModal);
+ppmBack.addEventListener('click', ()=>{ CURRENT_CAT=null; renderModal(); });
+ppmClear.addEventListener('click', ()=>applyCategory(null,null));
+ppmClose.addEventListener('click', closeModal);
+ppmClose2.addEventListener('click', closeModal);
+scrim.addEventListener('click', closeModal); // 背景クリックで閉じる
 
 ppmGrid.addEventListener('click',(e)=>{
   const catBtn = e.target.closest('button[data-cat]');
@@ -462,7 +479,14 @@ ppmGrid.addEventListener('click',(e)=>{
 });
 
 // 戻る/進む対応
-window.addEventListener('popstate', ()=>{ try{ const s=JSON.parse(localStorage.getItem('ppp_state')||'{}'); PPP_STATE.cat=s.cat??null; PPP_STATE.sub=s.sub??null; PPP_STATE.sort=s.sort??'recommend'; }catch(_){ } if (typeof pppUpdateMenuLabel==='function') pppUpdateMenuLabel(); if (typeof rerenderProducts==='function') rerenderProducts(); });
+window.addEventListener('popstate', ()=>{
+  try{
+    const s=JSON.parse(localStorage.getItem('ppp_state')||'{}');
+    PPP_STATE.cat=s.cat??null; PPP_STATE.sub=s.sub??null; PPP_STATE.sort=s.sort??'recommend';
+  }catch(_){ }
+  if (typeof pppUpdateMenuLabel==='function') pppUpdateMenuLabel();
+  if (typeof rerenderProducts==='function') rerenderProducts();
+});
 </script>
 
 </body>
