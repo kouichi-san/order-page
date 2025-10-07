@@ -276,41 +276,68 @@ function filterByCatSub(p){
 function renderProducts(){
   const grid=document.getElementById('productGrid');
   grid.className='ppp-grid'; grid.innerHTML='';
-  (PRODUCTS||[]).filter(p=>p.active!==false).filter(filterByCatSub).forEach(p=>{
-    const soldout=(p.stock!==undefined&&Number(p.stock)<=0);
-    const crumb=[p.catGroup,p.subcatGroup].filter(Boolean).join(' › ');
-    const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label});
-                   if(p.var2Id&&p.var2Label)vars.push({id:String(p.var2Id),label:p.var2Label});
-    const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
-    const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id;
-    el.innerHTML=`
-      <div class="ppp-crumbrow"><div class="ppp-crumb">${crumb||''}</div></div>
-      <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
-      <div class="ppp-mi">
-        <div class="ppp-media">
-          <div class="ppp-img"><img src="${p.img||''}" alt="${p.name||''}"
-            loading="lazy" decoding="async" referrerpolicy="no-referrer"
-            onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';"></div>
-        </div>
-        <div class="ppp-info">
-          ${p.prenote?`<div class="ppp-prenote">${p.prenote}</div>`:''}
-          <div class="ppp-price">${(p.price>0&&!isNaN(p.price))?yen(p.price):'店頭価格'}</div>
-          ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
-          <div class="ppp-actions">
-            <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''} aria-label="カート追加">
-              <span class="label">${soldout?'品切れ':'カート追加'}</span>
-            </button>
-            <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで済':'あとで'}</button>
+
+  // 補助：ID/名称の両対応でパンくず表示名を解決
+  const resolveCatName = (val)=>{
+    if(!val) return '';
+    const c = CATEGORIES.find(c=>String(c.id)===String(val) || c.name===val);
+    return c ? c.name : String(val);
+  };
+  const resolveSubName = (catVal, subVal)=>{
+    if(!subVal) return '';
+    const c = CATEGORIES.find(c=>String(c.id)===String(catVal) || c.name===catVal);
+    const s = c?.subs?.find(s=>String(s.id)===String(subVal) || s.name===subVal);
+    return s ? s.name : String(subVal);
+  };
+
+  (PRODUCTS||[])
+    .filter(p=>p.active!==false)
+    .filter(filterByCatSub)
+    .forEach(p=>{
+      const soldout=(p.stock!==undefined&&Number(p.stock)<=0);
+
+      // ▼ パンくず（cat/sub がIDでも名称でも両対応）
+      const catRaw = p.catGroup||p.cat||'';
+      const subRaw = p.subcatGroup||p.subcat||'';
+      const catLabel = resolveCatName(catRaw);
+      const subLabel = resolveSubName(catRaw, subRaw);
+      const crumb = [catLabel, subLabel].filter(Boolean).join(' › ');
+      const crumbHTML = crumb ? `<div class="ppp-crumbrow"><div class="ppp-crumb" title="${crumb}">${crumb}</div></div>` : '';
+
+      // ▼ バリエーション
+      const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label});
+                     if(p.var2Id&&p.var2Label)vars.push({id:String(p.var2Id),label:p.var2Label});
+      const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
+
+      const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id;
+      el.innerHTML=`
+        ${crumbHTML}
+        <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
+        <div class="ppp-mi">
+          <div class="ppp-media">
+            <div class="ppp-img"><img src="${p.img||''}" alt="${p.name||''}"
+              loading="lazy" decoding="async" referrerpolicy="no-referrer"
+              onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';"></div>
           </div>
-          ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
+          <div class="ppp-info">
+            ${p.prenote?`<div class="ppp-prenote">${p.prenote}</div>`:''}
+            <div class="ppp-price">${(Number(p.price)>0 && !Number.isNaN(Number(p.price))) ? yen(p.price) : '店頭価格'}</div>
+            ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
+            <div class="ppp-actions">
+              <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''} aria-label="カート追加">
+                <span class="label">${soldout?'品切れ':'カート追加'}</span>
+              </button>
+              <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで済':'あとで'}</button>
+            </div>
+            ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
+          </div>
         </div>
-      </div>
-      <div class="ppp-descwrap" data-detail="${p.id}">
-        <div class="ppp-desc">${p.desc||''}</div>
-        <a class="ppp-more more--chev" href="#" data-detail="${p.id}" aria-label="詳しく"></a>
-      </div>`;
-    grid.appendChild(el);
-  });
+        <div class="ppp-descwrap" data-detail="${p.id}">
+          <div class="ppp-desc">${p.desc||''}</div>
+          <a class="ppp-more more--chev" href="#" data-detail="${p.id}" aria-label="詳しく"></a>
+        </div>`;
+      grid.appendChild(el);
+    });
 }
 
 /** ========= データ読込 ========= **/
