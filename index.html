@@ -127,6 +127,16 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 /* 背面スクロール抑止用（モーダル開時に付与） */
 html.modal-open, body.modal-open{overflow:hidden}
 
+/* デフォルト＝PCではラベル＆日付を隠す */
+.lbl-min, .val-date { display:none; }
+
+/* 既存のSP用ブロックの中にある指定はそのままでOK（表示を上書き） */
+@media(max-width:420px){
+  .lbl-min{ display:block; }
+  .val-date{ display:block; }
+  .inline-pill{ display:none; } /* SPではピルは非表示 */
+}
+
 </style>
 </head>
 <body>
