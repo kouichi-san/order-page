@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Ping-Pong-Pang｜翌日以降受け取り 注文（カテゴリ階層モーダル統合版）</title>
+<title>Ping-Pong-Pang｜翌日以降受け取り 注文</title>
 <style>
 :root{
   --bg:#fafafa;
@@ -46,10 +46,18 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 
 /* ===== 商品カード ===== */
-#productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
-.ppp-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden }
+#productGrid.ppp-grid{
+  display:grid; grid-template-columns:repeat(2,540px);
+  justify-content:space-between; gap:0;
+}
+.ppp-card{
+  width:540px; background:#fff; border:1px solid var(--border);
+  border-radius:16px; overflow:hidden;
+}
 .ppp-crumbrow{ display:block; padding:10px 12px 0 }
 .ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
+.ppp-crumb a{ color:#475569; text-decoration:none }
+.ppp-crumb a:hover{ text-decoration:underline }
 .ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px }
 .ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
 .ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid var(--border); display:grid; place-items:center; cursor:pointer }
@@ -81,20 +89,35 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 /* ===== フッター（ベース：PC横一列） ===== */
 .cart{ position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border) }
 .cart .wrap{ padding:0 16px }
-.cart-box{ display:flex; align-items:center; gap:16px; justify-content:flex-end; padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom)) }
+.cart-box{
+  display:flex; align-items:center; gap:16px;
+  justify-content:flex-end;
+  padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom));
+}
 .cart-left{ margin-right:auto; display:flex; align-items:center; gap:12px }
-.inline-pill{ font-size:14px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; border-radius:999px; padding:6px 14px; white-space:nowrap }
+.inline-pill{
+  font-size:14px; background:#f0fdf4; color:var(--brand-ink);
+  border:1px solid #d1fae5; border-radius:999px; padding:6px 14px; white-space:nowrap;
+}
 .count{ min-width:60px; text-align:right; font-size:14px }
 .total{ min-width:80px; text-align:right; font-weight:900; font-size:18px }
 .btn-cart{ background:var(--brand); color:#fff; border:none; border-radius:var(--btn-radius); padding:10px 18px; cursor:pointer; font-weight:800; white-space:nowrap }
 .btn-cart:active{ transform:translateY(1px) }
 
-/* ===== SP版フッター：2行×3列 ===== */
+/* ===== SP版フッター：2行×3列（上：最短受取日｜商品点数｜ボタン／下：日付｜合計金額｜） ===== */
 @media(max-width:420px){
-  .cart-box{ display:grid; grid-template-columns: 1fr 1fr auto; grid-template-rows: auto auto; gap:4px 12px; align-items:center; padding:6px 0; padding-bottom:calc(6px + env(safe-area-inset-bottom)) }
+  .cart-box{
+    display:grid;
+    grid-template-columns: 1fr 1fr auto;
+    grid-template-rows: auto auto;
+    gap:4px 12px;
+    align-items:center;
+    padding:6px 0;
+    padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  }
   .inline-pill{ display:none }
   .lbl-min{ grid-column:1; grid-row:1; font-size:12px; color:#065f46; opacity:.95 }
-  .count{ grid-column:2; grid-row:1; text-align:right; font-weight:700 }
+  .count{ grid-column:2; grid-row:1; text-align:right; font-weight:700; }
   .count::before{ content:"商品点数 "; font-size:12px; font-weight:600; opacity:.9; margin-right:4px }
   .val-date{ grid-column:1; grid-row:2; font-weight:700; font-size:14px; white-space:nowrap }
   .total{ grid-column:2; grid-row:2; text-align:right; font-size:17px }
@@ -102,98 +125,50 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   .btn-cart{ grid-column:3; grid-row:1 / 3; align-self:stretch; padding:10px 14px; min-width:72px }
   .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
 }
-
-/* === Category Modal (center, 階層) ======================= */
-.ppm{position:fixed;inset:0;z-index:5000;display:none}
-.ppm[aria-hidden="false"]{display:block}
-.ppm__scrim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
-.ppm__panel{ position:absolute;left:50%;top:50%;transform:translate(-50%,-50%); width:min(960px,92vw);max-height:min(85vh,800px); background:#fff;border-radius:16px; box-shadow:0 24px 48px rgba(0,0,0,.24); display:grid;grid-template-rows:auto auto 1fr auto; overflow:hidden }
-.ppm__head,.ppm__foot{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
-.ppm__foot{border-top:1px solid var(--border);border-bottom:none}
-.ppm__title{font-weight:800}
-.ppm__close{margin-left:auto;border:none;background:none;font-size:22px;cursor:pointer}
-.ppm__search{padding:10px 16px;border-bottom:1px solid #f1f5f9}
-.ppm__search input{width:100%;height:40px;border:1px solid #e5e7eb;border-radius:10px;padding:0 12px;outline:none}
-.ppm__search input:focus{border-color:#9ca3af}
-.ppm__grid{ padding:12px 16px;overflow:auto;display:grid; grid-template-columns:repeat(2,1fr);gap:10px }
-@media(min-width:768px){ .ppm__grid{grid-template-columns:repeat(3,1fr)} }
-@media(min-width:1100px){ .ppm__grid{grid-template-columns:repeat(4,1fr)} }
-.ppm__grid button{ min-height:44px;border:1px solid #e6e6e6;border-radius:12px;padding:10px 12px; text-align:left;background:#fff;cursor:pointer;position:relative }
-.ppm__grid .ttl{font-size:14px;line-height:1.25;max-height:2.5em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.ppm__grid .badge{position:absolute;top:6px;right:8px;font-size:11px;opacity:.75}
-.ppm__btn{border:1px solid var(--border);background:#fff;border-radius:10px;height:40px;padding:0 14px;font-weight:700;cursor:pointer}
-.ppm__btn.ghost{background:transparent}
-.ppm__spacer{flex:1}
-/* 背面スクロール抑止用（モーダル開時に付与） */
-html.modal-open, body.modal-open{overflow:hidden}
-
-/* デフォルト＝PCではラベル＆日付を隠す */
-.lbl-min, .val-date { display:none; }
-
-/* 既存のSP用ブロックの中にある指定はそのままでOK（表示を上書き） */
-@media(max-width:420px){
-  .lbl-min{ display:block; }
-  .val-date{ display:block; }
-  .inline-pill{ display:none; } /* SPではピルは非表示 */
-}
-
 </style>
 </head>
 <body>
 <header>
-  <div class="wrap header-in"><div class="brand">Ping-Pong-Pang</div></div>
+  <div class="wrap header-in">
+    <div class="brand">Ping-Pong-Pang</div>
+  </div>
 </header>
 
 <main class="wrap">
   <section class="section">
     <h1 style="margin:.2em 0 0">翌日以降受取予約注文</h1>
-    <p style="color:#6b7280; font-size:14px; margin:.3em 0 0">本ページは「取り置き予約（店頭受け取り）」の受付です。オンライン決済は行いません。お支払いは受け取り時に店頭にて。</p>
+    <p style="color:#6b7280; font-size:14px; margin:.3em 0 0">
+      本ページは「取り置き予約（店頭受け取り）」の受付です。オンライン決済は行いません。お支払いは受け取り時に店頭にて。
+    </p>
   </section>
 </main>
 
 <nav class="menubar">
   <div class="wrap menubar-in">
-    <button class="menu-btn" id="btnAll">すべて</button>
-    <button id="btnCat" class="menu-btn">カテゴリ</button>
-    <button class="menu-btn" id="btnSort">並べ替え</button>
+    <button class="menu-btn">すべて</button>
+    <button class="menu-btn">カテゴリ</button>
+    <button class="menu-btn">並べ替え</button>
     <div class="menu-spacer"></div>
-    <div class="menu-pill" id="menuRightAction">カートを見る</div>
+    <div id="menuRightAction" class="menu-pill">カートを見る</div>
   </div>
 </nav>
-
-<!-- === Category Modal (center) === -->
-<div id="catModal" class="ppm" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ppmTitle">
-  <div class="ppm__scrim"></div>
-  <div class="ppm__panel" role="document">
-    <div class="ppm__head">
-      <div id="ppmTitle" class="ppm__title">カテゴリを選ぶ</div>
-      <button type="button" class="ppm__close" id="ppmClose" aria-label="閉じる">×</button>
-    </div>
-    <div class="ppm__search">
-      <input id="ppmQuery" type="search" placeholder="カテゴリ名・サブカテゴリ名で検索" autocomplete="off" />
-    </div>
-    <div id="ppmGrid" class="ppm__grid" aria-live="polite"></div>
-    <div class="ppm__foot">
-      <button type="button" id="ppmBack" class="ppm__btn ghost" style="display:none">← カテゴリ一覧</button>
-      <div class="ppm__spacer"></div>
-      <button type="button" id="ppmClear" class="ppm__btn ghost">クリア</button>
-      <button type="button" id="ppmClose2" class="ppm__btn">閉じる</button>
-    </div>
-  </div>
-</div>
 
 <main class="wrap">
   <section id="productGrid" class="ppp-grid"></section>
   <section class="section">
-    <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。</p>
+    <p style="color:#9ca3af;font-size:13px;margin:24px 0 56px">
+      写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。
+    </p>
   </section>
 </main>
 
-<!-- ===== フッター ===== -->
+<!-- ===== フッター（SP：2行×3列／PC：横一列） ===== -->
 <div class="cart" id="cartBar">
   <div class="wrap">
     <div class="cart-box">
-      <div class="cart-left"><span class="inline-pill" id="cartMinDateInline">最短受取 —</span></div>
+      <div class="cart-left">
+        <span class="inline-pill" id="cartMinDateInline">最短受取 —</span>
+      </div>
       <div class="lbl-min">最短受取日</div>
       <div class="count" id="cartCount">0点</div>
       <div class="val-date" id="cartMinDate">—</div>
@@ -205,27 +180,21 @@ html.modal-open, body.modal-open{overflow:hidden}
 
 <script>
 /** ========= 設定 ========= **/
-const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbxN0Fx5Vv6tkGpQy9zPsHh_4nCPewksGSSl0OTrKlPOPrETU9AGfY9-djT3RauQR9lFsQ/exec?endpoint=products";
+const PRODUCTS_URL="https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const CUTOVER_HOUR = 2; // AM2:00で「翌日」表示に切替
 let PRODUCTS=[]; let productById=new Map();
 const state={cart:{}, minDateISO:null};
 
-// カテゴリ定義（静的）。必要に応じて追加・並べ替えしてください。
-const CATEGORIES = [
-  { id:'frozen',  name:'冷凍', subs:[{id:'pizza',name:'ピザ'},{id:'meatball',name:'ミートボール'},{id:'dumpling',name:'点心'}] },
-  { id:'chilled', name:'冷蔵', subs:[{id:'dairy',name:'乳製品'},{id:'ham',name:'ハム'}] },
-  { id:'ambient', name:'常温', subs:[{id:'canned',name:'缶詰'},{id:'seasoning',name:'調味料'}] },
-  { id:'meat',    name:'精肉', subs:[{id:'beef',name:'牛肉'},{id:'pork',name:'豚肉'},{id:'chicken',name:'鶏肉'}] },
-  { id:'fish',    name:'鮮魚', subs:[{id:'salmon',name:'サーモン'},{id:'tuna',name:'マグロ'}] },
-  { id:'bread',   name:'ベーカリー', subs:[{id:'breadpack',name:'食パン'},{id:'sweets',name:'スイーツ'}] },
-  { id:'drink',   name:'飲料', subs:[{id:'water',name:'水'},{id:'coffee',name:'コーヒー'},{id:'tea',name:'お茶'}] },
-  { id:'daily',   name:'日用品', subs:[{id:'paper',name:'紙製品'},{id:'clean',name:'洗剤'}] },
-  { id:'snack',   name:'お菓子', subs:[{id:'chocolate',name:'チョコ'},{id:'chips',name:'スナック'}] },
-  { id:'season',  name:'季節', subs:[{id:'gift',name:'ギフト'},{id:'limited',name:'限定'}] }
-];
-
-// 現行のPPP_STATEを利用（なければ初期化）
-window.PPP_STATE = window.PPP_STATE || { cat:null, sub:null, sort:'recommend' };
+/** ========= taxonomy（仮）＆フィルタ状態 ========= **/
+const TAXONOMY = {
+  cats: [
+    { label:'パン・ベーグル・マフィン', subs:[ {label:'ベーグル'}, {label:'マフィン'}, {label:'パン'} ] },
+    { label:'肉・ハム', subs:[ {label:'牛肉'}, {label:'豚肉'}, {label:'鶏肉'} ] },
+    { label:'冷凍食品', subs:[ {label:'惣菜'} ] }
+  ]
+};
+const filterState = { cat:null, subcat:null };
+const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
 /** ========= ユーティリティ ========= **/
 function yen(n){ try{ return Number(n||0).toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}); }catch(e){ return '¥'+(n||0); } }
@@ -233,7 +202,7 @@ function toJst(d=new Date()){ return new Date(new Intl.DateTimeFormat('en-US',{t
 function fmtJP(d){ const y=d.getFullYear(), m=d.getMonth()+1, day=d.getDate(); const w='日月火水木金土'[d.getDay()]; return `${y}/${String(m).padStart(2,'0')}/${String(day).padStart(2,'0')}(${w})`; }
 function isoDate(d){ return d.toISOString().slice(0,10); }
 
-/** ========= 最短受取日ロジック ========= **/
+/** ========= 最短受取日ロジック（AM2:00切替） ========= **/
 function calcMinDate(){
   const now = toJst();
   const base = new Date(now);
@@ -276,78 +245,68 @@ function addToCart(p,qty){
   renderCartBar();
 }
 
-/** ========= 商品描画 ========= **/
-function filterByCatSub(p){
-  const c = PPP_STATE.cat; const s = PPP_STATE.sub;
-  if (c && String(p.catGroup||p.cat||'') !== String(c)) return false;
-  if (s && String(p.subcatGroup||p.subcat||'') !== String(s)) return false;
-  return true;
-}
+/** ========= 商品描画（パンくずリンク対応＋フィルタ） ========= **/
 function renderProducts(){
   const grid=document.getElementById('productGrid');
   grid.className='ppp-grid'; grid.innerHTML='';
 
-  // 補助：ID/名称の両対応でパンくず表示名を解決
-  const resolveCatName = (val)=>{
-    if(!val) return '';
-    const c = CATEGORIES.find(c=>String(c.id)===String(val) || c.name===val);
-    return c ? c.name : String(val);
-  };
-  const resolveSubName = (catVal, subVal)=>{
-    if(!subVal) return '';
-    const c = CATEGORIES.find(c=>String(c.id)===String(catVal) || c.name===catVal);
-    const s = c?.subs?.find(s=>String(s.id)===String(subVal) || s.name===subVal);
-    return s ? s.name : String(subVal);
-  };
+  // 1) フィルタ適用
+  const nCat = norm(filterState.cat);
+  const nSub = norm(filterState.subcat);
+  const list = (PRODUCTS||[]).filter(p=>{
+    if(p.active===false) return false;
+    const pc = norm(p.catGroup||p.cat||'');
+    const ps = norm(p.subcatGroup||'');
+    if(nCat && pc!==nCat) return false;
+    if(nSub && ps!==nSub) return false;
+    return true;
+  });
 
-  (PRODUCTS||[])
-    .filter(p=>p.active!==false)
-    .filter(filterByCatSub)
-    .forEach(p=>{
-      const soldout=(p.stock!==undefined&&Number(p.stock)<=0);
+  // 2) 描画
+  list.forEach(p=>{
+    const soldout=(p.stock!==undefined&&Number(p.stock)<=0);
 
-      // ▼ パンくず（cat/sub がIDでも名称でも両対応）
-      const catRaw = p.catGroup||p.cat||'';
-      const subRaw = p.subcatGroup||p.subcat||'';
-      const catLabel = resolveCatName(catRaw);
-      const subLabel = resolveSubName(catRaw, subRaw);
-      const crumb = [catLabel, subLabel].filter(Boolean).join(' › ');
-      const crumbHTML = crumb ? `<div class="ppp-crumbrow"><div class="ppp-crumb" title="${crumb}">${crumb}</div></div>` : '';
+    // パンくず：カテゴリ／サブカテゴリをリンク化
+    const catLabel    = p.catGroup || p.cat || '';
+    const subcatLabel = p.subcatGroup || '';
+    const crumbHTML = [
+      catLabel    ? `<a href="#" class="ppp-crumb-link" data-cat="${catLabel}">${catLabel}</a>` : '',
+      subcatLabel ? `<a href="#" class="ppp-crumb-link" data-subcat="${subcatLabel}">${subcatLabel}</a>` : ''
+    ].filter(Boolean).join(' › ');
 
-      // ▼ バリエーション
-      const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label});
-                     if(p.var2Id&&p.var2Label)vars.push({id:String(p.var2Id),label:p.var2Label});
-      const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
+    const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label});
+                   if(p.var2Id&&p.var2Label)vars.push({id:String(p.var2Id),label:p.var2Label});
+    const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
 
-      const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id;
-      el.innerHTML=`
-        ${crumbHTML}
-        <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
-        <div class="ppp-mi">
-          <div class="ppp-media">
-            <div class="ppp-img"><img src="${p.img||''}" alt="${p.name||''}"
-              loading="lazy" decoding="async" referrerpolicy="no-referrer"
-              onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';"></div>
-          </div>
-          <div class="ppp-info">
-            ${p.prenote?`<div class="ppp-prenote">${p.prenote}</div>`:''}
-            <div class="ppp-price">${(Number(p.price)>0 && !Number.isNaN(Number(p.price))) ? yen(p.price) : '店頭価格'}</div>
-            ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
-            <div class="ppp-actions">
-              <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''} aria-label="カート追加">
-                <span class="label">${soldout?'品切れ':'カート追加'}</span>
-              </button>
-              <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで済':'あとで'}</button>
-            </div>
-            ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
-          </div>
+    const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id;
+    el.innerHTML=`
+      <div class="ppp-crumbrow"><div class="ppp-crumb">${crumbHTML}</div></div>
+      <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
+      <div class="ppp-mi">
+        <div class="ppp-media">
+          <div class="ppp-img"><img src="${p.img||''}" alt="${p.name||''}"
+            loading="lazy" decoding="async" referrerpolicy="no-referrer"
+            onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';"></div>
         </div>
-        <div class="ppp-descwrap" data-detail="${p.id}">
-          <div class="ppp-desc">${p.desc||''}</div>
-          <a class="ppp-more more--chev" href="#" data-detail="${p.id}" aria-label="詳しく"></a>
-        </div>`;
-      grid.appendChild(el);
-    });
+        <div class="ppp-info">
+          ${p.prenote?`<div class="ppp-prenote">${p.prenote}</div>`:''}
+          <div class="ppp-price">${(p.price>0&&!isNaN(p.price))?yen(p.price):'店頭価格'}</div>
+          ${p.unitNote?`<div class="ppp-unit">${p.unitNote}</div>`:''}
+          <div class="ppp-actions">
+            <button class="ppp-btn add" data-add="${p.id}" ${soldout?'disabled':''} aria-label="カート追加">
+              <span class="label">${soldout?'品切れ':'カート追加'}</span>
+            </button>
+            <button class="ppp-btn" data-later="${p.id}">${localStorage.getItem('later:'+p.id)==='1'?'あとで済':'あとで'}</button>
+          </div>
+          ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
+        </div>
+      </div>
+      <div class="ppp-descwrap" data-detail="${p.id}">
+        <div class="ppp-desc">${p.desc||''}</div>
+        <a class="ppp-more more--chev" href="#" data-detail="${p.id}" aria-label="詳しく"></a>
+      </div>`;
+    grid.appendChild(el);
+  });
 }
 
 /** ========= データ読込 ========= **/
@@ -358,7 +317,7 @@ async function loadProducts(){
     PRODUCTS=(data.items||[]).map(x=>({
       id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
       img:x.img||x.imageUrl||'', desc:x.desc||'', prenote:x.prenote||'', unitNote:x.unitNote||'',
-      catGroup:x.catGroup||x.cat||x.catKey||'', subcatGroup:x.subcatGroup||x.subcat||x.subcatKey||'',
+      catGroup:x.catGroup||x.cat||'', subcatGroup:x.subcatGroup||'',
       var1Id:x.var1Id||'', var1Label:x.var1Label||'', var2Id:x.var2Id||'', var2Label:x.var2Label||'',
       stock:(x.stock!==undefined?Number(x.stock):undefined),
       active:(x.active===undefined?true:Boolean(x.active)), leadDays:Number(x.leadDays||1)
@@ -388,143 +347,41 @@ document.addEventListener('click',ev=>{
   if(checkout){
     ev.preventDefault();
     const beforeISO=state.minDateISO;
-    renderMinDateEverywhere();
+    renderMinDateEverywhere(); // 進む直前に再チェック
     const afterISO=state.minDateISO;
-    if(beforeISO && afterISO && beforeISO!==afterISO){ alert('最短受取日が更新されました：' + afterISO.replaceAll('-','/')); }
+    if(beforeISO && afterISO && beforeISO!==afterISO){
+      alert('最短受取日が更新されました：' + afterISO.replaceAll('-','/'));
+    }
     console.log('go to cart with minDate:', afterISO);
+  }
+
+  // ▼ パンくずリンク（カード内）→ フィルタ
+  const crumb = ev.target.closest('.ppp-crumb-link');
+  if(crumb){
+    ev.preventDefault();
+    const cat    = crumb.dataset.cat || null;
+    const subcat = crumb.dataset.subcat || null;
+
+    if(cat){ filterState.cat = cat; filterState.subcat = null; }
+    if(subcat){
+      filterState.subcat = subcat;
+      // subcatのみクリックされた場合、taxonomyから親カテゴリを補完（ラベル一致）
+      if(!filterState.cat){
+        const owner = TAXONOMY.cats.find(c => (c.subs||[]).some(s => norm(s.label)===norm(subcat)));
+        if(owner) filterState.cat = owner.label;
+      }
+    }
+    renderProducts();
   }
 },{passive:false});
 
 /** ========= 初期化 ========= **/
 (function init(){
-  try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){ }
-  renderMinDateEverywhere();
-  renderCartBar();
-  loadProducts();
+  try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
+  renderMinDateEverywhere();   // 初期表示
+  renderCartBar();             // 合計・点数
+  loadProducts();              // 商品読み込み＆描画
 })();
-
-// 既存互換：外部から再描画
-if (typeof window.rerenderProducts !== 'function') window.rerenderProducts = function(){ renderProducts(); };
-
-// メニューボタンのラベル更新（カテゴリ名表示）
-function pppFindCatName(id){ if(!id) return ''; const c=CATEGORIES.find(c=>String(c.id)===String(id)); return c?c.name:String(id); }
-function pppFindSubName(catId, subId){ if(!catId||!subId) return ''; const c=CATEGORIES.find(c=>String(c.id)===String(catId)); const s=c?.subs?.find(s=>String(s.id)===String(subId)); return s?s.name:String(subId); }
-function pppUpdateMenuLabel(){
-  const btn = document.getElementById('btnCat'); if(!btn) return;
-  const c = PPP_STATE?.cat || null; const s = PPP_STATE?.sub || null;
-  if (!c && !s) { btn.textContent = 'カテゴリ'; return; }
-  const catName = pppFindCatName(c); const subName = pppFindSubName(c, s);
-  if (c && !s) btn.textContent = `カテゴリ：${catName}`; else btn.textContent = `カテゴリ：${catName} / サブ：${subName}`;
-}
 </script>
-
-<script>
-// ===== カテゴリ階層モーダル（静的／修正版：閉じる配線＆背面スクロール抑止） =====
-const modal   = document.getElementById('catModal');
-const scrim   = modal.querySelector('.ppm__scrim');
-const ppmGrid = document.getElementById('ppmGrid');
-const ppmBack = document.getElementById('ppmBack');
-const ppmClose= document.getElementById('ppmClose');
-const ppmClose2=document.getElementById('ppmClose2');
-const ppmClear= document.getElementById('ppmClear');
-const ppmQuery= document.getElementById('ppmQuery');
-const btnCat  = document.getElementById('btnCat');
-const btnAll  = document.getElementById('btnAll');
-
-let CURRENT_CAT = null; // サブカテゴリ表示中の親カテゴリID
-let keydownHandler = null; // Esc解除用に参照を保持
-
-function lockBodyScroll(){ document.documentElement.classList.add('modal-open'); document.body.classList.add('modal-open'); }
-function unlockBodyScroll(){ document.documentElement.classList.remove('modal-open'); document.body.classList.remove('modal-open'); }
-
-function openModal(){
-  modal.setAttribute('aria-hidden','false');
-  lockBodyScroll();
-  ppmQuery.value='';
-  CURRENT_CAT=null;
-  renderModal();
-  setTimeout(()=>{ try{ ppmQuery.focus(); }catch(_){} }, 30);
-  keydownHandler = (e)=>{ if(e.key==='Escape') closeModal(); };
-  document.addEventListener('keydown', keydownHandler);
-}
-function closeModal(){
-  modal.setAttribute('aria-hidden','true');
-  unlockBodyScroll();
-  if (keydownHandler){ document.removeEventListener('keydown', keydownHandler); keydownHandler=null; }
-}
-
-function renderModal(){
-  const q = ppmQuery.value.trim();
-  ppmGrid.innerHTML = '';
-
-  // サブカテゴリ面
-  if (CURRENT_CAT){
-    const cat = CATEGORIES.find(c=>c.id===CURRENT_CAT);
-    const subs = (cat?.subs||[]).filter(s=>!q || s.name.includes(q) || String(s.id).includes(q));
-    ppmBack.style.display='inline-flex';
-    if(!subs.length){ ppmGrid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">サブカテゴリが見つかりません</div>'; return; }
-    subs.forEach(s=>{
-      ppmGrid.insertAdjacentHTML('beforeend', `<button type="button" data-sub="${s.id}"><div class="ttl">${s.name}</div></button>`);
-    });
-    return;
-  }
-
-  // 親カテゴリ面
-  ppmBack.style.display='none';
-  const list = CATEGORIES.filter(c=>{ if(!q) return true; return c.name.includes(q) || c.subs?.some(s=>s.name.includes(q)); });
-  if(!list.length){ ppmGrid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px">カテゴリが見つかりません</div>'; return; }
-  list.forEach(c=>{
-    // 件数バッジ（任意）
-    let badge='';
-    if (Array.isArray(PRODUCTS) && PRODUCTS.length){
-      let avail=0,total=0; for(const p of PRODUCTS){ if(String(p.catGroup||p.cat||'')===String(c.id)){ total++; if(!(p.stock<=0)) avail++; } }
-      badge = `<div class="badge">${avail}/${total}</div>`;
-    }
-    ppmGrid.insertAdjacentHTML('beforeend', `<button type="button" data-cat="${c.id}"><div class="ttl">${c.name}</div>${badge}</button>`);
-  });
-}
-
-// 適用
-function applyCategory(catId, subId){
-  PPP_STATE.cat = catId || null; PPP_STATE.sub = subId || null;
-  const p = new URLSearchParams(location.search);
-  PPP_STATE.cat ? p.set('cat', PPP_STATE.cat) : p.delete('cat');
-  PPP_STATE.sub ? p.set('sub', PPP_STATE.sub) : p.delete('sub');
-  PPP_STATE.sort? p.set('sort', PPP_STATE.sort): p.delete('sort');
-  history.pushState(PPP_STATE, '', `?${p.toString()}`);
-  localStorage.setItem('ppp_state', JSON.stringify(PPP_STATE));
-  if (typeof pppUpdateMenuLabel === 'function') pppUpdateMenuLabel();
-  if (typeof rerenderProducts === 'function') rerenderProducts();
-  closeModal();
-}
-
-// 配線（タイポ修正・正しい参照でイベントを張る）
-btnCat?.addEventListener('click', openModal);
-btnAll?.addEventListener('click', ()=>applyCategory(null,null));
-ppmQuery.addEventListener('input', renderModal);
-ppmBack.addEventListener('click', ()=>{ CURRENT_CAT=null; renderModal(); });
-ppmClear.addEventListener('click', ()=>applyCategory(null,null));
-ppmClose.addEventListener('click', closeModal);
-ppmClose2.addEventListener('click', closeModal);
-scrim.addEventListener('click', closeModal); // 背景クリックで閉じる
-
-ppmGrid.addEventListener('click',(e)=>{
-  const catBtn = e.target.closest('button[data-cat]');
-  const subBtn = e.target.closest('button[data-sub]');
-  if (catBtn){ CURRENT_CAT = catBtn.dataset.cat; renderModal(); return; }
-  if (subBtn){ applyCategory(CURRENT_CAT, subBtn.dataset.sub); return; }
-});
-
-// 戻る/進む対応
-window.addEventListener('popstate', ()=>{
-  try{
-    const s=JSON.parse(localStorage.getItem('ppp_state')||'{}');
-    PPP_STATE.cat=s.cat??null; PPP_STATE.sub=s.sub??null; PPP_STATE.sort=s.sort??'recommend';
-  }catch(_){ }
-  if (typeof pppUpdateMenuLabel==='function') pppUpdateMenuLabel();
-  if (typeof rerenderProducts==='function') rerenderProducts();
-});
-</script>
-
 </body>
 </html>
