@@ -16,6 +16,8 @@
   --btn-h:44px;
   --btn-radius:10px;
   --z-sticky:50;
+  --ov-backdrop: rgba(15, 23, 42, .38);
+  --ov-panel: #ffffff;
 }
 *{box-sizing:border-box}
 body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; color:var(--ink); background:#fff }
@@ -35,28 +37,11 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 /* ===== メニューバー ===== */
 .menubar{ position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border) }
 .menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0; overflow:hidden }
-.menu-spacer{ flex:0 0 8px }
 .menu-pill{
   font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9;
   border:1px solid #e2e8f0; border-radius:var(--btn-radius); padding:8px 12px; white-space:nowrap; cursor:pointer;
 }
 .menu-right{ margin-left:auto }
-
-/* ▼ カテゴリ用スクロールエリア（横スクロール・スクロールスナップ） */
-#menubarCats{
-  display:flex; gap:8px; align-items:center; overflow-x:auto; -webkit-overflow-scrolling:touch;
-  scroll-snap-type:x proximity; padding-bottom:2px; margin-right:8px;
-}
-#menubarCats::-webkit-scrollbar{ height:6px }
-#menubarCats::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:999px }
-.menu-cat{
-  scroll-snap-align:start;
-  border:1px solid var(--border); background:#fff; border-radius:999px;
-  padding:8px 12px; font-size:13px; font-weight:800; white-space:nowrap; cursor:pointer; flex:0 0 auto;
-}
-.menu-cat.is-active{
-  background:var(--brand); color:#fff; border-color:transparent;
-}
 
 /* ===== 商品カード ===== */
 #productGrid.ppp-grid{
@@ -69,10 +54,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .ppp-crumbrow{ display:block; padding:10px 12px 0 }
 .ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
-/* パンくずリンクの視認性 */
-.ppp-crumb a{
-  color:#0ea5e9; text-decoration:underline; text-underline-offset:2px; cursor:pointer;
-}
+.ppp-crumb a{ color:#0ea5e9; text-decoration:underline; text-underline-offset:2px; cursor:pointer }
 .ppp-crumb a:hover{ color:#0284c7 }
 .ppp-crumb a:active{ opacity:.6 }
 
@@ -147,6 +129,56 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 @media(min-width:421px){
   .val-date{ display:none; }
 }
+
+/* ===== カテゴリ選択オーバーレイ（右→中央スライド） ===== */
+.cat-ov{ position:fixed; inset:0; display:none; }
+.cat-ov.is-open{ display:block; }
+.cat-ov .backdrop{
+  position:absolute; inset:0; background:var(--ov-backdrop);
+  opacity:0; transition:opacity .18s ease-out;
+}
+.cat-ov.is-open .backdrop{ opacity:1; }
+.cat-ov .panel{
+  position:absolute; top:0; bottom:0; right:0; left:auto;
+  width:min(720px, 96vw);
+  background:var(--ov-panel); border-left:1px solid var(--border);
+  transform:translateX(100%); transition:transform .22s cubic-bezier(.22,.9,.2,1);
+  display:flex; flex-direction:column;
+  border-top-left-radius:16px; border-bottom-left-radius:16px;
+  box-shadow:-12px 0 28px rgba(0,0,0,.08);
+}
+/* “中央”に収まる見え方：大画面はセンタリング寄りにオフセット */
+@media(min-width:1160px){
+  .cat-ov .panel{ right:50%; transform:translate( calc(50% + 100%), 0 ); }
+  .cat-ov.is-open .panel{ transform:translate(50%,0); }
+}
+@media(max-width:1159px){
+  .cat-ov.is-open .panel{ transform:translateX(0); }
+}
+.cat-ov .head{
+  display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--border);
+}
+.cat-ov .head .ttl{ font-weight:900; }
+.cat-ov .head .close{ margin-left:auto; border:1px solid var(--border); background:#fff; border-radius:10px; padding:6px 10px; cursor:pointer; font-weight:800 }
+
+.cat-ov .body{ display:grid; grid-template-columns:1fr 1fr; gap:0; min-height:0; flex:1; }
+.cat-ov .col{ min-width:0; overflow:auto; }
+.cat-ov .col + .col{ border-left:1px solid var(--border) }
+.cat-ov .list{ padding:8px; display:flex; flex-direction:column; gap:6px }
+
+.item-cat, .item-sub{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:10px 12px; border:1px solid var(--border); border-radius:12px;
+  background:#fff; cursor:pointer; font-weight:800;
+}
+.item-cat.is-active{ background:#ecfdf5; border-color:#d1fae5 }
+.item-sub::after{ content:"›"; opacity:.6 }
+
+/* SPでは上下スタック */
+@media(max-width:640px){
+  .cat-ov .body{ grid-template-columns:1fr; }
+  .cat-ov .col + .col{ border-left:none; border-top:1px solid var(--border) }
+}
 </style>
 </head>
 <body>
@@ -167,10 +199,8 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 
 <nav class="menubar">
   <div class="wrap menubar-in">
-    <!-- 左端に“すべて”固定 -->
     <button class="menu-pill" id="btnAll">すべて</button>
-    <!-- 動的カテゴリ（PRODUCTSから構築） -->
-    <div id="menubarCats" aria-label="カテゴリ"></div>
+    <button class="menu-pill" id="btnCats">カテゴリ</button>
     <div class="menu-right">
       <div id="menuRightAction" class="menu-pill">カートを見る</div>
     </div>
@@ -202,6 +232,25 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   </div>
 </div>
 
+<!-- ===== カテゴリ選択オーバーレイ ===== -->
+<div class="cat-ov" id="catOverlay" aria-hidden="true">
+  <div class="backdrop" data-close="1"></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="catOvTtl">
+    <div class="head">
+      <div class="ttl" id="catOvTtl">カテゴリを選択</div>
+      <button class="close" data-close="1" aria-label="閉じる">閉じる</button>
+    </div>
+    <div class="body">
+      <div class="col">
+        <div class="list" id="catList"><!-- カテゴリが入る --></div>
+      </div>
+      <div class="col">
+        <div class="list" id="subList"><!-- サブカテゴリが入る --></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /** ========= 設定 ========= **/
 const PRODUCTS_URL="https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
@@ -213,7 +262,7 @@ const state={cart:{}, minDateISO:null};
 const filterState = { cat:null, subcat:null };
 const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
-/** ========= subcat→cat の逆引き（PRODUCTSから構築） ========= **/
+/** ========= subcat→cat 逆引き・ツリー構築（PRODUCTSから） ========= **/
 const sub2catNorm  = new Map(); // norm(sub) -> norm(cat)
 const sub2catLabel = new Map(); // norm(sub) -> 表示用catラベル
 function buildCatIndex(){
@@ -228,47 +277,20 @@ function buildCatIndex(){
     }
   });
 }
-
-/** ========= メニューバー：カテゴリ生成 & 同期 ========= **/
-function uniqueCatsFromProducts(){
-  const set=new Map(); // norm(cat)->display label
+function buildCatTree(){
+  // Map: norm(cat) -> { label, subs:Set<label> }
+  const map=new Map();
   (PRODUCTS||[]).forEach(p=>{
-    const label=(p.catGroup||p.cat||'').trim();
-    if(!label) return;
-    const key=norm(label);
-    if(!set.has(key)) set.set(key,label);
+    const c=(p.catGroup||p.cat||'').trim(); if(!c) return;
+    const s=(p.subcatGroup||'').trim();
+    const k=norm(c);
+    if(!map.has(k)) map.set(k,{label:c, subs:new Set()});
+    if(s) map.get(k).subs.add(s);
   });
-  // 表示順：ラベルのかな漢字一致で単純昇順（必要ならここで手動順ソート可）
-  return [...set.entries()].sort((a,b)=>a[1].localeCompare(b[1],'ja'));
-}
-function populateMenubarCats(){
-  const host=document.getElementById('menubarCats');
-  if(!host) return;
-  host.innerHTML='';
-  const cats=uniqueCatsFromProducts();
-  cats.forEach(([key,label])=>{
-    const btn=document.createElement('button');
-    btn.className='menu-cat';
-    btn.dataset.cat=label;
-    btn.textContent=label;
-    host.appendChild(btn);
-  });
-  renderMenuActive(); // 初期アクティブ反映
-}
-function renderMenuActive(){
-  const nSel = norm(filterState.cat);
-  // “すべて”ボタン
-  const btnAll = document.getElementById('btnAll');
-  if(btnAll){
-    if(!nSel){ btnAll.classList.add('is-active'); }
-    else { btnAll.classList.remove('is-active'); }
-  }
-  // カテゴリボタン
-  document.querySelectorAll('#menubarCats .menu-cat').forEach(el=>{
-    const n = norm(el.dataset.cat||'');
-    if(nSel && nSel===n) el.classList.add('is-active');
-    else el.classList.remove('is-active');
-  });
+  const arr = [...map.values()].map(v=>({label:v.label, subs:[...v.subs].sort((a,b)=>a.localeCompare(b,'ja'))}));
+  // カテゴリ自体の表示順：日本語昇順（必要ならここに手動priority）
+  arr.sort((a,b)=>a.label.localeCompare(b.label,'ja'));
+  return arr;
 }
 
 /** ========= ユーティリティ ========= **/
@@ -378,9 +400,51 @@ function renderProducts(){
       </div>`;
     grid.appendChild(el);
   });
+}
 
-  // メニューバーのアクティブ表示を同期
-  renderMenuActive();
+/** ========= カテゴリオーバーレイのDOM構築 ========= **/
+function populateCategoryOverlay(){
+  const cats = buildCatTree(); // [{label, subs:[..]}]
+  const catList = document.getElementById('catList');
+  const subList = document.getElementById('subList');
+  if(!catList || !subList) return;
+  catList.innerHTML=''; subList.innerHTML='';
+
+  // 現在選択中のcat
+  const selCatLabel = filterState.cat || (cats[0]?.label || null);
+
+  cats.forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='item-cat';
+    btn.dataset.cat=c.label;
+    btn.innerHTML=`<span>${c.label}</span>`;
+    if(selCatLabel && norm(selCatLabel)===norm(c.label)) btn.classList.add('is-active');
+    catList.appendChild(btn);
+  });
+
+  // サブカテゴリ描画（選択catに応じて）
+  const current = cats.find(x=> norm(x.label)===norm(selCatLabel));
+  renderSubList(current?.subs || [], selCatLabel);
+}
+function renderSubList(subs, catLabel){
+  const subList = document.getElementById('subList');
+  if(!subList) return;
+  subList.innerHTML='';
+  // “カテゴリのみで絞る”という選択肢
+  const anyBtn=document.createElement('button');
+  anyBtn.className='item-sub';
+  anyBtn.dataset.catOnly=catLabel||'';
+  anyBtn.innerHTML=`<span>${catLabel||'選択中のカテゴリ'}</span><small style="opacity:.7">（すべて）</small>`;
+  subList.appendChild(anyBtn);
+
+  subs.forEach(s=>{
+    const btn=document.createElement('button');
+    btn.className='item-sub';
+    btn.dataset.cat=catLabel||'';
+    btn.dataset.sub=s;
+    btn.innerHTML=`<span>${s}</span>`;
+    subList.appendChild(btn);
+  });
 }
 
 /** ========= データ読込 ========= **/
@@ -397,10 +461,22 @@ async function loadProducts(){
       active:(x.active===undefined?true:Boolean(x.active)), leadDays:Number(x.leadDays||1)
     }));
     productById=new Map(PRODUCTS.map(p=>[p.id,p]));
-    buildCatIndex();        // subcat→cat 逆引き
-    populateMenubarCats();  // PRODUCTSからカテゴリを生成
-    renderProducts();       // 初回描画
+    buildCatIndex();      // subcat→cat 逆引き
+    renderProducts();     // 初回描画
   }catch(e){ console.error(e); }
+}
+
+/** ========= オーバーレイ開閉 ========= **/
+function openCatOverlay(){
+  const ov=document.getElementById('catOverlay'); if(!ov) return;
+  populateCategoryOverlay();
+  ov.classList.add('is-open');
+  ov.removeAttribute('aria-hidden');
+}
+function closeCatOverlay(){
+  const ov=document.getElementById('catOverlay'); if(!ov) return;
+  ov.classList.remove('is-open');
+  ov.setAttribute('aria-hidden','true');
 }
 
 /** ========= イベント ========= **/
@@ -427,12 +503,11 @@ document.addEventListener('click',ev=>{
   if(checkout){
     ev.preventDefault();
     const beforeISO=state.minDateISO;
-    renderMinDateEverywhere(); // 進む直前に再チェック
+    renderMinDateEverywhere();
     const afterISO=state.minDateISO;
     if(beforeISO && afterISO && beforeISO!==afterISO){
       alert('最短受取日が更新されました：' + afterISO.replaceAll('-','/'));
     }
-    console.log('go to cart with minDate:', afterISO);
   }
 
   // ▼ パンくずリンク（カード内）→ フィルタ
@@ -452,25 +527,66 @@ document.addEventListener('click',ev=>{
     renderProducts();
   }
 
-  // ▼ メニューバー：すべて
+  // ▼ すべて
   if(ev.target.closest('#btnAll')){
     ev.preventDefault();
     filterState.cat=null; filterState.subcat=null;
     renderProducts();
   }
 
-  // ▼ メニューバー：カテゴリ（動的）
-  const catBtn = ev.target.closest('#menubarCats .menu-cat');
+  // ▼ カテゴリボタン → オーバーレイOPEN
+  if(ev.target.closest('#btnCats')){
+    ev.preventDefault();
+    openCatOverlay();
+  }
+
+  // ▼ オーバーレイ：閉じる
+  if(ev.target.closest('#catOverlay [data-close]')){
+    ev.preventDefault();
+    closeCatOverlay();
+  }
+
+  // ▼ オーバーレイ：カテゴリ選択
+  const catBtn = ev.target.closest('#catList .item-cat');
   if(catBtn){
     ev.preventDefault();
+    // アクティブ切替
+    document.querySelectorAll('#catList .item-cat').forEach(el=>el.classList.remove('is-active'));
+    catBtn.classList.add('is-active');
+    // サブリスト再描画
     const label = catBtn.dataset.cat || '';
-    filterState.cat = label || null;
-    filterState.subcat = null;            // 上位カテゴリ選択時はsubcatリセット
-    renderProducts();                     // 一覧を更新 & メニュー反映
-    // 軽く先頭へ
+    const cats = buildCatTree();
+    const curr = cats.find(x=> norm(x.label)===norm(label));
+    renderSubList(curr?.subs || [], label);
+  }
+
+  // ▼ オーバーレイ：サブカテゴリ選択 → フィルタ反映＆閉じる
+  const subBtn = ev.target.closest('#subList .item-sub');
+  if(subBtn){
+    ev.preventDefault();
+    const catOnly = subBtn.dataset.catOnly;
+    if(catOnly!==undefined){
+      // カテゴリのみで絞る
+      filterState.cat = subBtn.dataset.catOnly || null;
+      filterState.subcat = null;
+    }else{
+      filterState.cat = subBtn.dataset.cat || null;
+      filterState.subcat = subBtn.dataset.sub || null;
+    }
+    closeCatOverlay();
+    renderProducts();
+    // 一覧の先頭へ軽く
     document.querySelector('.menubar')?.scrollIntoView({behavior:'smooth', block:'start'});
   }
 },{passive:false});
+
+// Esc で閉じる
+document.addEventListener('keydown',ev=>{
+  if(ev.key==='Escape'){
+    const ov=document.getElementById('catOverlay');
+    if(ov && ov.classList.contains('is-open')) closeCatOverlay();
+  }
+});
 
 /** ========= 初期化 ========= **/
 (function init(){
