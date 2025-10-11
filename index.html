@@ -56,7 +56,19 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .ppp-crumbrow{ display:block; padding:10px 12px 0 }
 .ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
-.ppp-crumb a{ color:#475569; text-decoration:none }
+.ppp-crumb a{
+  color:#0ea5e9;            /* 通常時：ブランド寄りの青 */
+  text-decoration:underline;
+  text-underline-offset:2px;
+  cursor:pointer;
+}
+.ppp-crumb a:hover{
+  color:#0284c7;            /* 濃い青でホバー時に強調 */
+}
+.ppp-crumb a:active{
+  opacity:0.6;
+}
+
 .ppp-crumb a:hover{ text-decoration:underline }
 .ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px }
 .ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
@@ -125,6 +137,11 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   .btn-cart{ grid-column:3; grid-row:1 / 3; align-self:stretch; padding:10px 14px; min-width:72px }
   .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
 }
+/* PCでは下段日付(val-date)を非表示（SP専用のため） */
+@media(min-width:421px){
+  .val-date{ display:none; }
+}
+
 </style>
 </head>
 <body>
