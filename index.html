@@ -9,7 +9,7 @@
   --bg:#fafafa;
   --ink:#1f2937;
   --muted:#6b7280;
-  --brand:#10b981;
+  --brand:#10b981;       /* 緑（ブランド） */
   --brand-ink:#064e3b;
   --border:#e5e7eb;
   --wrap:1080px;
@@ -24,17 +24,12 @@ body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",
 /* ===== ヘッダー ===== */
 header{ background:#fff; border-bottom:1px solid var(--border) }
 .header-in{ display:flex; align-items:center; padding:12px 0 }
-.brand{
-  font-size:20px; font-weight:800; text-indent:.4em; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.brand::before{
-  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
-  width:4px; height:1.2em; border-radius:2px; background:var(--brand);
-}
+.brand{ font-size:20px; font-weight:800; text-indent:.4em; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.brand::before{ content:""; position:absolute; left:0; top:50%; transform:translateY(-50%); width:4px; height:1.2em; border-radius:2px; background:var(--brand) }
 
 /* ===== メニューバー ===== */
 .menubar{ position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border) }
-.menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0; overflow:hidden }
+.menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0 }
 .menu-pill{
   font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9;
   border:1px solid #e2e8f0; border-radius:var(--btn-radius); padding:8px 12px; white-space:nowrap; cursor:pointer;
@@ -95,12 +90,12 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 @media(min-width:421px){ .val-date{ display:none } }
 
-/* ===== カテゴリ選択ドロワー（仕様準拠） ===== */
+/* ===== カテゴリ選択ドロワー ===== */
 .ppp-drawer{position:fixed;inset:0;z-index:4000;display:none}
 .ppp-drawer[aria-hidden="false"]{display:block}
 .ppp-drawer__scrim{position:absolute;inset:0;background:rgba(0,0,0,.18);opacity:0;transition:opacity .18s ease;z-index:0}
 .ppp-drawer[aria-hidden="false"] .ppp-drawer__scrim{opacity:1}
-.ppp-drawer__panel{position:absolute;top:0;right:0;height:100%;width:min(960px,92vw);background:#fff;color:inherit;box-shadow:-10px 0 24px rgba(0,0,0,.16);transform:translateX(100%);transition:transform .24s ease;display:grid;grid-template-rows:auto auto auto 1fr auto;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);z-index:1}
+.ppp-drawer__panel{position:absolute;top:0;right:0;height:100%;width:min(960px,92vw);background:#fff;box-shadow:-10px 0 24px rgba(0,0,0,.16);transform:translateX(100%);transition:transform .24s ease;display:grid;grid-template-rows:auto auto auto 1fr auto;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);z-index:1}
 .ppp-drawer[aria-hidden="false"] .ppp-drawer__panel{transform:translateX(0)}
 .ppp-drawer__bar{ display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--border) }
 .ppp-drawer__title{ font-weight:800; font-size:16px; flex:1 }
@@ -123,11 +118,11 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .ppp-catgrid button .ttl{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .ppp-catgrid button:active{ transform:translateY(1px) }
-.badge{ position:absolute; top:6px; right:8px; font-size:11px; opacity:.75 }
 .ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:#fafafa }
-.ppp-btn{ flex:1; appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; padding:12px 14px; font-weight:700; cursor:pointer }
-.ppp-btn.primary{ background:#1e40af; color:#fff; border-color:#1e40af }
-.ppp-btn.warn{ background:#fee2e2; border-color:#fecaca }
+.ppp-btn{ flex:1; appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer }
+.ppp-btn.primary{ background:var(--brand); color:#fff; border-color:transparent } /* 緑 */
+.ppp-btn.neutral{ background:#f3f4f6; border-color:#e5e7eb; color:#111827 }      /* グレー：クリア */
+.ppp-btn.neutral:hover{ background:#e5e7eb }
 
 /* ドロワー表示中のページスクロール抑止 */
 html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:none!important }
@@ -182,7 +177,7 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
   </div>
 </div>
 
-<!-- ===== カテゴリ選択ドロワー（仕様部分のみ） ===== -->
+<!-- ===== カテゴリ選択ドロワー ===== -->
 <div id="catDrawer" class="ppp-drawer" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="ppp-drawer__scrim"></div>
   <section class="ppp-drawer__panel" role="document" aria-labelledby="catDrawerTitle">
@@ -197,7 +192,7 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
     <div class="ppp-chips" id="catDrawerChips" aria-live="polite"></div>
     <div class="ppp-listwrap"><div class="ppp-listpad"><div id="catDrawerGrid" class="ppp-catgrid" role="list"></div></div></div>
     <div class="ppp-drawer__footer">
-      <button id="catDrawerClear" class="ppp-btn warn">クリア</button>
+      <button id="catDrawerClear" class="ppp-btn neutral">クリア</button>
       <button id="catDrawerApply" class="ppp-btn primary">この条件で絞り込む</button>
     </div>
   </section>
@@ -214,10 +209,9 @@ const state={cart:{}, minDateISO:null};
 const filterState = { cat:null, subcat:null };
 const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
-/** ========= カテゴリツリー・カウント ========= **/
+/** ========= カテゴリツリー ========= **/
 function buildCatTree(){
-  // Map: norm(cat) -> { label, subs:Set }
-  const map=new Map();
+  const map=new Map(); // norm(cat)->{label,subs:Set}
   (PRODUCTS||[]).forEach(p=>{
     const c=(p.catGroup||p.cat||'').trim(); if(!c) return;
     const s=(p.subcatGroup||'').trim();
@@ -226,33 +220,9 @@ function buildCatTree(){
     if(s) map.get(k).subs.add(s);
   });
   const arr=[...map.values()].map(v=>({label:v.label, subs:[...v.subs]}));
-  arr.sort((a,b)=>a.label.localeCompare(b.label,'ja')); // 表示順：日本語昇順
+  arr.sort((a,b)=>a.label.localeCompare(b.label,'ja'));
   arr.forEach(x=>x.subs.sort((a,b)=>a.localeCompare(b,'ja')));
   return arr;
-}
-function countCat(catLabel){
-  let total=0, avail=0;
-  const n=norm(catLabel);
-  (PRODUCTS||[]).forEach(p=>{
-    const pc=norm(p.catGroup||p.cat||'');
-    if(pc!==n) return;
-    total++;
-    const ok = (p.active!==false) && (p.stock===undefined || Number(p.stock)>0);
-    if(ok) avail++;
-  });
-  return {total,avail};
-}
-function countSub(catLabel, subLabel){
-  let total=0, avail=0;
-  const nC=norm(catLabel), nS=norm(subLabel);
-  (PRODUCTS||[]).forEach(p=>{
-    if(norm(p.catGroup||p.cat||'')!==nC) return;
-    if(norm(p.subcatGroup||'')!==nS) return;
-    total++;
-    const ok = (p.active!==false) && (p.stock===undefined || Number(p.stock)>0);
-    if(ok) avail++;
-  });
-  return {total,avail};
 }
 
 /** ========= ユーティリティ ========= **/
@@ -325,10 +295,9 @@ async function loadProducts(){
   }catch(e){ console.error(e); }
 }
 
-/** ========= カテゴリドロワー（仕様通り） ========= **/
+/** ========= ドロワー制御 ========= **/
 const drawer = document.getElementById('catDrawer');
 const scrim  = drawer.querySelector('.ppp-drawer__scrim');
-const panel  = drawer.querySelector('.ppp-drawer__panel');
 const titleEl= document.getElementById('catDrawerTitle');
 const backBtn= document.getElementById('catDrawerBack');
 const closeBtn=document.getElementById('catDrawerClose');
@@ -338,7 +307,7 @@ const queryI = document.getElementById('catDrawerQuery');
 const clearB = document.getElementById('catDrawerClear');
 const applyB = document.getElementById('catDrawerApply');
 
-let CURRENT = { cat:null, sub:null }; // {cat:{label}, sub:{label}}
+let CURRENT = { cat:null, sub:null };
 
 function lockScroll(on){
   document.documentElement.classList.toggle('ppp-no-scroll', on);
@@ -347,7 +316,8 @@ function lockScroll(on){
 function openDrawer(){
   drawer.setAttribute('aria-hidden','false'); lockScroll(true);
   titleEl.textContent='カテゴリを選ぶ'; backBtn.style.visibility='hidden';
-  chips.innerHTML=''; queryI.value=''; renderCategories(); setTimeout(()=>{ try{ queryI.focus({preventScroll:true}); }catch(_){} }, 30);
+  chips.innerHTML=''; queryI.value=''; renderCategories();
+  setTimeout(()=>{ try{ queryI.focus({preventScroll:true}); }catch(_){} }, 30);
   window.addEventListener('keydown',onKeydown);
 }
 function closeDrawer(){
@@ -356,65 +326,53 @@ function closeDrawer(){
 }
 function onKeydown(e){ if(e.key==='Escape') closeDrawer(); }
 
+function buildCatTreeCached(){ if(!buildCatTree._cache){ buildCatTree._cache=buildCatTree(); } return buildCatTree._cache; }
 function renderCategories(){
   grid.innerHTML='';
-  const list = buildCatTree();
+  const list = buildCatTreeCached();
   const q = norm(queryI.value);
   const filtered = q ? list.filter(c => norm(c.label).includes(q)) : list;
   if(!filtered.length){
     grid.insertAdjacentHTML('beforeend','<div style="color:#9ca3af;font-size:13px;padding:16px">カテゴリが見つかりません</div>'); return;
   }
   filtered.forEach(c=>{
-    const cnt = countCat(c.label);
-    grid.insertAdjacentHTML('beforeend', `
-      <button type="button" data-cat="${c.label}">
-        <div class="ttl">${c.label}</div>
-        <div class="badge">${cnt.avail}/${cnt.total}</div>
-      </button>`);
-  });
-  grid.querySelectorAll('button[data-cat]').forEach(btn=>{
+    const btn = document.createElement('button');
+    btn.type='button'; btn.dataset.cat=c.label;
+    btn.innerHTML=`<div class="ttl">${c.label}</div>`;
     btn.addEventListener('click',()=>{
-      CURRENT.cat={label:btn.dataset.cat}; CURRENT.sub=null;
+      CURRENT.cat={label:c.label}; CURRENT.sub=null;
       titleEl.textContent='サブカテゴリを選ぶ'; backBtn.style.visibility='visible'; queryI.value='';
-      renderSubcats(CURRENT.cat.label);
+      renderSubcats(c.label);
+      updateChips();
     });
+    grid.appendChild(btn);
   });
 }
 
 function renderSubcats(catLabel){
   grid.innerHTML='';
   // 先頭：カテゴリの「すべて」
-  const cntAll=countCat(catLabel);
-  grid.insertAdjacentHTML('beforeend', `
-    <button type="button" data-cat="${catLabel}" data-sub="">
-      <div class="ttl">すべて（${catLabel}）</div>
-      <div class="badge">${cntAll.avail}/${cntAll.total}</div>
-    </button>`);
-  const tree = buildCatTree();
+  const any=document.createElement('button');
+  any.type='button'; any.dataset.cat=catLabel; any.dataset.sub='';
+  any.innerHTML=`<div class="ttl">すべて（${catLabel}）</div>`;
+  any.addEventListener('click',()=>{ CURRENT.sub=null; updateChips(); });
+  grid.appendChild(any);
+
+  const tree = buildCatTreeCached();
   const cat = tree.find(x=> norm(x.label)===norm(catLabel));
   const q = norm(queryI.value);
   const subs = (cat?.subs||[]).filter(s => !q || norm(s).includes(q));
   if(!subs.length){
     grid.insertAdjacentHTML('beforeend','<div style="color:#9ca3af;font-size:13px;padding:16px">サブカテゴリが見つかりません</div>');
-  } else {
+  }else{
     subs.forEach(s=>{
-      const cnt=countSub(catLabel,s);
-      grid.insertAdjacentHTML('beforeend', `
-        <button type="button" data-cat="${catLabel}" data-sub="${s}">
-          <div class="ttl">${s}</div>
-          <div class="badge">${cnt.avail}/${cnt.total}</div>
-        </button>`);
+      const btn=document.createElement('button');
+      btn.type='button'; btn.dataset.cat=catLabel; btn.dataset.sub=s;
+      btn.innerHTML=`<div class="ttl">${s}</div>`;
+      btn.addEventListener('click',()=>{ CURRENT.sub={label:s}; updateChips(); });
+      grid.appendChild(btn);
     });
   }
-  // クリックで適用
-  grid.querySelectorAll('button[data-sub]').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const sub = btn.getAttribute('data-sub');
-      CURRENT.sub = sub ? {label:sub} : null;
-      // 即時適用して閉じる（仕様の“この条件で絞り込む”も残すが即時適用優先）
-      applyCurrentAndClose();
-    });
-  });
 }
 
 function updateChips(){
@@ -428,16 +386,18 @@ function updateChips(){
       CURRENT[k]=null;
       if(k==='cat'){ CURRENT.sub=null; titleEl.textContent='カテゴリを選ぶ'; backBtn.style.visibility='hidden'; renderCategories(); }
       else { renderSubcats(CURRENT.cat?.label||''); }
+      updateChips();
     });
   });
 }
+
 function applyCurrentAndClose(){
   filterState.cat = CURRENT.cat ? CURRENT.cat.label : null;
   filterState.subcat = CURRENT.sub ? CURRENT.sub.label : null;
   renderProducts(); closeDrawer();
 }
 
-/** ========= イベント ========= **/
+/** ========= クリック系 ========= **/
 document.addEventListener('click',ev=>{
   const add=ev.target.closest('.ppp-btn.add[data-add]'); if(add){ ev.preventDefault(); const p=productById.get(add.dataset.add); if(p) addToCart(p,1); }
   const later=ev.target.closest('.ppp-btn[data-later]'); if(later){ ev.preventDefault(); const key='later:'+later.dataset.later; const set=(localStorage.getItem(key)==='1'?'0':'1'); localStorage.setItem(key,set); later.textContent=set==='1'?'あとで済':'あとで'; }
@@ -448,7 +408,11 @@ document.addEventListener('click',ev=>{
   const crumb = ev.target.closest('.ppp-crumb-link');
   if(crumb){ ev.preventDefault(); const cat=crumb.dataset.cat||null; const sub=crumb.dataset.subcat||null;
     if(cat){ filterState.cat=cat; filterState.subcat=null; }
-    if(sub){ filterState.subcat=sub; if(!filterState.cat){ filterState.cat = (PRODUCTS.find(p=> norm(p.subcatGroup||'')===norm(sub))?.catGroup)||null; } }
+    if(sub){ filterState.subcat=sub; if(!filterState.cat){
+      // PRODUCTSから親カテゴリを一本見つけて補完（最軽量）
+      const found=(PRODUCTS||[]).find(p=> norm(p.subcatGroup||'')===norm(sub));
+      if(found) filterState.cat=found.catGroup||found.cat||null;
+    }}
     renderProducts();
   }
 
@@ -458,16 +422,12 @@ document.addEventListener('click',ev=>{
   // カテゴリボタン → ドロワーOPEN
   if(ev.target.closest('#btnCategories')){ ev.preventDefault(); openDrawer(); }
 });
-scrim.addEventListener('click', (e)=>{ if(e.target!==scrim) return; closeDrawer(); });
-closeBtn.addEventListener('click', closeDrawer);
-backBtn.addEventListener('click', ()=>{ titleEl.textContent='カテゴリを選ぶ'; backBtn.style.visibility='hidden'; renderCategories(); });
-queryI.addEventListener('input', ()=>{ // 現在の面に応じて再描画
-  if(backBtn.style.visibility==='hidden') renderCategories(); else renderSubcats(CURRENT.cat?.label||'');
-});
-clearB.addEventListener('click', ()=>{
-  CURRENT={cat:null,sub:null}; filterState.cat=null; filterState.subcat=null; renderProducts(); closeDrawer();
-});
-applyB.addEventListener('click', applyCurrentAndClose);
+document.querySelector('#catDrawer .ppp-drawer__scrim').addEventListener('click', (e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeDrawer(); });
+document.getElementById('catDrawerClose').addEventListener('click', closeDrawer);
+document.getElementById('catDrawerBack').addEventListener('click', ()=>{ titleEl.textContent='カテゴリを選ぶ'; backBtn.style.visibility='hidden'; renderCategories(); });
+document.getElementById('catDrawerQuery').addEventListener('input', ()=>{ (backBtn.style.visibility==='hidden')?renderCategories():renderSubcats(CURRENT.cat?.label||''); });
+document.getElementById('catDrawerClear').addEventListener('click', ()=>{ CURRENT={cat:null,sub:null}; filterState.cat=null; filterState.subcat=null; renderProducts(); closeDrawer(); });
+document.getElementById('catDrawerApply').addEventListener('click', applyCurrentAndClose);
 
 /** ========= 初期化 ========= **/
 (function init(){
