@@ -56,20 +56,16 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .ppp-crumbrow{ display:block; padding:10px 12px 0 }
 .ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
+/* ▼ パンくずを“リンクに見える”スタイルに */
 .ppp-crumb a{
-  color:#0ea5e9;            /* 通常時：ブランド寄りの青 */
+  color:#0ea5e9;         /* 視認性の高い青 */
   text-decoration:underline;
   text-underline-offset:2px;
   cursor:pointer;
 }
-.ppp-crumb a:hover{
-  color:#0284c7;            /* 濃い青でホバー時に強調 */
-}
-.ppp-crumb a:active{
-  opacity:0.6;
-}
+.ppp-crumb a:hover{ color:#0284c7; }
+.ppp-crumb a:active{ opacity:.6; }
 
-.ppp-crumb a:hover{ text-decoration:underline }
 .ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px }
 .ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
 .ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid var(--border); display:grid; place-items:center; cursor:pointer }
@@ -137,11 +133,11 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   .btn-cart{ grid-column:3; grid-row:1 / 3; align-self:stretch; padding:10px 14px; min-width:72px }
   .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
 }
-/* PCでは下段日付(val-date)を非表示（SP専用のため） */
+
+/* ▼ PCではSP用日付を非表示（重複表示を防止） */
 @media(min-width:421px){
   .val-date{ display:none; }
 }
-
 </style>
 </head>
 <body>
@@ -183,13 +179,17 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 <div class="cart" id="cartBar">
   <div class="wrap">
     <div class="cart-box">
+      <!-- PC用ピル -->
       <div class="cart-left">
         <span class="inline-pill" id="cartMinDateInline">最短受取 —</span>
       </div>
+      <!-- SP 1段目 -->
       <div class="lbl-min">最短受取日</div>
       <div class="count" id="cartCount">0点</div>
+      <!-- SP 2段目 -->
       <div class="val-date" id="cartMinDate">—</div>
       <div class="total" id="cartTotal">¥0</div>
+      <!-- 共通ボタン -->
       <button class="btn-cart" id="checkoutBtn2">カート</button>
     </div>
   </div>
@@ -202,16 +202,25 @@ const CUTOVER_HOUR = 2; // AM2:00で「翌日」表示に切替
 let PRODUCTS=[]; let productById=new Map();
 const state={cart:{}, minDateISO:null};
 
-/** ========= taxonomy（仮）＆フィルタ状態 ========= **/
-const TAXONOMY = {
-  cats: [
-    { label:'パン・ベーグル・マフィン', subs:[ {label:'ベーグル'}, {label:'マフィン'}, {label:'パン'} ] },
-    { label:'肉・ハム', subs:[ {label:'牛肉'}, {label:'豚肉'}, {label:'鶏肉'} ] },
-    { label:'冷凍食品', subs:[ {label:'惣菜'} ] }
-  ]
-};
+/** ========= フィルタ状態 & 正規化 ========= **/
 const filterState = { cat:null, subcat:null };
 const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
+
+/** ========= subcat→cat の逆引きインデックス（PRODUCTSから動的構築） ========= **/
+const sub2catNorm  = new Map(); // norm(sub) -> norm(cat)
+const sub2catLabel = new Map(); // norm(sub) -> 表示用catラベル
+function buildCatIndex(){
+  sub2catNorm.clear(); sub2catLabel.clear();
+  (PRODUCTS||[]).forEach(p=>{
+    const catLabel = (p.catGroup || p.cat || '').trim();
+    const subLabel = (p.subcatGroup || '').trim();
+    const nCat = norm(catLabel), nSub = norm(subLabel);
+    if(nSub && nCat && !sub2catNorm.has(nSub)){
+      sub2catNorm.set(nSub, nCat);
+      sub2catLabel.set(nSub, catLabel);
+    }
+  });
+}
 
 /** ========= ユーティリティ ========= **/
 function yen(n){ try{ return Number(n||0).toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}); }catch(e){ return '¥'+(n||0); } }
@@ -340,6 +349,7 @@ async function loadProducts(){
       active:(x.active===undefined?true:Boolean(x.active)), leadDays:Number(x.leadDays||1)
     }));
     productById=new Map(PRODUCTS.map(p=>[p.id,p]));
+    buildCatIndex();     // ← PRODUCTSから subcat→cat を構築
     renderProducts();
   }catch(e){ console.error(e); }
 }
@@ -382,10 +392,10 @@ document.addEventListener('click',ev=>{
     if(cat){ filterState.cat = cat; filterState.subcat = null; }
     if(subcat){
       filterState.subcat = subcat;
-      // subcatのみクリックされた場合、taxonomyから親カテゴリを補完（ラベル一致）
+      // subcatのみクリックの場合、PRODUCTS由来の逆引きから親カテゴリを補完
       if(!filterState.cat){
-        const owner = TAXONOMY.cats.find(c => (c.subs||[]).some(s => norm(s.label)===norm(subcat)));
-        if(owner) filterState.cat = owner.label;
+        const found = sub2catLabel.get(norm(subcat));
+        if(found) filterState.cat = found;
       }
     }
     renderProducts();
