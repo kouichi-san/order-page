@@ -36,6 +36,17 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .menu-right{ margin-left:auto }
 
+/* ▼ カテゴリボタンの動的ラベル＆クリア */
+#btnCategories.has-filter{ padding-right:28px; position:relative; }
+#btnCategories .tag{ font-weight:800; color:#0f172a }
+#btnCategories .sep::before{ content:"›"; margin:0 4px; color:#94a3b8 }
+#btnCategories .x{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:20px; height:20px; border-radius:6px; border:1px solid #e5e7eb;
+  display:grid; place-items:center; font-size:12px; cursor:pointer; background:#fff;
+}
+#btnCategories .x:active{ transform:translateY(-50%) translateY(1px) }
+
 /* ===== 商品カード ===== */
 #productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
 .ppp-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden }
@@ -85,7 +96,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   .val-date{ grid-column:1; grid-row:2; font-weight:700; font-size:14px; white-space:nowrap }
   .total{ grid-column:2; grid-row:2; text-align:right; font-size:17px }
   .total::before{ content:"合計金額 "; font-size:12px; font-weight:600; opacity:.9; margin-right:4px }
-  .btn-cart{ grid-column:3; grid-row:1 / 3; align-self:stretch; padding:10px 14px; min-width:72px }
+  .btn-cart{ grid-column:3; grid-row:1 / 3; alignself:stretch; padding:10px 14px; min-width:72px }
   .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
 }
 @media(min-width:421px){ .val-date{ display:none } }
@@ -209,6 +220,23 @@ const state={cart:{}, minDateISO:null};
 const filterState = { cat:null, subcat:null };
 const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
+/** ========= カテゴリボタンのラベル更新 ========= **/
+function updateCategoryButtonLabel(){
+  const btn = document.getElementById('btnCategories');
+  if(!btn) return;
+  const cat = filterState.cat ? String(filterState.cat) : '';
+  const sub = filterState.subcat ? String(filterState.subcat) : '';
+  if(!cat && !sub){
+    btn.classList.remove('has-filter');
+    btn.innerHTML = 'カテゴリ';
+    return;
+  }
+  btn.classList.add('has-filter');
+  const label = sub ? `<span class="tag">${cat}</span><span class="sep"></span><span class="tag">${sub}</span>`
+                    : `<span class="tag">${cat}</span>`;
+  btn.innerHTML = `カテゴリ: ${label}<span class="x" aria-label="条件クリア" title="条件クリア">×</span>`;
+}
+
 /** ========= カテゴリツリー ========= **/
 function buildCatTree(){
   const map=new Map(); // norm(cat)->{label,subs:Set}
@@ -292,6 +320,7 @@ async function loadProducts(){
     }));
     productById=new Map(PRODUCTS.map(p=>[p.id,p]));
     renderProducts();
+    updateCategoryButtonLabel(); // 初回ラベル
   }catch(e){ console.error(e); }
 }
 
@@ -394,7 +423,9 @@ function updateChips(){
 function applyCurrentAndClose(){
   filterState.cat = CURRENT.cat ? CURRENT.cat.label : null;
   filterState.subcat = CURRENT.sub ? CURRENT.sub.label : null;
-  renderProducts(); closeDrawer();
+  updateCategoryButtonLabel();
+  renderProducts();
+  closeDrawer();
 }
 
 /** ========= クリック系 ========= **/
@@ -404,29 +435,54 @@ document.addEventListener('click',ev=>{
   if(ev.target.closest('#menuRightAction')){ ev.preventDefault(); document.getElementById('cartBar')?.scrollIntoView({behavior:'smooth', block:'end'}); }
   if(ev.target.closest('#checkoutBtn2')){ ev.preventDefault(); const b=state.minDateISO; renderMinDateEverywhere(); const a=state.minDateISO; if(b&&a&&b!==a){ alert('最短受取日が更新されました：'+a.replaceAll('-','/')); } }
 
-  // パンくずリンク → フィルタ
+  // パンくずリンク（カード内）→ フィルタ
   const crumb = ev.target.closest('.ppp-crumb-link');
-  if(crumb){ ev.preventDefault(); const cat=crumb.dataset.cat||null; const sub=crumb.dataset.subcat||null;
+  if(crumb){
+    ev.preventDefault();
+    const cat=crumb.dataset.cat||null; const sub=crumb.dataset.subcat||null;
     if(cat){ filterState.cat=cat; filterState.subcat=null; }
-    if(sub){ filterState.subcat=sub; if(!filterState.cat){
-      // PRODUCTSから親カテゴリを一本見つけて補完（最軽量）
-      const found=(PRODUCTS||[]).find(p=> norm(p.subcatGroup||'')===norm(sub));
-      if(found) filterState.cat=found.catGroup||found.cat||null;
-    }}
+    if(sub){ filterState.subcat=sub;
+      if(!filterState.cat){
+        const found=(PRODUCTS||[]).find(p=> norm(p.subcatGroup||'')===norm(sub));
+        if(found) filterState.cat=found.catGroup||found.cat||null;
+      }
+    }
+    updateCategoryButtonLabel();
     renderProducts();
+    return;
   }
 
   // すべて
-  if(ev.target.closest('#btnAll')){ ev.preventDefault(); filterState.cat=null; filterState.subcat=null; renderProducts(); }
+  if(ev.target.closest('#btnAll')){
+    ev.preventDefault();
+    filterState.cat=null; filterState.subcat=null;
+    updateCategoryButtonLabel();
+    renderProducts();
+    return;
+  }
 
   // カテゴリボタン → ドロワーOPEN
-  if(ev.target.closest('#btnCategories')){ ev.preventDefault(); openDrawer(); }
+  if(ev.target.closest('#btnCategories') && !ev.target.closest('#btnCategories .x')){
+    ev.preventDefault();
+    openDrawer();
+    return;
+  }
+
+  // カテゴリボタン内の × で条件クリア
+  const clearX = ev.target.closest('#btnCategories .x');
+  if(clearX){
+    ev.preventDefault();
+    filterState.cat=null; filterState.subcat=null;
+    updateCategoryButtonLabel();
+    renderProducts();
+    return;
+  }
 });
 document.querySelector('#catDrawer .ppp-drawer__scrim').addEventListener('click', (e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeDrawer(); });
 document.getElementById('catDrawerClose').addEventListener('click', closeDrawer);
 document.getElementById('catDrawerBack').addEventListener('click', ()=>{ titleEl.textContent='カテゴリを選ぶ'; backBtn.style.visibility='hidden'; renderCategories(); });
 document.getElementById('catDrawerQuery').addEventListener('input', ()=>{ (backBtn.style.visibility==='hidden')?renderCategories():renderSubcats(CURRENT.cat?.label||''); });
-document.getElementById('catDrawerClear').addEventListener('click', ()=>{ CURRENT={cat:null,sub:null}; filterState.cat=null; filterState.subcat=null; renderProducts(); closeDrawer(); });
+document.getElementById('catDrawerClear').addEventListener('click', ()=>{ CURRENT={cat:null,sub:null}; filterState.cat=null; filterState.subcat=null; updateCategoryButtonLabel(); renderProducts(); closeDrawer(); });
 document.getElementById('catDrawerApply').addEventListener('click', applyCurrentAndClose);
 
 /** ========= 初期化 ========= **/
