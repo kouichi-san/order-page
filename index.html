@@ -9,7 +9,7 @@
   --bg:#fafafa;
   --ink:#1f2937;
   --muted:#6b7280;
-  --brand:#10b981;       /* 緑（ブランド） */
+  --brand:#10b981;
   --brand-ink:#064e3b;
   --border:#e5e7eb;
   --wrap:1080px;
@@ -36,7 +36,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .menu-right{ margin-left:auto }
 
-/* ▼ カテゴリボタンの動的ラベル＆クリア */
+/* ▼ カテゴリボタンの動的ラベル＆クリア（PC/タブのみ表示） */
 #btnCategories.has-filter{ padding-right:28px; position:relative; }
 #btnCategories .tag{ font-weight:800; color:#0f172a }
 #btnCategories .sep::before{ content:"›"; margin:0 4px; color:#94a3b8 }
@@ -46,6 +46,10 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   display:grid; place-items:center; font-size:12px; cursor:pointer; background:#fff;
 }
 #btnCategories .x:active{ transform:translateY(-50%) translateY(1px) }
+/* SP（〜420px）は常に固定文言・余白も通常化 */
+@media (max-width:420px){
+  #btnCategories{ padding-right:12px }
+}
 
 /* ===== 商品カード ===== */
 #productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
@@ -82,21 +86,35 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .cart .wrap{ padding:0 16px }
 .cart-box{ display:flex; align-items:center; gap:16px; justify-content:flex-end; padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom)) }
 .cart-left{ margin-right:auto; display:flex; align-items:center; gap:12px }
-.inline-pill{ font-size:14px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; border-radius:999px; padding:6px 14px; white-space:nowrap }
+.inline-pill{
+  font-size:14px; background:#f0fdf4; color:var(--brand-ink);
+  border:1px solid #d1fae5; border-radius:999px; padding:6px 14px; white-space:nowrap;
+}
 .count{ min-width:60px; text-align:right; font-size:14px }
 .total{ min-width:80px; text-align:right; font-weight:900; font-size:18px }
 .btn-cart{ background:var(--brand); color:#fff; border:none; border-radius:var(--btn-radius); padding:10px 18px; cursor:pointer; font-weight:800; white-space:nowrap }
 .btn-cart:active{ transform:translateY(1px) }
 @media(max-width:420px){
-  .cart-box{ display:grid; grid-template-columns: 1fr 1fr auto; grid-template-rows: auto auto; gap:4px 12px; align-items:center; padding:6px 0; padding-bottom:calc(6px + env(safe-area-inset-bottom)) }
+  .cart-box{
+    display:grid;
+    grid-template-columns: 1fr 1fr auto;
+    grid-template-rows: auto auto;
+    gap:4px 12px; align-items:center;
+    padding:6px 0;
+    padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  }
   .inline-pill{ display:none }
   .lbl-min{ grid-column:1; grid-row:1; font-size:12px; color:#065f46; opacity:.95 }
-  .count{ grid-column:2; grid-row:1; text-align:right; font-weight:700 }
+  .count{ grid-column:2; grid-row:1; text-align:right; font-weight:700; }
   .count::before{ content:"商品点数 "; font-size:12px; font-weight:600; opacity:.9; margin-right:4px }
   .val-date{ grid-column:1; grid-row:2; font-weight:700; font-size:14px; white-space:nowrap }
   .total{ grid-column:2; grid-row:2; text-align:right; font-size:17px }
   .total::before{ content:"合計金額 "; font-size:12px; font-weight:600; opacity:.9; margin-right:4px }
-  .btn-cart{ grid-column:3; grid-row:1 / 3; alignself:stretch; padding:10px 14px; min-width:72px }
+  .btn-cart{
+    grid-column:3; grid-row:1 / 3;
+    align-self:stretch;  /* ← 修正済み */
+    padding:10px 14px; min-width:72px;
+  }
   .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
 }
 @media(min-width:421px){ .val-date{ display:none } }
@@ -131,8 +149,8 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-catgrid button:active{ transform:translateY(1px) }
 .ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:#fafafa }
 .ppp-btn{ flex:1; appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer }
-.ppp-btn.primary{ background:var(--brand); color:#fff; border-color:transparent } /* 緑 */
-.ppp-btn.neutral{ background:#f3f4f6; border-color:#e5e7eb; color:#111827 }      /* グレー：クリア */
+.ppp-btn.primary{ background:var(--brand); color:#fff; border-color:transparent }
+.ppp-btn.neutral{ background:#f3f4f6; border-color:#e5e7eb; color:#111827 }
 .ppp-btn.neutral:hover{ background:#e5e7eb }
 
 /* ドロワー表示中のページスクロール抑止 */
@@ -220,20 +238,33 @@ const state={cart:{}, minDateISO:null};
 const filterState = { cat:null, subcat:null };
 const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
-/** ========= カテゴリボタンのラベル更新 ========= **/
+/** ========= SP判定（〜420px） ========= **/
+const mqSP = window.matchMedia('(max-width: 420px)');
+const isSP = () => mqSP.matches;
+
+/** ========= カテゴリボタンのラベル更新（SPは常に固定） ========= **/
 function updateCategoryButtonLabel(){
   const btn = document.getElementById('btnCategories');
   if(!btn) return;
+
+  if(isSP()){
+    btn.classList.remove('has-filter');
+    btn.innerHTML = 'カテゴリ';
+    return;
+  }
+
   const cat = filterState.cat ? String(filterState.cat) : '';
   const sub = filterState.subcat ? String(filterState.subcat) : '';
+
   if(!cat && !sub){
     btn.classList.remove('has-filter');
     btn.innerHTML = 'カテゴリ';
     return;
   }
   btn.classList.add('has-filter');
-  const label = sub ? `<span class="tag">${cat}</span><span class="sep"></span><span class="tag">${sub}</span>`
-                    : `<span class="tag">${cat}</span>`;
+  const label = sub
+    ? `<span class="tag">${cat}</span><span class="sep"></span><span class="tag">${sub}</span>`
+    : `<span class="tag">${cat}</span>`;
   btn.innerHTML = `カテゴリ: ${label}<span class="x" aria-label="条件クリア" title="条件クリア">×</span>`;
 }
 
@@ -461,14 +492,14 @@ document.addEventListener('click',ev=>{
     return;
   }
 
-  // カテゴリボタン → ドロワーOPEN
+  // カテゴリボタン → ドロワーOPEN（×を除く）
   if(ev.target.closest('#btnCategories') && !ev.target.closest('#btnCategories .x')){
     ev.preventDefault();
     openDrawer();
     return;
   }
 
-  // カテゴリボタン内の × で条件クリア
+  // カテゴリボタン内の × で条件クリア（PC/タブのみ表示）
   const clearX = ev.target.closest('#btnCategories .x');
   if(clearX){
     ev.preventDefault();
@@ -484,6 +515,9 @@ document.getElementById('catDrawerBack').addEventListener('click', ()=>{ titleEl
 document.getElementById('catDrawerQuery').addEventListener('input', ()=>{ (backBtn.style.visibility==='hidden')?renderCategories():renderSubcats(CURRENT.cat?.label||''); });
 document.getElementById('catDrawerClear').addEventListener('click', ()=>{ CURRENT={cat:null,sub:null}; filterState.cat=null; filterState.subcat=null; updateCategoryButtonLabel(); renderProducts(); closeDrawer(); });
 document.getElementById('catDrawerApply').addEventListener('click', applyCurrentAndClose);
+
+// 画面幅変化でSP/PC切り替わったら即ラベル再描画
+mqSP.addEventListener?.('change', () => updateCategoryButtonLabel());
 
 /** ========= 初期化 ========= **/
 (function init(){
