@@ -210,6 +210,31 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
 .total { display: inline-block; }
 </style>
 
+
+<style id="ppp-footer-fix-strong">
+/* Footer layout normalization */
+@media (min-width: 768px){
+  /* Hide any pill/min-badge style in the left area on desktop to avoid duplicate min-date */
+  .cart .cart-left .inline-pill,
+  .cart .cart-left .min-badge,
+  .cart .cart-left [class*="badge"] { display:none !important; }
+  /* Show label+value pairing */
+  .cart .lbl-min { display:inline-block !important; }
+  .cart .val-date { display:inline-block !important; }
+}
+/* On small screens, prefer compact pill if present; hide label+value to avoid duplication */
+@media (max-width: 767.98px){
+  .cart .lbl-min, .cart .val-date { display:none !important; }
+  /* If there is a pill/min-badge, show it; otherwise keep count/total and show #cartMinDate inline */
+  .cart .cart-left .inline-pill,
+  .cart .cart-left .min-badge,
+  .cart .cart-left [class*="badge"] { display:inline-flex; }
+}
+/* Always show count and total */
+.cart .count { display:inline-block !important; }
+.cart .total { display:inline-block !important; }
+</style>
+
 </head>
 <body>
 <header>
@@ -875,6 +900,43 @@ function setQty(id, v){
   // If the cart button appears later, bind again automatically
   const mo = new MutationObserver(bindCartOpeners);
   mo.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
+
+<script id="ppp-open-cart-robust-v2">
+(function(){
+  function openCartSafe(ev){
+    try{
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation && ev.stopImmediatePropagation(); }
+      if(typeof openCartDrawer==='function'){ openCartDrawer(); }
+      else { console.warn('[PPP] openCartDrawer not found'); }
+    }catch(err){ console.error('[PPP] openCartSafe error', err); }
+  }
+  function isCartLikeButton(el){
+    if(!el) return false;
+    if(el.matches('#checkoutBtn2, .btn-cart, [data-cart-open], .cart button, .cart a')) return true;
+    const txt = (el.textContent || '').replace(/\s+/g,'').trim();
+    return /カート(を見る)?/u.test(txt);
+  }
+  function bindCartOpeners(){
+    const candidates = Array.from(document.querySelectorAll('a,button,[data-cart-open]'));
+    candidates.forEach(btn=>{
+      if(btn.__pppBoundOpenCart) return;
+      if(isCartLikeButton(btn)){
+        btn.__pppBoundOpenCart = true;
+        btn.addEventListener('click', openCartSafe, true); // capture
+      }
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bindCartOpeners, {once:true});
+  }else{
+    bindCartOpeners();
+  }
+  // Bind to any future buttons as DOM changes
+  const mo = new MutationObserver(bindCartOpeners);
+  mo.observe(document.body, { childList:true, subtree:true });
 })();
 </script>
 
