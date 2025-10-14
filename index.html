@@ -194,6 +194,22 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
 .ppp-note-warn{ color:#b45309; font-size:12px }
 </style>
 
+
+<style id="ppp-footer-fix">
+/* --- Footer visibility rules to prevent duplicate min-date display --- */
+#cartMinDateInline { display: inline-block; }   /* mobile/default: show inline pill */
+.lbl-min { display: none; }                     /* mobile/default: hide label */
+.val-date { display: none; }                    /* mobile/default: hide value block to avoid duplication */
+@media (min-width: 768px){
+  #cartMinDateInline { display: none; }         /* desktop: hide the pill */
+  .lbl-min { display: block; }                  /* desktop: show label */
+  .val-date { display: inline-block; }          /* desktop: show value */
+}
+/* Ensure count and total are always visible */
+.count { display: inline-block; }
+.total { display: inline-block; }
+</style>
+
 </head>
 <body>
 <header>
@@ -830,6 +846,36 @@ function setQty(id, v){
   if(typeof renderCartBar==='function') renderCartBar();
   renderCartDrawer();
 }
+</script>
+
+
+<script>
+// --- Robust opener binding (works even if other handlers exist) ---
+(function(){
+  function openCartSafe(ev){
+    try{
+      if(ev){ ev.preventDefault(); ev.stopImmediatePropagation?.(); }
+      if(typeof openCartDrawer==='function'){ openCartDrawer(); }
+      else { console.warn('[PPP] openCartDrawer not found'); }
+    }catch(err){ console.error('[PPP] openCartSafe error', err); }
+  }
+  function bindCartOpeners(){
+    const sel = '#checkoutBtn2, .btn-cart, [data-cart-open]';
+    document.querySelectorAll(sel).forEach(btn=>{
+      if(btn.__pppBoundOpenCart) return;
+      btn.__pppBoundOpenCart = true;
+      btn.addEventListener('click', openCartSafe, true); // capture
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bindCartOpeners);
+  }else{
+    bindCartOpeners();
+  }
+  // If the cart button appears later, bind again automatically
+  const mo = new MutationObserver(bindCartOpeners);
+  mo.observe(document.body, { childList: true, subtree: true });
+})();
 </script>
 
 </html>
