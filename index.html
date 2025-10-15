@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ping-Pong-Pang｜翌日以降受け取り 注文</title>
-<link rel="stylesheet" href="/order-dev/order.css?v=20251015f"><!-- ルート絶対 -->
+<link rel="stylesheet" href="./order.css?v=20251015e">
 </head>
 <body>
 
@@ -32,7 +32,7 @@
       最短受取 <span id="cartMinDateInline">--/--/--</span>
     </p>
 
-    <!-- 並べ替えバー（小文字IDに統一） -->
+    <!-- 並べ替えバー -->
     <div id="sortbar" class="sortbar" hidden>
       <div class="inner">
         <button class="sortbtn is-active" data-sort="default">おすすめ</button>
@@ -43,18 +43,16 @@
       </div>
     </div>
 
-    <!-- カテゴリドロワ（.ppp-drawer* に統一） -->
-    <aside id="catDrawer" class="ppp-drawer" aria-hidden="true">
-      <div class="ppp-drawer__scrim" data-close="catDrawer"></div>
-      <section class="ppp-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="catDrawerTitle">
-        <header class="ppp-drawer__head">
-          <h2 id="catDrawerTitle">カテゴリ</h2>
+    <!-- カテゴリドロワ -->
+    <aside id="catDrawer" class="drawer" aria-hidden="true">
+      <div class="drawer__scrim" data-close="catDrawer"></div>
+      <div class="drawer__panel">
+        <header class="drawer__head">
+          <h2>カテゴリ</h2>
           <button class="iconbtn" data-close="catDrawer" aria-label="閉じる">×</button>
         </header>
-        <div class="ppp-drawer__body">
-          <div id="catList" class="catlist"></div>
-        </div>
-      </section>
+        <div id="catList" class="catlist"></div>
+      </div>
     </aside>
 
     <!-- 商品グリッド -->
@@ -83,8 +81,7 @@
           <div class="note">合計金額</div>
         </div>
       </div>
-      <!-- ヘッダーのボタンを叩いて同じ挙動に -->
-      <button class="btn primary" onclick="document.getElementById('menuRightAction').click()">カート</button>
+      <button id="cartOpen" class="btn primary">カート</button>
     </div>
   </div>
 </footer>
@@ -96,7 +93,7 @@
     <header class="ppp-drawer__head">
       <h2 id="cartTitle">ご注文内容</h2>
       <div class="ppp-chips">
-        <span class="ppp-chip">最短受取 <span id="chipMinDate">--/--/--</span></span>
+        <span class="ppp-chip" id="chipMin">最短受取 <span id="chipMinDate">--/--/--</span></span>
         <span class="ppp-chip">点数 <span id="chipCount">0</span></span>
         <span class="ppp-chip">合計 <span id="chipTotal">¥0</span></span>
       </div>
@@ -142,7 +139,7 @@
 
     <div class="ppp-drawer__foot">
       <div class="foot-left">
-        <div class="min">最短受取日</div>
+        <div class="min" id="cartMinNote">最短受取日</div>
         <div class="total" id="cartTotalFooter">¥0</div>
       </div>
       <div class="foot-right">
@@ -153,6 +150,6 @@
   </section>
 </div>
 
-<script src="/order-dev/app.js?v=20251015f" defer></script><!-- ルート絶対 -->
+<script src="./app.js?v=20251015e" defer></script>
 </body>
 </html>
