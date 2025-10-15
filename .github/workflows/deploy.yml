@@ -19,7 +19,7 @@ jobs:
           protocol: ftps
           port: 21
           security: strict
-          local-dir: ./order-page/                         # ← ローカルの中身だけ送る
+          local-dir: ./                        # ← ローカルの中身だけ送る
           server-dir: public_html/ping-pong-pang.jp/order-dev/  # ← サーバの“絶対”パスに固定
           state-name: .ftp-state-order-dev.json
           dangerous-clean-slate: false
