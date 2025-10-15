@@ -11,7 +11,7 @@ const filterState = { cat:null, subcat:null, sort:'default' };
 const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
 /** ========= SP判定（〜420px） ========= **/
-const mqSP = window.matchMedia('(max-width: 420px)');
+const mqSP = window.matchMedia('(max-width: 480px)');
 const isSP = () => mqSP.matches;
 
 /** ========= カテゴリボタンのラベル更新（SPは常に固定） ========= **/
