@@ -125,7 +125,15 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-due{ margin-left:6px; font-size:11px; color:#475569; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:999px; padding:2px 6px; white-space:nowrap }
 .ppp-iconbtn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:10px; padding:8px 10px; cursor:pointer }
 .ppp-iconbtn:active{ transform:translateY(1px) }
+/* ドロワ上部 */
 .ppp-chips{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px 14px; border-bottom:1px dashed #eef2f7 }
+/* チップ */
+.ppp-chip{
+  font-weight:700;
+  background:#f8fafc; border:1px solid #e5e7eb;
+  border-radius:999px; padding:4px 8px; color:#0f172a;
+  white-space:nowrap;
+}
 .ppp-listwrap{ overflow:auto; -webkit-overflow-scrolling:touch }
 .ppp-listpad{ padding:10px 12px 16px }
 .ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:#fafafa }

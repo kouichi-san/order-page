@@ -135,7 +135,11 @@ function renderProducts(){
     const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label}); if(p.var2Id&&p.var2Label)vars.push({id:String(p.var2Id),label:p.var2Label});
     const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
     
-    if(soldout){ try{ el.classList.add('is-soldout'); }catch(_){}}
+    // ← まずカード要素を作る
+    const el=document.createElement('article');
+    el.className='ppp-card';
+    el.dataset.id=p.id;
+    if(soldout) el.classList.add('soldout');
     el.innerHTML=`
       <div class="ppp-crumbrow"><div class="ppp-crumb">${crumbHTML}</div></div>
       <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
