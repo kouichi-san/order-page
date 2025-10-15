@@ -165,6 +165,16 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .cart-sum .min{ font-size:12px; color:#065f46 }
 .cart-sum .total{ font-weight:900; font-size:18px }
 html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:none!important }
+
+/* ===== カートフォーム追加分 ===== */
+.cartform{ border-top:1px dashed #eef2f7; margin-top:8px; padding-top:12px; display:flex; flex-direction:column; gap:10px }
+.cartgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+.cartlbl{ font-size:13px; font-weight:700; margin-bottom:4px }
+.cartsel{ width:100%; height:40px; border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-size:14px; background:#fff }
+.carthelp{ font-size:12px; color:#6b7280 }
+.cartmemo{ width:100%; min-height:88px; border:1px solid var(--border); border-radius:10px; padding:10px; font-size:14px }
+.agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
+.agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
 </style>
 </head>
 <body>
@@ -265,6 +275,32 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
     </div>
     <div class="ppp-listwrap"><div class="ppp-listpad">
       <div id="cartList" class="cartlist"></div>
+      <!-- 追加：受取希望・備考・同意 -->
+      <div id="cartForm" class="cartform">
+        <div class="cartgrid">
+          <div>
+            <div class="cartlbl">受取希望日</div>
+            <select id="pickupDate" class="cartsel"></select>
+          </div>
+          <div>
+            <div class="cartlbl">受取希望時間帯</div>
+            <select id="pickupSlot" class="cartsel">
+              <option value="14時〜17時">14時〜17時</option>
+              <option value="17時〜20時">17時〜20時（※土日祝は19時まで）</option>
+            </select>
+          </div>
+        </div>
+        <div class="carthelp">※ 休業日を除く20日先まで選択可能です（表記：YYYY/MM/DD(曜)）。</div>
+        <div>
+          <div class="cartlbl">備考（任意）</div>
+          <textarea id="pickupMemo" class="cartmemo" placeholder="例）受取は17時以降希望／辛さ弱め など"></textarea>
+        </div>
+        <div class="agrees">
+          <label><input type="checkbox" id="agreePay"> <span>お支払いについて：お会計は店舗で精算となります。利用できる支払い手段は店頭と同様です。</span></label>
+          <label><input type="checkbox" id="agreeStock"> <span>商品の確保について（必須）：コストコ店頭に在庫がない場合があります。本注文は商品提供の確約ではありません。</span></label>
+          <div class="carthelp">※ この項目がチェックされるまで「注文へ進む」は無効</div>
+        </div>
+      </div>
     </div></div>
     <div class="ppp-drawer__footer">
       <div class="cart-footer">
@@ -273,7 +309,7 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
           <div class="total" id="cartTotalFooter">¥0</div>
         </div>
         <button id="cartDrawerCancel" class="ppp-btn neutral">閉じる</button>
-        <button id="cartProceed" class="ppp-btn primary">注文へ進む</button>
+        <button id="cartProceed" class="ppp-btn primary" disabled>注文へ進む</button>
       </div>
     </div>
   </section>
@@ -283,9 +319,9 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
 /** ========= 設定 ========= **/
 const PRODUCTS_URL="https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const CUTOVER_HOUR = 2; // ← 26時（=2:00）までは前日扱い
-const FORM_BASE = "";   // ← 後続でGoogleフォームURLを設定（未設定ならダミー動作）
+const FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";   // ← GoogleフォームURL
 let PRODUCTS=[]; let productById=new Map();
-const state={cart:{}, minDateISO:null};
+const state={cart:{}, minDateISO:null, selectedDateISO:null, selectedSlot:"14時〜17時", memo:"", agreeStock:false};
 
 /** ========= フィルタ状態 ========= **/
 const filterState = { cat:null, subcat:null, sort:'default' };
@@ -384,6 +420,21 @@ function addToCart(p,qty){
   renderCartBar();
 }
 
+/** ========= 受取日候補の生成（最短+20・年末年始除外） ========= **/
+function buildPickupDateOptions(){
+  const min = calcMinDate();
+  const opts = [];
+  for(let i=0;i<=20;i++){
+    const d = new Date(min); d.setDate(d.getDate()+i);
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    const md = `${mm}-${dd}`;
+    if(md==='12-31' || md==='01-01' || md==='01-02') continue; // 休業日
+    opts.push({ iso: isoDate(d), label: fmtJP(d) });
+  }
+  return opts;
+}
+
 /** ========= 商品描画（フィルタ→並べ替え） ========= **/
 function renderProducts(){
   const grid=document.getElementById('productGrid'); grid.className='ppp-grid'; grid.innerHTML='';
@@ -469,6 +520,8 @@ document.querySelector('#cartDrawer .ppp-drawer__scrim').addEventListener('click
 document.getElementById('cartDrawerClose').addEventListener('click', closeCartDrawer);
 document.getElementById('cartDrawerCancel').addEventListener('click', closeCartDrawer);
 
+function updateProceedDisabled(){ const btn=document.getElementById('cartProceed'); if(btn) btn.disabled=!state.agreeStock; }
+
 function renderCartDrawer(){
   // 最短受取の最新を反映
   const d=calcMinDate();
@@ -486,23 +539,38 @@ function renderCartDrawer(){
   const wrap=document.getElementById('cartList');
   wrap.innerHTML='';
   const ids=Object.keys(state.cart);
-  if(ids.length===0){ wrap.innerHTML='<div class="cart-empty">カートは空です</div>'; return; }
-  ids.forEach(id=>{
-    const p=productById.get(id); const q=Number(state.cart[id]||0); if(!p||q<=0) return;
-    const row=document.createElement('div'); row.className='cartrow'; row.dataset.id=id;
-    row.innerHTML=`
-      <div class="rowline">
-        <div class="ttl">${p.name||id}</div>
-        <div class="prc">${yen(p.price)} × ${q} = ${yen((p.price||0)*q)}</div>
-      </div>
-      <div class="qtybar">
-        <button class="btn" data-cart="dec">−</button>
-        <input class="cartqty" type="number" min="0" step="1" value="${q}">
-        <button class="btn" data-cart="inc">＋</button>
-        <button class="btn" data-cart="rm" title="削除">削除</button>
-      </div>`;
-    wrap.appendChild(row);
-  });
+  if(ids.length===0){ wrap.innerHTML='<div class="cart-empty">カートは空です</div>'; }
+  else{
+    ids.forEach(id=>{
+      const p=productById.get(id); const q=Number(state.cart[id]||0); if(!p||q<=0) return;
+      const row=document.createElement('div'); row.className='cartrow'; row.dataset.id=id;
+      row.innerHTML=`
+        <div class="rowline">
+          <div class="ttl">${p.name||id}</div>
+          <div class="prc">${yen(p.price)} × ${q} = ${yen((p.price||0)*q)}</div>
+        </div>
+        <div class="qtybar">
+          <button class="btn" data-cart="dec">−</button>
+          <input class="cartqty" type="number" min="0" step="1" value="${q}">
+          <button class="btn" data-cart="inc">＋</button>
+          <button class="btn" data-cart="rm" title="削除">削除</button>
+        </div>`;
+      wrap.appendChild(row);
+    });
+  }
+
+  // 受取日候補の表示
+  const opts = buildPickupDateOptions();
+  const sel = document.getElementById('pickupDate');
+  if(sel){ sel.innerHTML = opts.map(o=>`<option value="${o.iso}">${o.label}</option>`).join(''); }
+  const initial = (state.selectedDateISO && opts.some(o=>o.iso===state.selectedDateISO)) ? state.selectedDateISO : (opts[0]?opts[0].iso:state.minDateISO);
+  state.selectedDateISO = initial; if(sel) sel.value = initial;
+
+  // 既存の入力値反映
+  const slot = document.getElementById('pickupSlot'); if(slot) slot.value = state.selectedSlot;
+  const memo = document.getElementById('pickupMemo'); if(memo) memo.value = state.memo;
+  const agree = document.getElementById('agreeStock'); if(agree) agree.checked = state.agreeStock;
+  updateProceedDisabled();
 }
 
 // カート行の操作（数量増減／削除）
@@ -531,30 +599,62 @@ document.addEventListener('change',(ev)=>{
   renderCartBar(); renderCartDrawer();
 });
 
+// フォーム入力の保存・同意
+document.addEventListener('change',(ev)=>{
+  if(ev.target.id==='pickupDate'){ state.selectedDateISO = ev.target.value; }
+  if(ev.target.id==='pickupSlot'){ state.selectedSlot = ev.target.value; }
+  if(ev.target.id==='agreeStock'){ state.agreeStock = ev.target.checked; updateProceedDisabled(); }
+});
+document.addEventListener('input',(ev)=>{
+  if(ev.target.id==='pickupMemo'){ state.memo = ev.target.value; }
+});
+
 // 注文へ進む（最終チェック：2:00跨ぎ検知→更新なら停止）
 document.getElementById('cartProceed').addEventListener('click',(e)=>{
   e.preventDefault();
   const before = state.minDateISO;
-  renderMinDateEverywhere(); // 最新化
+  renderMinDateEverywhere(); // 最新化（2:00跨ぎ検知）
   const after = state.minDateISO;
   if(before && after && before!==after){
     alert('最短受取日が更新されました：'+after.replaceAll('-','/'));
     renderCartDrawer();
     return; // 止める
   }
-  // ここでフォーム遷移（未設定ならダミー）
+  // 同意チェック
+  if(!state.agreeStock){ alert('「商品の確保について（必須）」をご確認のうえチェックしてください。'); return; }
+
+  // 受取日が最短より過去なら置換
+  if(state.selectedDateISO && state.selectedDateISO < state.minDateISO){
+    state.selectedDateISO = state.minDateISO;
+    alert('受取希望日を最短日に更新しました：'+state.minDateISO.replaceAll('-','/'));
+    renderCartDrawer();
+    return;
+  }
+
+  // 注文データ作成
   const order = Object.entries(state.cart).map(([id,qty])=>{
     const p=productById.get(id)||{}; const q=Number(qty||0);
     return { id, name:p.name||'', price:Number(p.price||0), qty:q, subtotal:Number(p.price||0)*q, leadDays:Number(p.leadDays||1) };
   }).filter(x=>x.qty>0);
   if(order.length===0){ alert('カートが空です'); return; }
+  const t = totals();
+  const listText = order.map(o=> `${o.name} × ${o.qty} ＝ ${yen(o.subtotal)}`).join('\n');
+
+  const params = new URLSearchParams();
+  params.set('entry.1515941336', state.selectedDateISO); // 受取希望日(ISO)
+  params.set('entry.224243122', state.minDateISO);        // システム最短受取日(ISO)
+  params.set('entry.145233294', state.selectedSlot);      // 受け取り時間帯（日本語ラベル）
+  params.set('entry.907378750', state.memo);              // 備考
+  params.set('entry.1286573866', listText);               // 注文商品一覧（人間可読）
+  params.set('entry.1040973575', JSON.stringify({items:order, totalCount:t.count, totalPrice:t.total})); // 取り込み用JSON
 
   if(!FORM_BASE){
     console.log('[DEBUG] フォーム未設定: order=', order, 'minPossible=', state.minDateISO);
     alert('デモ: フォームURL未設定。コンソールに注文内容を出力しました。');
     return;
   }
-  // TODO: entryIDに合わせてクエリ生成し、location.href = 〜 へ
+  const url = FORM_BASE + '?' + params.toString();
+  window.open(url, '_blank');
 });
 
 /** ========= クリック系 ========= **/
