@@ -1,37 +1,32 @@
-name: Deploy to Onamae RS via FTPS (order-dev only)
+name: Deploy to Onamae RS (order-dev)
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: [ "main", "dev" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Deploy with FTP-Deploy-Action (FTPS strict)
+      - name: FTP deploy (order-page → /public_html/ping-pong-pang.jp/order-dev)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_HOST }}      # www1049.onamae.ne.jp
-          username: ${{ secrets.FTP_USER }}    # ppp_ftp@ping-pong-pang.jp
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASS }}
           protocol: ftps
           port: 21
           security: strict
-          local-dir: ./
-          server-dir: order-dev/
-          log-level: verbose
+          local-dir: ./order-page/                         # ← ローカルの中身だけ送る
+          server-dir: public_html/ping-pong-pang.jp/order-dev/  # ← サーバの“絶対”パスに固定
+          state-name: .ftp-state-order-dev.json
           dangerous-clean-slate: false
           exclude: |
             **/.git/**
-            **/.git*
-            .git/**
-            .git*
             **/.github/**
             **/node_modules/**
-            **/*.map
             **/.DS_Store
             README*.md
             LICENSE
