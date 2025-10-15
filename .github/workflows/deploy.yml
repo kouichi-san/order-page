@@ -20,7 +20,7 @@ jobs:
           protocol: ftps
           port: 21
           security: strict
-          local-dir: ./
+          local-dir: ./order-page/
           server-dir: order-dev/
           log-level: verbose
           dangerous-clean-slate: false
