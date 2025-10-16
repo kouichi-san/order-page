@@ -132,7 +132,7 @@ function renderMinDateEverywhere(){
   if(dwr) dwr.textContent=fmtJP(d);
 }
 
-/** ========= 「最終更新」ピル（任意） ========= **/
+/** ========= 「最終更新」表示（任意。要素が無ければ何もしない） ========= **/
 function renderLastUpdated(ts){
   const el=document.getElementById('lastUpdated'); if(!el) return;
   const d = ts ? toJst(new Date(ts)) : toJst();
@@ -199,13 +199,38 @@ function buildVariantGroups(){
   PRODUCTS.forEach(p=>{ p.group = find(p.id); });
 }
 
+/** ========= Variant bar helpers（index.htmlの #variantbar を使用） ========= **/
+const variantbar = document.getElementById('variantbar');
+function showVariantbar(title){
+  if(!variantbar) return;
+  variantbar.setAttribute('aria-hidden','false');
+  const t = document.getElementById('variantTitle');
+  if(t) t.textContent = title || 'バリエーション';
+}
+function hideVariantbar(){
+  if(!variantbar) return;
+  variantbar.setAttribute('aria-hidden','true');
+  const t = document.getElementById('variantTitle');
+  if(t) t.textContent = '';
+}
+// 戻る/× ボタン配線
+document.getElementById('variantBack')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
+document.getElementById('variantClose')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
+
 /** ========= Variant Mode ========= **/
 function inVariantMode(){ return !!filterState.variantGroup; }
 function enterVariantMode(group, selectedId){
   filterState.variantBackup = { cat:filterState.cat, subcat:filterState.subcat, sort:filterState.sort };
   filterState.variantGroup = group || '';
   filterState.variantSelected = selectedId || null;
+
+  // バータイトル＝選択アイテム名か同グループ先頭名
+  const tp = productById.get(selectedId) || (PRODUCTS||[]).find(x => (x.group||x.id)===group);
+  showVariantbar(tp?.name || 'バリエーション');
+
   renderProducts();
+  // 上部バーを確実に見せるためトップへ
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function clearVariantMode(){
   if(!inVariantMode()) return;
@@ -214,6 +239,7 @@ function clearVariantMode(){
   filterState.cat=b.cat ?? filterState.cat;
   filterState.subcat=b.subcat ?? filterState.subcat;
   filterState.sort=b.sort ?? filterState.sort;
+  hideVariantbar();
   renderProducts();
 }
 
@@ -330,7 +356,7 @@ function totals(){
 }
 function renderCartBar(){
   const t = totals();
-  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}点`;
+  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}`;
   const sum = document.getElementById('cartTotal'); if(sum) sum.textContent = yen(t.total||0);
 }
 function renderCartFooterTotals(){
