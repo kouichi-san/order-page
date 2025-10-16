@@ -9,6 +9,33 @@ const state = { cart:{}, minDateISO:null, selectedDateISO:null, selectedSlot:"14
 
 /** ========= フィルタ状態 ========= **/
 const filterState = { cat:null, subcat:null, sort:'default' };
+
+let loadingTimer = null;
+function showSkeleton(){
+  const grid = document.getElementById('productGrid');
+  if(!grid) return;
+  grid.setAttribute('aria-busy','true');
+  grid.innerHTML = '';
+  const count = window.matchMedia('(max-width:720px)').matches ? 4 : 4;
+  for(let i=0;i<count;i++){
+    grid.insertAdjacentHTML('beforeend',
+      `<article class="skel-card">
+         <div class="skel-img"></div>
+         <div class="skel-line big"></div>
+         <div class="skel-line" style="width:70%"></div>
+         <div class="skel-btn"></div>
+       </article>`);
+  }
+  const tp=document.getElementById('topProgress'); if(tp) tp.classList.add('on');
+  const sr=document.getElementById('srStatus'); if(sr) sr.textContent='商品を読み込んでいます';
+}
+function hideSkeleton(){
+  const grid = document.getElementById('productGrid');
+  if(grid){ grid.removeAttribute('aria-busy'); }
+  const tp=document.getElementById('topProgress'); if(tp) tp.classList.remove('on');
+  const sr=document.getElementById('srStatus'); if(sr) sr.textContent='商品を読み込みました';
+}
+
 const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
 /** ========= SP判定 ========= **/
@@ -16,7 +43,8 @@ const mqSP = window.matchMedia('(max-width: 420px)');
 const isSP = () => mqSP.matches;
 
 /** ========= ユーティリティ ========= **/
-function yen(n){ try{ return Number(n||0).toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}); }catch(e){ return '¥'+(n||0); } }
+function yen(n){ try{ return Number(n||0).toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}); } catch(e){
+return '¥'+(n||0); } }
 function toJst(d=new Date()){ return new Date(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo'}).format(d)+' '+d.toTimeString().split(' ')[0]); }
 function fmtJP(d){ const w='日月火水木金土'[d.getDay()]; return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}(${w})`; }
 function isoDate(d){ return d.toISOString().slice(0,10); }
@@ -138,19 +166,20 @@ function renderProducts(){
     if(nCat && pc!==nCat) return false; if(nSub && ps!==nSub) return false; return true;
   });
   const list = sortProducts(filtered);
-  list.forEach(p=>{
+  list.forEach((p, idx)=>{
     const soldout=(p.stock!==undefined&&Number(p.stock)<=0);
     const catLabel=p.catGroup||p.cat||''; const subcatLabel=p.subcatGroup||'';
     const crumbHTML=[ catLabel?`<a href="#" class="ppp-crumb-link" data-cat="${catLabel}">${catLabel}</a>`:'', subcatLabel?`<a href="#" class="ppp-crumb-link" data-subcat="${subcatLabel}">${subcatLabel}</a>`:'' ].filter(Boolean).join(' › ');
     const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label}); if(p.var2Id&&p.var2Label)vars.push({id:String(p.var2Id),label:p.var2Label});
     const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
     const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id;
+    el.style.animationDelay = (Math.min(idx||0, 18) * 0.03) + 's';
     if(soldout){ try{ el.classList.add('is-soldout'); }catch(_){} }
     el.innerHTML=`
       <div class="ppp-crumbrow"><div class="ppp-crumb">${crumbHTML}</div></div>
       <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
       <div class="ppp-mi">
-        <div class="ppp-media"><div class="ppp-img"><img src="${p.img||''}" alt="${p.name||''}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';"></div></div>
+        <div class="ppp-media"><div class="ppp-img"><img onload="this.classList.add('is-ready')" src="${p.img||''}" alt="${p.name||''}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';this.classList.add('is-ready');"></div></div>
         <div class="ppp-info">
           ${p.prenote?`<div class="ppp-prenote">${p.prenote}</div>`:''}
           <div class="ppp-price">${(p.price>0&&!isNaN(p.price))?yen(p.price):'店頭価格'}</div>
@@ -173,6 +202,7 @@ function renderProducts(){
 /** ========= データ読込 ========= **/
 async function loadProducts(){
   try{
+    loadingTimer = setTimeout(showSkeleton, 150);
     const res=await fetch(PRODUCTS_URL,{cache:'no-store'});
     const data=await res.json();
     PRODUCTS=(data.items||[]).map((x,i)=>({
@@ -191,7 +221,7 @@ async function loadProducts(){
     buildCatTree._cache = null; // カテゴリキャッシュリセット
     renderProducts(); updateCategoryButtonLabel(); renderSortActive();
     renderLastUpdated(data.updated);
-  }catch(e){ console.error(e); renderLastUpdated(); }
+  } catch(e){ console.error(e); renderLastUpdated();  } finally { clearTimeout(loadingTimer); hideSkeleton(); }
 }
 
 /** ========= 並べ替えUI ========= **/

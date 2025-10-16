@@ -295,3 +295,47 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 
 /* ===== scroll-lock ===== */
 html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action:none !important }
+
+/* ===== Loading UX (skeleton + top progress + fades) ===== */
+
+/* Screen-reader live region */
+.sr-only{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* Skeleton cards */
+.skel-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; padding:12px; overflow:hidden }
+@media(max-width:720px){ .skel-card{ width:auto } }
+.skel-img,.skel-line,.skel-btn{ position:relative; background:#f3f4f6; border-radius:10px; overflow:hidden }
+.skel-img{ aspect-ratio:4/3; border:1px solid var(--border) }
+.skel-line{ height:14px; margin-top:10px }
+.skel-line.big{ height:22px }
+.skel-btn{ height:var(--btn-h, 44px); margin-top:10px; border-radius:12px }
+@keyframes shimmer{ from{background-position:-200% 0} to{background-position:200% 0} }
+.skel-img::before,.skel-line::before,.skel-btn::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.6) 50%, rgba(255,255,255,0) 100%);
+  background-size:200% 100%; animation:shimmer 1.2s infinite;
+}
+
+/* Top progress bar */
+#topProgress{ position:fixed; inset:0 auto auto 0; right:0; height:2px; background:transparent; z-index:9999 }
+#topProgress.on::before{
+  content:""; position:absolute; left:0; top:0; height:100%; width:30%;
+  background:linear-gradient(90deg, var(--brand, #10b981), rgba(16,185,129,.2));
+  animation:topbar 0.9s linear infinite;
+}
+@keyframes topbar{0%{transform:translateX(0)}100%{transform:translateX(330%)}}
+
+/* Blur-up + fade-in for images */
+.ppp-img>img{ opacity:0; filter:blur(6px); transition:opacity .25s ease, filter .25s ease }
+.ppp-img>img.is-ready{ opacity:1; filter:none }
+
+/* Staggered reveal */
+@keyframes cardIn{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+.ppp-card{ opacity:0; animation:cardIn .24s ease forwards }
+
+/* Motion safety */
+@media (prefers-reduced-motion: reduce){
+  .skel-img::before,.skel-line::before,.skel-btn::before{ animation:none }
+  #topProgress.on::before{ animation:none }
+  .ppp-card{ animation:none; opacity:1 }
+}
