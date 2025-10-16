@@ -113,7 +113,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
 }
 
-/* PCではSP用ラベルを隠す（←これが今回の修正） */
+/* PCではSP用ラベルを隠す */
 @media(min-width:421px){
   .lbl-min{ display:none }
   .val-date{ display:none }
@@ -159,20 +159,36 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .qtybar .btn{ border:1px solid var(--border); background:#fff; border-radius:8px; height:40px; min-width:40px; font-weight:800; cursor:pointer }
 .cartqty{ width:72px; height:40px; border:1px solid var(--border); border-radius:8px; text-align:center; font-weight:700 }
 .totalline{ margin-top:6px; text-align:right; font-weight:800 }
+
+/* === SP（〜420px）: 指定の新レイアウト === */
 @media (max-width:420px){
-  .rowline{ grid-template-columns:1fr 1fr }
-  .g2{ grid-template-columns:1fr }
-  .thumb{ width:100%; height:auto; aspect-ratio:4/3; }
-  .qtybar{ justify-content:flex-start }
+  /* 商品名／単価を2行 */
+  .rowline{ grid-template-columns:1fr }
+  .rowline .prc{ text-align:right }
+
+  /* 画像は幅の1/4、右側に数量→削除の2段 */
+  .g2{ grid-template-columns:25% 1fr; grid-template-rows:auto auto }
+  .thumb{ grid-column:1; grid-row:1 / span 2; width:100%; height:auto; aspect-ratio:4/3; }
+  .qtybar{
+    grid-column:2; grid-row:1 / span 2;
+    display:grid; grid-template-columns:1fr; grid-template-rows:auto auto; gap:8px;
+    justify-content:flex-start;
+  }
+  .qtybar .group{ justify-content:flex-start }
+  .qtybar .btn[data-cart="rm"]{ justify-self:end } /* 「削除」は2段目・右寄せ */
+
+  .cartgrid{ grid-template-columns:1fr } /* 既存 */
 }
+
+/* PC時の整列維持 */
 @media (min-width:421px){
   .rowline{ grid-template-columns:7fr 3fr }
   .g2{ grid-template-columns:112px 1fr }
   .qtybar{ justify-content:flex-end }
 }
+
 .cartform{ border-top:1px dashed #eef2f7; margin-top:8px; padding-top:12px; display:flex; flex-direction:column; gap:10px }
 .cartgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
-@media (max-width:420px){ .cartgrid{ grid-template-columns:1fr } }
 .cartlbl{ font-size:13px; font-weight:700; margin-bottom:4px }
 .cartsel{ width:100%; height:40px; border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-size:14px; background:#fff }
 .carthelp{ font-size:12px; color:#6b7280 }
@@ -180,7 +196,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
 .agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
 
-/* ===== 最終更新ピル ===== */
+/* ===== 最終更新ピル（未使用だが残置） ===== */
 .lastup{
   display:inline-block;
   margin:8px 0 0;
