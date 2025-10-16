@@ -1,8 +1,3 @@
-/**
- * app.js — 完全版（Variant Mode fix + Back対応 + フォーカス/スクロール復元）
- * 現行 index.html / order.css 前提
- */
-
 /** ========= 設定 ========= **/
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
@@ -137,7 +132,7 @@ function renderMinDateEverywhere(){
   if(dwr) dwr.textContent=fmtJP(d);
 }
 
-/** ========= 「最終更新」表示（任意。要素が無ければ何もしない） ========= **/
+/** ========= 「最終更新」ピル（任意） ========= **/
 function renderLastUpdated(ts){
   const el=document.getElementById('lastUpdated'); if(!el) return;
   const d = ts ? toJst(new Date(ts)) : toJst();
@@ -204,53 +199,14 @@ function buildVariantGroups(){
   PRODUCTS.forEach(p=>{ p.group = find(p.id); });
 }
 
-/** ========= Variant bar helpers（index.htmlの #variantbar を使用） ========= **/
-const variantbar = document.getElementById('variantbar');
-function showVariantbar(title){
-  if(!variantbar) return;
-  variantbar.setAttribute('aria-hidden','false');
-  const t = document.getElementById('variantTitle');
-  if(t) t.textContent = title || 'バリエーション';
-}
-function hideVariantbar(){
-  if(!variantbar) return;
-  variantbar.setAttribute('aria-hidden','true');
-  const t = document.getElementById('variantTitle');
-  if(t) t.textContent = '';
-}
-// 戻る/× ボタン配線
-document.getElementById('variantBack')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
-document.getElementById('variantClose')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
-
 /** ========= Variant Mode ========= **/
 function inVariantMode(){ return !!filterState.variantGroup; }
-let _scrollBackup = 0; // スクロール復元
-
 function enterVariantMode(group, selectedId){
-  // 単品グループはモードに入らない
-  const members = (PRODUCTS||[]).filter(x => (x.group||x.id) === (group||''));
-  if(members.length <= 1) return;
-
-  // 戻り用バックアップ
   filterState.variantBackup = { cat:filterState.cat, subcat:filterState.subcat, sort:filterState.sort };
   filterState.variantGroup = group || '';
   filterState.variantSelected = selectedId || null;
-
-  // 履歴を積む & スクロール保存
-  try{ history.pushState({ppp:'variant', group, selectedId}, ''); }catch(_){}
-  _scrollBackup = window.scrollY || document.documentElement.scrollTop || 0;
-
-  // バータイトル＝選択アイテム名か同グループ先頭名
-  const tp = productById.get(selectedId) || members[0];
-  showVariantbar(tp?.name || 'バリエーション');
-
   renderProducts();
-  // 上部バーを確実に見せるためトップへ
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  // SR/キーボード操作を考慮してフォーカス
-  requestAnimationFrame(()=> document.getElementById('variantBack')?.focus({preventScroll:true}));
 }
-
 function clearVariantMode(){
   if(!inVariantMode()) return;
   const b=filterState.variantBackup||{};
@@ -258,16 +214,8 @@ function clearVariantMode(){
   filterState.cat=b.cat ?? filterState.cat;
   filterState.subcat=b.subcat ?? filterState.subcat;
   filterState.sort=b.sort ?? filterState.sort;
-  hideVariantbar();
   renderProducts();
-  // 元のスクロール位置へ
-  window.scrollTo(0, _scrollBackup);
 }
-
-// ブラウザ戻るでVariant解除
-window.addEventListener('popstate', ()=>{
-  if(inVariantMode()) clearVariantMode();
-});
 
 /** ========= カテゴリラベル生成 ========= **/
 function buildCatTree(){
@@ -339,10 +287,7 @@ function appendProductCard(grid, p, idx, selectedId){
   const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id; el.dataset.group=p.group||'';
   el.style.animationDelay = (Math.min(idx||0, 18) * 0.03) + 's';
   if(soldout){ el.classList.add('is-soldout'); }
-  if(selectedId && p.id===selectedId){
-    el.classList.add('is-selected');
-    el.setAttribute('aria-current','true'); // SR向け
-  }
+  if(selectedId && p.id===selectedId){ el.classList.add('is-selected'); }
 
   el.innerHTML=`
     <div class="ppp-crumbrow"><div class="ppp-crumb">${crumbHTML}</div></div>
@@ -385,7 +330,7 @@ function totals(){
 }
 function renderCartBar(){
   const t = totals();
-  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}`;
+  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}点`;
   const sum = document.getElementById('cartTotal'); if(sum) sum.textContent = yen(t.total||0);
 }
 function renderCartFooterTotals(){
@@ -437,26 +382,26 @@ function renderCartDrawer(){
         const img = p.img || 'https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image';
         const name = escapeHtml(it.name);
         return `
-          <div class="cartrow" data-id="${it.id}">
-            <div class="rowline">
-              <div class="ttl">${name}</div>
-              <div class="prc">${yen(it.price)} × ${it.qty} = ${yen(it.price*it.qty)}</div>
-            </div>
-            <div class="g2">
-              <div class="thumb"><img src="${img}" alt="${name}" onerror="this.onerror=null;this.src='https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image'"></div>
-              <div class="qtybar">
-                <div class="group">
-                  <button class="btn" data-cart="dec">−</button>
-                  <input class="cartqty" type="number" min="0" step="1" value="${it.qty}">
-                  <button class="btn" data-cart="inc">＋</button>
-                </div>
-                <button class="btn warn" data-cart="rm">削除</button>
+        <div class="cartrow" data-id="${it.id}">
+          <div class="rowline">
+            <div class="ttl">${name}</div>
+            <div class="prc">${yen(it.price)} × ${it.qty} = ${yen(it.price*it.qty)}</div>
+          </div>
+          <div class="g2">
+            <div class="thumb"><img src="${img}" alt="${name}" onerror="this.onerror=null;this.src='https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image'"></div>
+            <div class="qtybar">
+              <div class="group">
+                <button class="btn" data-cart="dec">−</button>
+                <input class="cartqty" type="number" min="0" step="1" value="${it.qty}">
+                <button class="btn" data-cart="inc">＋</button>
               </div>
+              <button class="btn warn" data-cart="rm">削除</button>
             </div>
-            <div class="totalline">${yen(it.price*it.qty)}</div>
-          </div>`;
+          </div>
+          <div class="totalline">${yen(it.price*it.qty)}</div>
+        </div>`;
       }).join('');
-    }
+}
   }
 
   // 受取日
@@ -537,7 +482,7 @@ document.getElementById('cartProceed')?.addEventListener('click',(e)=>{
 
   // 明細（JSON＋テキスト）
   const json = encodeURIComponent(JSON.stringify(t.items));
-  const text = encodeURIComponent(t.items.map(x=>`${x.name} x${x.qty} = ${x.total}`).join('\\n'));
+  const text = encodeURIComponent(t.items.map(x=>`${x.name} x${x.qty} = ${x.total}`).join('\n'));
 
   const url = new URL(FORM_BASE);
   url.searchParams.set('usp','pp_url');
@@ -575,7 +520,7 @@ document.addEventListener('click',(ev)=>{
     const id = addBtn.dataset.add;
     state.cart[id] = clamp((state.cart[id]||0)+1, 0, 999);
     localStorage.setItem('cart',JSON.stringify(state.cart));
-    renderCartBar(); /* openCartDrawer(); ← 自動で開かない */ return;
+    renderCartBar(); return;
   }
 
   // あとで
