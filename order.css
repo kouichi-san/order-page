@@ -196,3 +196,63 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
 .ppp-card.is-soldout .ppp-media img{ filter:grayscale(100%); opacity:.7 }
 
 .ppp-descwrap{ cursor:pointer }
+
+/* === PPP Card Savepoint Overrides (2025-10-16) =========================
+   このブロックは商品カードの最新セーブポイント仕様に合わせた上書きです。
+   既存定義の下に置くことで視覚のみを安全に更新します。
+======================================================================== */
+:root{ --btn-h:38px; } /* ボタン高さをタイトに */
+
+.ppp-card{ border-radius:8px; } /* 角を控えめに */
+.ppp-crumbrow{ padding:4px 12px 0; }
+.ppp-crumb{ font-size:13px; line-height:1.2; } /* パンくずフォントUP＋行間詰め */
+
+.ppp-titlebar{ padding:2px 12px 1px; gap:6px; align-items:center; } /* 2行目と3行目の間隔を限界手前まで詰める */
+.ppp-name{
+  font-size:18px; line-height:1.2;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  display:block; /* clamp解除：1行固定 */
+}
+.ppp-fav{ width:28px; height:28px; border-radius:6px; } /* 角控えめ */
+
+.ppp-mi{ grid-template-columns:1fr 1fr; column-gap:10px; padding:0 12px; } /* 画像:情報=5:5 等分 */
+
+.ppp-img{ border-radius:6px; } /* 角控えめ */
+
+/* プレノート：枠/背景なし・行間詰め */
+.ppp-prenote{
+  background:transparent; border:none; border-radius:0; padding:0;
+  margin:0 0 4px; line-height:1.15;
+  color:#334155; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* 価格：インデント＋（税込）＋行間詰め */
+.ppp-price{ font-weight:900; font-size:20px; line-height:1.15; text-indent:.6em; }
+.ppp-price::after{ content:"（税込）"; margin-left:6px; font-weight:700; font-size:12px; color:#475569; }
+
+/* unit note：行間詰め */
+.ppp-unit{ font-size:12px; color:#6b7280; text-align:right; margin:0 0 6px; line-height:1.15; }
+
+/* ボタン列：角控えめ＋詰め */
+.ppp-actions{ gap:6px; margin:4px 0 6px; }
+.ppp-btn{ border-radius:8px; }
+
+/* バリエーション行：角控えめ＋詰め */
+.ppp-vars{ gap:3px; margin-top:2px; }
+.ppp-pill{ padding:3px 6px; border-radius:6px; font-size:13px; }
+
+/* 説明＆もっと見る：行間詰め */
+.ppp-descwrap{ padding:0 12px 8px; }
+.ppp-desc{ font-size:14px; line-height:1.35; min-height:calc(1.35 * 3 * 1em); }
+.more--chev{ width:30px; height:30px; border-radius:8px; }
+
+/* SOLD OUT 視覚：.is-soldout に加えて .soldout にも対応（JSの差異を吸収） */
+.ppp-card.soldout .ppp-img{ position:relative; }
+.ppp-card.soldout .ppp-img::after{
+  content:"SOLD OUT";
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; letter-spacing:.08em;
+  background:rgba(0,0,0,.35); color:#fff;
+}
+.ppp-card.soldout .ppp-media img{ filter:grayscale(100%); opacity:.7; }
