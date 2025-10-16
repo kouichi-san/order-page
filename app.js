@@ -1,3 +1,8 @@
+/**
+ * app.js — 完全版（Variant Mode fix + Back対応 + フォーカス/スクロール復元）
+ * 現行 index.html / order.css 前提
+ */
+
 /** ========= 設定 ========= **/
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
@@ -219,19 +224,33 @@ document.getElementById('variantClose')?.addEventListener('click', (e)=>{ e.prev
 
 /** ========= Variant Mode ========= **/
 function inVariantMode(){ return !!filterState.variantGroup; }
+let _scrollBackup = 0; // スクロール復元
+
 function enterVariantMode(group, selectedId){
+  // 単品グループはモードに入らない
+  const members = (PRODUCTS||[]).filter(x => (x.group||x.id) === (group||''));
+  if(members.length <= 1) return;
+
+  // 戻り用バックアップ
   filterState.variantBackup = { cat:filterState.cat, subcat:filterState.subcat, sort:filterState.sort };
   filterState.variantGroup = group || '';
   filterState.variantSelected = selectedId || null;
 
+  // 履歴を積む & スクロール保存
+  try{ history.pushState({ppp:'variant', group, selectedId}, ''); }catch(_){}
+  _scrollBackup = window.scrollY || document.documentElement.scrollTop || 0;
+
   // バータイトル＝選択アイテム名か同グループ先頭名
-  const tp = productById.get(selectedId) || (PRODUCTS||[]).find(x => (x.group||x.id)===group);
+  const tp = productById.get(selectedId) || members[0];
   showVariantbar(tp?.name || 'バリエーション');
 
   renderProducts();
   // 上部バーを確実に見せるためトップへ
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // SR/キーボード操作を考慮してフォーカス
+  requestAnimationFrame(()=> document.getElementById('variantBack')?.focus({preventScroll:true}));
 }
+
 function clearVariantMode(){
   if(!inVariantMode()) return;
   const b=filterState.variantBackup||{};
@@ -241,7 +260,14 @@ function clearVariantMode(){
   filterState.sort=b.sort ?? filterState.sort;
   hideVariantbar();
   renderProducts();
+  // 元のスクロール位置へ
+  window.scrollTo(0, _scrollBackup);
 }
+
+// ブラウザ戻るでVariant解除
+window.addEventListener('popstate', ()=>{
+  if(inVariantMode()) clearVariantMode();
+});
 
 /** ========= カテゴリラベル生成 ========= **/
 function buildCatTree(){
@@ -313,7 +339,10 @@ function appendProductCard(grid, p, idx, selectedId){
   const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id; el.dataset.group=p.group||'';
   el.style.animationDelay = (Math.min(idx||0, 18) * 0.03) + 's';
   if(soldout){ el.classList.add('is-soldout'); }
-  if(selectedId && p.id===selectedId){ el.classList.add('is-selected'); }
+  if(selectedId && p.id===selectedId){
+    el.classList.add('is-selected');
+    el.setAttribute('aria-current','true'); // SR向け
+  }
 
   el.innerHTML=`
     <div class="ppp-crumbrow"><div class="ppp-crumb">${crumbHTML}</div></div>
@@ -497,7 +526,7 @@ document.getElementById('cartProceed')?.addEventListener('click',(e)=>{
 
   // 明細（JSON＋テキスト）
   const json = encodeURIComponent(JSON.stringify(t.items));
-  const text = encodeURIComponent(t.items.map(x=>`${x.name} x${x.qty} = ${x.total}`).join('\n'));
+  const text = encodeURIComponent(t.items.map(x=>`${x.name} x${x.qty} = ${x.total}`).join('\\n'));
 
   const url = new URL(FORM_BASE);
   url.searchParams.set('usp','pp_url');
