@@ -357,9 +357,3 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
 
 /* 選択中カードの軽ハイライト */
 .ppp-card.is-selected{ box-shadow:0 0 0 2px #bbf7d0 inset; border-color:#86efac }
-
-
-/* enable more--chev */
-.more--chev{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; text-decoration:none; color:#0ea5e9 }
-.more--chev::before{ content:"›"; font-size:18px; line-height:1 }
-.more--chev:active{ transform: translateY(1px) }
