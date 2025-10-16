@@ -199,12 +199,42 @@ function buildVariantGroups(){
   PRODUCTS.forEach(p=>{ p.group = find(p.id); });
 }
 
+
+/** ========= Variant bar helpers ========= **/
+function showVariantbar(title){
+  const bar = document.getElementById('variantbar');
+  if(!bar) return;
+  bar.setAttribute('aria-hidden','false');
+  const t = document.getElementById('variantTitle');
+  if(t) t.textContent = title || 'バリエーション';
+}
+function hideVariantbar(){
+  const bar = document.getElementById('variantbar');
+  if(!bar) return;
+  bar.setAttribute('aria-hidden','true');
+  const t = document.getElementById('variantTitle');
+  if(t) t.textContent = '';
+}
+// 戻る/× は直接配線
+document.getElementById('variantBack')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
+document.getElementById('variantClose')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
 /** ========= Variant Mode ========= **/
 function inVariantMode(){ return !!filterState.variantGroup; }
 function enterVariantMode(group, selectedId){
   filterState.variantBackup = { cat:filterState.cat, subcat:filterState.subcat, sort:filterState.sort };
   filterState.variantGroup = group || '';
   filterState.variantSelected = selectedId || null;
+  // バータイトル（選択商品名 or 同グループ先頭）
+  let title = '';
+  try{
+    const chosen = productById.get(selectedId);
+    if(chosen) title = chosen.name || '';
+    if(!title){
+      const m = (PRODUCTS||[]).find(x => (x.group||x.id) === (group||''));
+      if(m) title = m.name || '';
+    }
+  }catch(_){}
+  showVariantbar(title || 'バリエーション');
   renderProducts();
 }
 function clearVariantMode(){
@@ -214,6 +244,7 @@ function clearVariantMode(){
   filterState.cat=b.cat ?? filterState.cat;
   filterState.subcat=b.subcat ?? filterState.subcat;
   filterState.sort=b.sort ?? filterState.sort;
+  hideVariantbar();
   renderProducts();
 }
 
@@ -377,31 +408,20 @@ function renderCartDrawer(){
     if(t.items.length===0){
       list.innerHTML = '<div class="muted">カートは空です</div>';
     }else{
-      list.innerHTML = t.items.map(it=>{
-        const p = productById.get(it.id) || {};
-        const img = p.img || 'https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image';
-        const name = escapeHtml(it.name);
-        return `
+      list.innerHTML = t.items.map(it=>`
         <div class="cartrow" data-id="${it.id}">
           <div class="rowline">
-            <div class="ttl">${name}</div>
-            <div class="prc">${yen(it.price)} × ${it.qty} = ${yen(it.price*it.qty)}</div>
+            <div class="ttl">${escapeHtml(it.name)}</div>
+            <div>${yen(it.price)} × ${it.qty} = ${yen(it.price*it.qty)}</div>
           </div>
-          <div class="g2">
-            <div class="thumb"><img src="${img}" alt="${name}" onerror="this.onerror=null;this.src='https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image'"></div>
-            <div class="qtybar">
-              <div class="group">
-                <button class="btn" data-cart="dec">−</button>
-                <input class="cartqty" type="number" min="0" step="1" value="${it.qty}">
-                <button class="btn" data-cart="inc">＋</button>
-              </div>
-              <button class="btn warn" data-cart="rm">削除</button>
-            </div>
+          <div class="qtybar" style="margin:6px 0 4px; float:right">
+            <button class="btn" data-cart="dec">−</button>
+            <input class="cartqty" type="number" min="0" step="1" value="${it.qty}">
+            <button class="btn" data-cart="inc">＋</button>
+            <button class="btn warn" data-cart="del">削除</button>
           </div>
-          <div class="totalline">${yen(it.price*it.qty)}</div>
-        </div>`;
-      }).join('');
-}
+        </div>`).join('');
+    }
   }
 
   // 受取日
@@ -439,7 +459,7 @@ document.addEventListener('click',(ev)=>{
   const kind = btn.dataset.cart;
   if(kind==='inc'){ state.cart[id]=clamp(cur+1,0,999); }
   if(kind==='dec'){ state.cart[id]=clamp(cur-1,0,999); if(state.cart[id]===0) delete state.cart[id]; }
-  if(kind==='del' || kind==='rm'){ delete state.cart[id]; }
+  if(kind==='del'){ delete state.cart[id]; }
   localStorage.setItem('cart',JSON.stringify(state.cart));
   renderCartBar(); renderCartDrawer();
 });
@@ -520,7 +540,7 @@ document.addEventListener('click',(ev)=>{
     const id = addBtn.dataset.add;
     state.cart[id] = clamp((state.cart[id]||0)+1, 0, 999);
     localStorage.setItem('cart',JSON.stringify(state.cart));
-    renderCartBar(); return;
+    renderCartBar(); openCartDrawer(); return;
   }
 
   // あとで
@@ -665,3 +685,9 @@ document.getElementById('catDrawerApply')?.addEventListener('click',(e)=>{
   // 読み込み
   loadProducts();
 })();
+
+
+// ブラウザ戻るでVariant解除
+window.addEventListener('popstate', ()=>{
+  if(inVariantMode()) clearVariantMode();
+});
