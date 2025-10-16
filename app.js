@@ -1,3 +1,8 @@
+/**
+ * app.js — 完全版（Variant Mode + 戻りバー / カート追加でドロワを開かない / ドロワHTML整合）
+ * index.html / order.css とセットで動作
+ */
+
 /** ========= 設定 ========= **/
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
@@ -28,10 +33,8 @@ const filterState = {
 };
 
 /** ========= ユーティリティ ========= **/
-const qs  = (sel,el=document)=>el.querySelector(sel);
-const qsa = (sel,el=document)=>Array.from(el.querySelectorAll(sel));
 const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
-
+const norm  = (s)=>String(s||'').trim().toLowerCase();
 function ensureTopProgress(){
   if(!document.getElementById('topProgress')){
     const d=document.createElement('div'); d.id='topProgress'; document.body.appendChild(d);
@@ -53,13 +56,8 @@ function fmtJP(d){
   return `${y}/${String(m).padStart(2,'0')}/${String(da).padStart(2,'0')} (${w})`;
 }
 function yen(n){ n=Number(n||0); return n.toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}); }
-function norm(s){ return String(s||'').trim().toLowerCase(); }
-function el(html){
-  const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild;
-}
-function escapeHtml(str){
-  return String(str||'').replace(/[&<>"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
-}
+function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+function escapeHtml(str){ return String(str||'').replace(/[&<>"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s])); }
 
 /** ========= Loading UX（200msルール） ========= **/
 let loadingTimer = null;
@@ -103,7 +101,7 @@ function sortProducts(list){
   }
 }
 function renderSortActive(){
-  qsa('.sortbtn').forEach(b=>{
+  document.querySelectorAll('.sortbtn').forEach(b=>{
     b.classList.toggle('active', b.dataset.sort===String(filterState.sort||'default'));
   });
 }
@@ -121,18 +119,12 @@ function calcMinDate(){
 function renderMinDateEverywhere(){
   const d=calcMinDate();
   state.minDateISO=isoDate(d);
-  // フッター左のpillは「最短受取 YYYY/MM/DD (曜)」
-  const pill=document.getElementById('cartMinDateInline');
-  if(pill) pill.textContent=`最短受取 ${fmtJP(d)}`;
-  // フッター中央の値（PC）
-  const val=document.getElementById('cartMinDate');
-  if(val) val.textContent=fmtJP(d);
-  // ドロワ内
-  const dwr=document.getElementById('cartMinDateDrawer');
-  if(dwr) dwr.textContent=fmtJP(d);
+  const pill=document.getElementById('cartMinDateInline'); if(pill) pill.textContent=`最短受取 ${fmtJP(d)}`;
+  const val=document.getElementById('cartMinDate'); if(val) val.textContent=fmtJP(d);
+  const dwr=document.getElementById('cartMinDateDrawer'); if(dwr) dwr.textContent=fmtJP(d);
 }
 
-/** ========= 「最終更新」ピル（任意） ========= **/
+/** ========= 「最終更新」表示 ========= **/
 function renderLastUpdated(ts){
   const el=document.getElementById('lastUpdated'); if(!el) return;
   const d = ts ? toJst(new Date(ts)) : toJst();
@@ -145,7 +137,6 @@ async function loadProducts(){
     loadingTimer = setTimeout(showSkeleton, 200);
     const res = await fetch(PRODUCTS_URL, { cache:'no-store' });
     const data = await res.json();
-    // 正規化
     PRODUCTS = (data.items||[]).map((x,i)=>({
       id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
       img:x.img||x.imageUrl||'', desc:x.desc||'',
@@ -153,8 +144,8 @@ async function loadProducts(){
       catGroup:x.catGroup||x.cat||'', subcatGroup:x.subcatGroup||'',
       var1Id:x.var1Id||'', var1Label:x.var1Label||'',
       var2Id:x.var2Id||'', var2Label:x.var2Label||'',
-      group: String(x.group||''),        // バリアントグループ（空は後で補完）
-      variant: String(x.variant||''),    // 任意の表示用メタ
+      group: String(x.group||''),
+      variant: String(x.variant||''),
       stock:(x.stock!==undefined?Number(x.stock):undefined),
       active:(x.active===undefined?true:Boolean(x.active)),
       leadDays:Number(x.leadDays||1),
@@ -162,12 +153,11 @@ async function loadProducts(){
       _newTS: Date.parse(x.newAt||x.createdAt||x.updatedAt||x.date||'') || 0
     }));
     productById = new Map(PRODUCTS.map(p=>[p.id,p]));
-    buildVariantGroups(); // Union-Findでgroup補完
+    buildVariantGroups();
     renderProducts(); updateCategoryButtonLabel(); renderSortActive();
     renderLastUpdated(data.updated);
   }catch(e){
-    console.error(e);
-    renderLastUpdated();
+    console.error(e); renderLastUpdated();
   }finally{
     clearTimeout(loadingTimer); hideSkeleton();
   }
@@ -187,7 +177,6 @@ function buildVariantGroups(){
     const [root,child] = [ra,rb].sort();
     parent.set(child, root);
   };
-  // 初期化・エッジ追加
   PRODUCTS.forEach(p=>{ if(!parent.has(p.id)) parent.set(p.id,p.id); });
   PRODUCTS.forEach(p=>{
     const v1=String(p.var1Id||''); const v2=String(p.var2Id||'');
@@ -195,47 +184,46 @@ function buildVariantGroups(){
     if(v2) unite(p.id, v2);
     if(p.group) unite(p.id, String(p.group));
   });
-  // 代表IDをgroupに
   PRODUCTS.forEach(p=>{ p.group = find(p.id); });
 }
 
-
-/** ========= Variant bar helpers ========= **/
+/** ========= Variantバー（index.htmlの #variantbar を制御） ========= **/
 function showVariantbar(title){
-  const bar = document.getElementById('variantbar');
-  if(!bar) return;
+  const bar = document.getElementById('variantbar'); if(!bar) return;
   bar.setAttribute('aria-hidden','false');
-  const t = document.getElementById('variantTitle');
-  if(t) t.textContent = title || 'バリエーション';
+  const t = document.getElementById('variantTitle'); if(t) t.textContent = title || 'バリエーション';
 }
 function hideVariantbar(){
-  const bar = document.getElementById('variantbar');
-  if(!bar) return;
+  const bar = document.getElementById('variantbar'); if(!bar) return;
   bar.setAttribute('aria-hidden','true');
-  const t = document.getElementById('variantTitle');
-  if(t) t.textContent = '';
+  const t = document.getElementById('variantTitle'); if(t) t.textContent = '';
 }
-// 戻る/× は直接配線
+// 戻る/×
 document.getElementById('variantBack')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
 document.getElementById('variantClose')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
+
 /** ========= Variant Mode ========= **/
 function inVariantMode(){ return !!filterState.variantGroup; }
+let _scrollBackup = 0;
 function enterVariantMode(group, selectedId){
+  // 単品グループは入らない
+  const members = (PRODUCTS||[]).filter(x => (x.group||x.id) === (group||''));
+  if(members.length <= 1) return;
+
   filterState.variantBackup = { cat:filterState.cat, subcat:filterState.subcat, sort:filterState.sort };
-  filterState.variantGroup = group || '';
-  filterState.variantSelected = selectedId || null;
-  // バータイトル（選択商品名 or 同グループ先頭）
+  filterState.variantGroup = group || ''; filterState.variantSelected = selectedId || null;
+
+  try{ history.pushState({ppp:'variant', group, selectedId}, ''); }catch(_){}
+  _scrollBackup = window.scrollY || document.documentElement.scrollTop || 0;
+
   let title = '';
-  try{
-    const chosen = productById.get(selectedId);
-    if(chosen) title = chosen.name || '';
-    if(!title){
-      const m = (PRODUCTS||[]).find(x => (x.group||x.id) === (group||''));
-      if(m) title = m.name || '';
-    }
-  }catch(_){}
+  const chosen = productById.get(selectedId); if(chosen) title = chosen.name||'';
+  if(!title && members[0]) title = members[0].name||'';
   showVariantbar(title || 'バリエーション');
+
   renderProducts();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  requestAnimationFrame(()=> document.getElementById('variantBack')?.focus({preventScroll:true}));
 }
 function clearVariantMode(){
   if(!inVariantMode()) return;
@@ -246,7 +234,9 @@ function clearVariantMode(){
   filterState.sort=b.sort ?? filterState.sort;
   hideVariantbar();
   renderProducts();
+  window.scrollTo(0, _scrollBackup);
 }
+window.addEventListener('popstate', ()=>{ if(inVariantMode()) clearVariantMode(); });
 
 /** ========= カテゴリラベル生成 ========= **/
 function buildCatTree(){
@@ -264,8 +254,7 @@ function buildCatTree(){
 }
 function buildCatTreeCached(){ if(!buildCatTree._cache){ buildCatTree._cache=buildCatTree(); } return buildCatTree._cache; }
 function updateCategoryButtonLabel(){
-  const btn = document.getElementById('btnCategories');
-  if(!btn) return;
+  const btn = document.getElementById('btnCategories'); if(!btn) return;
   const s1 = filterState.cat ? filterState.cat : 'すべて';
   const s2 = filterState.subcat ? ` / ${filterState.subcat}` : '';
   btn.querySelector('.label')?.replaceChildren(document.createTextNode(`${s1}${s2}`));
@@ -273,12 +262,10 @@ function updateCategoryButtonLabel(){
 
 /** ========= 商品描画 ========= **/
 function renderProducts(){
-  const grid=document.getElementById('productGrid');
-  if(!grid) return;
-  grid.className='ppp-grid';
-  grid.innerHTML='';
+  const grid=document.getElementById('productGrid'); if(!grid) return;
+  grid.className='ppp-grid'; grid.innerHTML='';
 
-  // --- Variant Mode（選択を先頭、最大3枚） ---
+  // Variant Mode
   if(inVariantMode()){
     let list=(PRODUCTS||[]).filter(x => (x.group||x.id) === filterState.variantGroup);
     const selId = filterState.variantSelected;
@@ -289,10 +276,10 @@ function renderProducts(){
     });
     list = list.slice(0,3);
     list.forEach((p, idx)=>appendProductCard(grid,p,idx, selId));
-    return; // 通常描画をスキップ
+    return;
   }
 
-  // --- 通常描画 ---
+  // 通常描画
   const nCat=norm(filterState.cat), nSub=norm(filterState.subcat);
   const filtered=(PRODUCTS||[]).filter(p=>{
     if(p.active===false) return false;
@@ -318,7 +305,7 @@ function appendProductCard(grid, p, idx, selectedId){
   const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id; el.dataset.group=p.group||'';
   el.style.animationDelay = (Math.min(idx||0, 18) * 0.03) + 's';
   if(soldout){ el.classList.add('is-soldout'); }
-  if(selectedId && p.id===selectedId){ el.classList.add('is-selected'); }
+  if(selectedId && p.id===selectedId){ el.classList.add('is-selected'); el.setAttribute('aria-current','true'); }
 
   el.innerHTML=`
     <div class="ppp-crumbrow"><div class="ppp-crumb">${crumbHTML}</div></div>
@@ -347,13 +334,11 @@ function appendProductCard(grid, p, idx, selectedId){
 
 /** ========= カート計算・表示 ========= **/
 function totals(){
-  const items=[];
-  let total=0, count=0;
+  const items=[]; let total=0, count=0;
   for(const id in state.cart){
     const qty = Number(state.cart[id]||0)|0;
     if(qty<=0) continue;
-    const p = productById.get(id);
-    if(!p) continue;
+    const p = productById.get(id); if(!p) continue;
     items.push({ id, code:id, name:p.name, price:p.price, qty, total: p.price*qty });
     total += p.price*qty; count += qty;
   }
@@ -361,7 +346,7 @@ function totals(){
 }
 function renderCartBar(){
   const t = totals();
-  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}点`;
+  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}`;
   const sum = document.getElementById('cartTotal'); if(sum) sum.textContent = yen(t.total||0);
 }
 function renderCartFooterTotals(){
@@ -378,16 +363,13 @@ function onCartKeydown(e){ if(e.key==='Escape') closeCartDrawer(); }
 document.querySelector('#cartDrawer .ppp-drawer__scrim')?.addEventListener('click',(e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeCartDrawer(); });
 document.getElementById('cartDrawerClose')?.addEventListener('click', closeCartDrawer);
 document.getElementById('cartDrawerCancel')?.addEventListener('click', closeCartDrawer);
-
-// フッターのカートボタン（id: checkoutBtn2）から開く
+// フッターのカートボタンから開く
 document.getElementById('checkoutBtn2')?.addEventListener('click',(e)=>{ e.preventDefault(); openCartDrawer(); });
 
 function updateProceedDisabled(){
-  const btn=document.getElementById('cartProceed');
-  if(!btn) return;
+  const btn=document.getElementById('cartProceed'); if(!btn) return;
   const on = !!state.agreeStock;
-  btn.disabled = !on;
-  btn.setAttribute('aria-disabled', String(!on));
+  btn.disabled = !on; btn.setAttribute('aria-disabled', String(!on));
   btn.classList.toggle('is-disabled', !on);
 }
 
@@ -396,31 +378,41 @@ function renderCartDrawer(){
   state.minDateISO=isoDate(d);
   if(!state.selectedDateISO) state.selectedDateISO = state.minDateISO;
 
-  // ヘッダー: 最短受取・点数・合計
   document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(fmtJP(toJst(new Date(state.minDateISO)))));
   const t = totals();
   document.getElementById('cartCountDrawer')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
   document.getElementById('cartTotalDrawer')?.replaceChildren(document.createTextNode(yen(t.total||0)));
 
-  // 明細
+  // 明細（CSSが期待する構造）
   const list = document.getElementById('cartList');
   if(list){
     if(t.items.length===0){
       list.innerHTML = '<div class="muted">カートは空です</div>';
     }else{
-      list.innerHTML = t.items.map(it=>`
-        <div class="cartrow" data-id="${it.id}">
-          <div class="rowline">
-            <div class="ttl">${escapeHtml(it.name)}</div>
-            <div>${yen(it.price)} × ${it.qty} = ${yen(it.price*it.qty)}</div>
-          </div>
-          <div class="qtybar" style="margin:6px 0 4px; float:right">
-            <button class="btn" data-cart="dec">−</button>
-            <input class="cartqty" type="number" min="0" step="1" value="${it.qty}">
-            <button class="btn" data-cart="inc">＋</button>
-            <button class="btn warn" data-cart="del">削除</button>
-          </div>
-        </div>`).join('');
+      list.innerHTML = t.items.map(it=>{
+        const p = productById.get(it.id) || {};
+        const img = p.img || 'https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image';
+        const name = escapeHtml(it.name);
+        return `
+          <div class="cartrow" data-id="${it.id}">
+            <div class="rowline">
+              <div class="ttl">${name}</div>
+              <div class="prc">${yen(it.price)} × ${it.qty} = ${yen(it.price*it.qty)}</div>
+            </div>
+            <div class="g2">
+              <div class="thumb"><img src="${img}" alt="${name}" onerror="this.onerror=null;this.src='https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image'"></div>
+              <div class="qtybar">
+                <div class="group">
+                  <button class="btn" data-cart="dec">−</button>
+                  <input class="cartqty" type="number" min="0" step="1" value="${it.qty}">
+                  <button class="btn" data-cart="inc">＋</button>
+                </div>
+                <button class="btn warn" data-cart="rm">削除</button>
+              </div>
+            </div>
+            <div class="totalline">${yen(it.price*it.qty)}</div>
+          </div>`;
+      }).join('');
     }
   }
 
@@ -446,25 +438,24 @@ function renderCartDrawer(){
   if(agree){ agree.checked = !!state.agreeStock; }
   updateProceedDisabled();
 
-  // フッター合計
   renderCartFooterTotals();
 }
 
-// 数量ボタン
+/** ========= 共通クリック（数量・追加・variant/カテゴリなど） ========= **/
+// 数量ボタン（del/rm 両対応）
 document.addEventListener('click',(ev)=>{
-  const btn=ev.target.closest('[data-cart]');
-  if(!btn) return;
+  const btn=ev.target.closest('[data-cart]'); if(!btn) return;
   const row=btn.closest('.cartrow'); const id=row?.dataset.id; if(!id) return;
   const cur = Number(state.cart[id]||0)|0;
   const kind = btn.dataset.cart;
   if(kind==='inc'){ state.cart[id]=clamp(cur+1,0,999); }
   if(kind==='dec'){ state.cart[id]=clamp(cur-1,0,999); if(state.cart[id]===0) delete state.cart[id]; }
-  if(kind==='del'){ delete state.cart[id]; }
+  if(kind==='del' || kind==='rm'){ delete state.cart[id]; }
   localStorage.setItem('cart',JSON.stringify(state.cart));
   renderCartBar(); renderCartDrawer();
 });
 
-// 数量直接入力 & フォーム値
+// 数量直接入力 & 各種フォーム
 document.addEventListener('change',(ev)=>{
   const input=ev.target.closest('#cartList .cartqty');
   if(input){
@@ -472,47 +463,32 @@ document.addEventListener('change',(ev)=>{
     const v=Math.max(0, Number(input.value||0)|0);
     if(v===0) delete state.cart[id]; else state.cart[id]=v;
     localStorage.setItem('cart',JSON.stringify(state.cart));
-    renderCartBar(); renderCartDrawer();
-    return;
+    renderCartBar(); renderCartDrawer(); return;
   }
   if(ev.target.id==='pickupDate'){ state.selectedDateISO = ev.target.value; }
   if(ev.target.id==='pickupSlot'){ state.selectedSlot = ev.target.value; }
   if(ev.target.id==='agreeStock'){ state.agreeStock = ev.target.checked; updateProceedDisabled(); }
 });
-// クリックでも活性化
-document.addEventListener('click',(ev)=>{
-  if(ev.target.id==='agreeStock'){ state.agreeStock = ev.target.checked; updateProceedDisabled(); }
-});
+document.addEventListener('input',(ev)=>{ if(ev.target.id==='pickupMemo'){ state.memo = ev.target.value; } });
 
-// 連絡欄
-document.addEventListener('input',(ev)=>{
-  if(ev.target.id==='pickupMemo'){ state.memo = ev.target.value; }
-});
-
-// 注文へ進む（Googleフォームへ）
+// 注文へ進む
 document.getElementById('cartProceed')?.addEventListener('click',(e)=>{
   e.preventDefault();
   const before = state.minDateISO;
   const chosen = state.selectedDateISO || before;
   const slot   = state.selectedSlot || '';
   const memo   = state.memo || '';
-
-  const t = totals();
-  if(t.items.length===0) return;
-
-  // 明細（JSON＋テキスト）
+  const t = totals(); if(t.items.length===0) return;
   const json = encodeURIComponent(JSON.stringify(t.items));
   const text = encodeURIComponent(t.items.map(x=>`${x.name} x${x.qty} = ${x.total}`).join('\n'));
-
   const url = new URL(FORM_BASE);
   url.searchParams.set('usp','pp_url');
-  url.searchParams.set('entry.1000001', before); // 最短受取
-  url.searchParams.set('entry.1000002', chosen); // 受取日
-  url.searchParams.set('entry.1000003', slot);   // 時間帯
-  url.searchParams.set('entry.1000004', memo);   // 連絡欄
-  url.searchParams.set('entry.1000005', json);   // JSON
-  url.searchParams.set('entry.1000006', text);   // TEXT
-
+  url.searchParams.set('entry.1000001', before);
+  url.searchParams.set('entry.1000002', chosen);
+  url.searchParams.set('entry.1000003', slot);
+  url.searchParams.set('entry.1000004', memo);
+  url.searchParams.set('entry.1000005', json);
+  url.searchParams.set('entry.1000006', text);
   window.location.href = url.toString();
 });
 
@@ -532,17 +508,15 @@ document.addEventListener('click',(ev)=>{
     filterState.sort = sortBtn.dataset.sort || 'default';
     renderSortActive(); renderProducts(); return;
   }
-
-  // カート追加
+  // カート追加（自動でドロワは開かない）
   const addBtn = ev.target.closest('.ppp-btn.add[data-add]');
   if(addBtn){
     ev.preventDefault();
     const id = addBtn.dataset.add;
     state.cart[id] = clamp((state.cart[id]||0)+1, 0, 999);
     localStorage.setItem('cart',JSON.stringify(state.cart));
-    renderCartBar(); openCartDrawer(); return;
+    renderCartBar(); return;
   }
-
   // あとで
   const later = ev.target.closest('.ppp-btn[data-later]');
   if(later){
@@ -553,7 +527,6 @@ document.addEventListener('click',(ev)=>{
     later.textContent = (localStorage.getItem(k)==='1') ? 'あとで済' : 'あとで';
     return;
   }
-
   // バリエーションPill -> Variant Mode
   const pill = ev.target.closest('.ppp-vars .ppp-pill');
   if(pill){
@@ -564,17 +537,14 @@ document.addEventListener('click',(ev)=>{
     let targetId = pill.dataset.var || p.id;
     let cand = productById.get(targetId);
     if(!cand || (cand.group||cand.id)!==group){
-      // ラベル一致で保険探索
       const label = pill.textContent.trim();
       cand = (PRODUCTS||[]).find(x => (x.group||x.id)===group && (
         (x.variant && x.variant.includes(label)) || (x.name && x.name.includes(label))
       ));
       targetId = cand ? cand.id : p.id;
     }
-    enterVariantMode(group, targetId);
-    return;
+    enterVariantMode(group, targetId); return;
   }
-
   // すべて
   if(ev.target.closest('#btnAll')){
     ev.preventDefault();
@@ -582,7 +552,6 @@ document.addEventListener('click',(ev)=>{
     filterState.cat=null; filterState.subcat=null;
     updateCategoryButtonLabel(); renderProducts(); return;
   }
-
   // パンくず
   const crumb = ev.target.closest('.ppp-crumb-link');
   if(crumb){
@@ -593,7 +562,6 @@ document.addEventListener('click',(ev)=>{
     filterState.cat = c; filterState.subcat = s;
     updateCategoryButtonLabel(); renderProducts(); return;
   }
-
   // カテゴリドロワー（開く）
   if(ev.target.closest('#btnCategories') && !ev.target.closest('#btnCategories .x')){
     ev.preventDefault(); clearVariantMode(); openDrawer(); return;
@@ -680,14 +648,6 @@ document.getElementById('catDrawerApply')?.addEventListener('click',(e)=>{
   try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
   renderMinDateEverywhere();
   renderCartBar();
-  // 並べ替えバー初期状態
   document.getElementById('sortbar')?.setAttribute('aria-hidden','true');
-  // 読み込み
   loadProducts();
 })();
-
-
-// ブラウザ戻るでVariant解除
-window.addEventListener('popstate', ()=>{
-  if(inVariantMode()) clearVariantMode();
-});
