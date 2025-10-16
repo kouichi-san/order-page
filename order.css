@@ -125,15 +125,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-due{ margin-left:6px; font-size:11px; color:#475569; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:999px; padding:2px 6px; white-space:nowrap }
 .ppp-iconbtn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:10px; padding:8px 10px; cursor:pointer }
 .ppp-iconbtn:active{ transform:translateY(1px) }
-/* ドロワ上部 */
 .ppp-chips{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px 14px; border-bottom:1px dashed #eef2f7 }
-/* チップ */
-.ppp-chip{
-  font-weight:700;
-  background:#f8fafc; border:1px solid #e5e7eb;
-  border-radius:999px; padding:4px 8px; color:#0f172a;
-  white-space:nowrap;
-}
 .ppp-listwrap{ overflow:auto; -webkit-overflow-scrolling:touch }
 .ppp-listpad{ padding:10px 12px 16px }
 .ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:#fafafa }
@@ -160,13 +152,13 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .cart-empty{ color:#9ca3af; font-size:13px; padding:16px; text-align:center }
 
 /* PC/SP 切り分け（ドロワ内） */
-@media (max-width:480px){
+@media (max-width:420px){
   .rowline{ grid-template-columns:1fr 1fr }   /* SP: 1行目は均等 */
   .g2{ grid-template-columns:1fr }            /* SP: 画像の下に数量操作を折り返す */
   .thumb{ width:100%; height:auto; aspect-ratio:4/3; }
   .qtybar{ justify-content:flex-start }
 }
-@media (min-width:481px){
+@media (min-width:421px){
   .rowline{ grid-template-columns:7fr 3fr }   /* PC: 7:3 */
   .g2{ grid-template-columns:112px 1fr }      /* PC: 画像 | 操作 */
   .qtybar{ justify-content:flex-end }
@@ -175,7 +167,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 /* ===== カートフォーム ===== */
 .cartform{ border-top:1px dashed #eef2f7; margin-top:8px; padding-top:12px; display:flex; flex-direction:column; gap:10px }
 .cartgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
-@media (max-width:480px){ .cartgrid{ grid-template-columns:1fr } }
+@media (max-width:420px){ .cartgrid{ grid-template-columns:1fr } }
 .cartlbl{ font-size:13px; font-weight:700; margin-bottom:4px }
 .cartsel{ width:100%; height:40px; border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-size:14px; background:#fff }
 .carthelp{ font-size:12px; color:#6b7280 }
@@ -197,27 +189,25 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:
 
 .ppp-descwrap{ cursor:pointer }
 
-/* === PPP Card Savepoint Patch (Blue crumb, cute heart, SOLDOUT outline, light images, grey 'more') === */
-.ppp-crumb a{ color:#2563eb; text-decoration:none; }
-.ppp-crumb a:hover{ text-decoration:underline; }
+/* === PPP Card SP (<=720px) Overrides — Savepoint 2025-10-16 ================= */
+@media (max-width: 720px){
+  :root{ --btn-h:36px; }
+  /* list: 1 column is assumed externally */
+  .ppp-crumb{ font-size:12px; }
+  .ppp-titlebar{ padding:2px 10px 0; }
+  .ppp-name{ font-size:17px; line-height:1.2; }
+  .ppp-fav{ width:26px; height:26px; }
 
-.ppp-fav{ border-radius:999px; box-shadow:0 1px 0 rgba(0,0,0,.04); }
+  /* Image|Info ratio 4:6 for readability */
+  .ppp-mi{ grid-template-columns:4fr 6fr; column-gap:8px; padding:0 10px; }
 
-/* SOLD OUT: main button grey outline (no accent fill) */
-.ppp-card.is-soldout .ppp-btn.add{
-  background:#fff !important;
-  color:#6b7280 !important;
-  border-color:#d1d5db !important;
+  .ppp-prenote{ margin-bottom:2px; }
+  .ppp-price{ font-size:18px; text-indent:.5em; }
+  .ppp-unit{ font-size:11px; margin:0 0 4px; }
+
+  .ppp-btn{ font-size:13px; height:var(--btn-h); }
+  .ppp-pill{ font-size:12px; padding:2px 6px; }
+
+  .ppp-desc{ font-size:13px; line-height:1.4; min-height:calc(1.4 * 3 * 1em); }
+  .ppp-more, .morebtn{ height:26px; font-size:12px; color:#6b7280; border-color:#d1d5db; }
 }
-
-/* Images: standardized assets -> keep simple size rules */
-.ppp-media img, .ppp-img img{ width:100%; height:auto; object-fit:initial; aspect-ratio:auto; }
-
-/* 'もっと見る' small & grey */
-.morebtn, .ppp-more{
-  color:#6b7280; border-color:#d1d5db; background:#fff;
-  font-size:12px; height:28px; border-radius:8px;
-}
-
-/* Prenote ensure visible spacing */
-.ppp-prenote{ display:block; margin:0 0 4px; }
