@@ -14,65 +14,18 @@
     </div>
   </header>
 
-  <!-- 説明 -->
   <main class="wrap">
     <section class="section">
       <h1 style="margin:.2em 0 0">翌日以降受取予約注文</h1>
-      <p style="color:#6b7280; font-size:14px; margin:.3em 0 0">
-        本ページは「取り置き予約（店頭受け取り）」の受付です。オンライン決済は行いません。お支払いは受け取り時に店頭にて。
-      </p>
+      <p style="color:#6b7280; font-size:14px; margin:.3em 0 0">ご希望の商品をカートに入れて、受取日時をお選びください。</p>
+
+      <!-- 商品リスト（実装済み想定のため容器のみ） -->
+      <div id="productList" class="products"></div>
     </section>
   </main>
 
-  <!-- ===== メニューバー ===== -->
-  <nav class="menubar">
-    <div class="wrap menubar-in">
-      <button class="menu-pill" id="btnAll">すべて</button>
-      <button class="menu-pill" id="btnCategories" aria-haspopup="dialog" aria-controls="catDrawer">カテゴリ</button>
-      <button class="menu-pill" id="btnSort" aria-controls="sortbar" aria-expanded="false">並べ替え</button>
-      <div class="menu-right">
-        <div id="menuRightAction" class="menu-pill">カートを見る</div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 並べ替えオプションバー -->
-  <div id="sortbar" class="sortbar" aria-hidden="true">
-    <div class="sortbar-in">
-      <div class="lbl">並べ替え:</div>
-      <button class="sortbtn" data-sort="default">おすすめ</button>
-      <button class="sortbtn" data-sort="price_asc">価格（安い順）</button>
-      <button class="sortbtn" data-sort="price_desc">価格（高い順）</button>
-      <button class="sortbtn" data-sort="popular">人気</button>
-      <button class="sortbtn" data-sort="new">新着</button>
-    </div>
-  </div>
-
-  <!-- バリエーション表示バー -->
-  <div id="variantbar" class="variantbar" aria-hidden="true">
-    <div class="variantbar-in">
-      <button id="variantBack" class="mini-btn" aria-label="一覧に戻る">◀ 一覧に戻る</button>
-      <div class="lbl">バリエーション表示中：</div>
-      <div id="variantTitle" class="title">—</div>
-      <button id="variantClose" class="mini-x" aria-label="解除">×</button>
-    </div>
-  </div>
-
-
-  <!-- ===== 商品グリッド（カード部分はノータッチ） ===== -->
-  <main class="wrap">
-    <section id="productGrid" class="ppp-grid"></section>
-
-    <section class="section">
-      <p style="color:#9ca3af;font-size:13px;margin:24px 0 16px">
-        写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。
-      </p>
-      <!-- ※ 最終更新ピルは削除済み -->
-    </section>
-  </main>
-
-  <!-- ===== 固定フッター（カートバー） ===== -->
-  <div class="cart" id="cartBar">
+  <!-- ===== 下部固定カートバー（既存） ===== -->
+  <footer class="cart">
     <div class="wrap">
       <div class="cart-box">
         <div class="cart-left"><span class="inline-pill" id="cartMinDateInline">最短受取 —</span></div>
@@ -83,9 +36,9 @@
         <button class="btn-cart" id="checkoutBtn2">カート</button>
       </div>
     </div>
-  </div>
+  </footer>
 
-  <!-- ===== カテゴリ選択ドロワー ===== -->
+  <!-- ===== カテゴリドロワ（既存のまま） ===== -->
   <div id="catDrawer" class="ppp-drawer" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="ppp-drawer__scrim"></div>
     <section class="ppp-drawer__panel" role="document" aria-labelledby="catDrawerTitle">
@@ -112,14 +65,19 @@
         <div class="ppp-due">本日分受付 <strong>26:00(午前2時)</strong> まで</div>
         <button class="ppp-iconbtn" id="cartDrawerClose" title="閉じる" aria-label="閉じる">✕</button>
       </div>
+
+      <!-- 上部チップ：最短受取のみ表示。点数/合計は一時非表示（Stage A） -->
       <div class="ppp-chips" style="border-bottom:1px dashed #eef2f7">
         <span class="ppp-chip">最短受取 <strong id="cartMinDateDrawer">—</strong></span>
-        <span class="ppp-chip">点数 <strong id="cartCountDrawer">0点</strong></span>
-        <span class="ppp-chip">合計 <strong id="cartTotalDrawer">¥0</strong></span>
+        <span class="ppp-chip" style="display:none">点数 <strong id="cartCountDrawer">0点</strong></span>
+        <span class="ppp-chip" style="display:none">合計 <strong id="cartTotalDrawer">¥0</strong></span>
       </div>
+
+      <!-- リスト -->
       <div class="ppp-listwrap"><div class="ppp-listpad">
         <div id="cartList" class="cartlist"></div>
 
+        <!-- フォーム -->
         <div id="cartForm" class="cartform">
           <div class="cartgrid">
             <div>
@@ -139,21 +97,61 @@
             <div class="cartlbl">連絡欄</div>
             <textarea id="pickupMemo" class="cartmemo"></textarea>
           </div>
+
           <div class="agrees">
             <label><input type="checkbox" id="agreePay"> <span>お支払いについて：お会計は店舗で精算となります。利用できる支払い手段は店頭と同様です。</span></label>
-            <label><input type="checkbox" id="agreeStock"> <span>商品の確保について（必須）：コストコ店頭に在庫がない場合があります。本注文は商品提供の確約ではありません。</span></label>
+            <label><input type="checkbox" id="agreeStock"> <span>在庫と代替品について（必須）：コストコ店頭に在庫がない場合があります。本注文は商品提供の確約ではありません。</span></label>
             <div class="carthelp">※ この項目がチェックされるまで「注文へ進む」は無効</div>
           </div>
         </div>
       </div></div>
+
+      <!-- フッター：PC/SP別・2行構成（ボタン右寄せ） -->
       <div class="ppp-drawer__footer">
-        <div class="cart-footer" style="width:100%">
-          <!-- 注記を削除し、合計のみ（左）＋ボタン群（右寄せ） -->
-          <div class="cart-sum" style="margin-right:auto;display:flex;flex-direction:column;gap:4px">
-            <div class="total" id="cartTotalFooter" style="font-weight:900;font-size:18px">¥0</div>
+        <div class="cart-footer cart-footer--sp" role="group" aria-label="合計と操作（SP）">
+          <div class="footrow">
+            <div class="cart-sum">
+              <div class="lbl">商品点数</div>
+              <div class="val" id="cartCountFooterSP">0点</div>
+            </div>
+            <div class="actions">
+              <button class="ppp-btn neutral" data-act="cancel" style="height:var(--btn-h)">戻る</button>
+              <button class="ppp-btn primary is-disabled" data-act="proceed" style="height:var(--btn-h)" aria-disabled="true">注文へ進む</button>
+            </div>
           </div>
-          <button id="cartDrawerCancel" class="ppp-btn neutral" style="height:var(--btn-h)">戻る</button>
-          <button id="cartProceed" class="ppp-btn primary is-disabled" style="height:var(--btn-h)" disabled aria-disabled="true">注文へ進む</button>
+          <div class="footrow">
+            <div class="cart-sum">
+              <div class="lbl">合計</div>
+              <div class="val" id="cartTotalFooterSP">¥0</div>
+            </div>
+            <div class="actions">
+              <button class="ppp-btn neutral" data-act="cancel" style="height:var(--btn-h)">戻る</button>
+              <button class="ppp-btn primary is-disabled" data-act="proceed" style="height:var(--btn-h)" aria-disabled="true">注文へ進む</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cart-footer cart-footer--pc" role="group" aria-label="合計と操作（PC）">
+          <div class="footrow">
+            <div class="cart-sum">
+              <div class="lbl">商品点数</div>
+              <div class="val" id="cartCountFooterPC">0点</div>
+            </div>
+            <div class="actions">
+              <button class="ppp-btn neutral" id="cartDrawerCancel" style="height:var(--btn-h)">戻る</button>
+              <button class="ppp-btn primary is-disabled" id="cartProceed" style="height:var(--btn-h)" disabled aria-disabled="true">注文へ進む</button>
+            </div>
+          </div>
+          <div class="footrow">
+            <div class="cart-sum">
+              <div class="lbl">合計</div>
+              <div class="val" id="cartTotalFooterPC">¥0</div>
+            </div>
+            <div class="actions">
+              <button class="ppp-btn neutral" data-act="cancel" style="height:var(--btn-h)">戻る</button>
+              <button class="ppp-btn primary is-disabled" data-act="proceed" style="height:var(--btn-h)" aria-disabled="true">注文へ進む</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

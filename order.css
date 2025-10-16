@@ -1,12 +1,7 @@
 /* =====================================================================
-   order.css  (2025-10-16 完全版)
-   - PC/SP共通：フッターの「戻る／注文へ進む」右寄せ fix
-   - SPカート行：商品名は上段、画像は行2〜4ぶち抜き
-                  右列は [単価 → 数量 → 削除] の3行、最下段に合計(右)
-   - 文面変更はHTML側（「連絡欄」など）で対応済み／本CSSは見た目のみ
+   order.css  (Stage A：SPタイトルぶち抜き＋PC/SP別フッター)
    ===================================================================== */
 
-/* ===== CSS変数・ベース ===== */
 :root{
   --bg:#fafafa;
   --ink:#1f2937;
@@ -16,111 +11,17 @@
   --border:#e5e7eb;
   --wrap:1080px;
   --btn-h:44px;
-  --btn-radius:10px;
-  --z-sticky:50;
 }
 
-*{ box-sizing:border-box }
 html,body{ height:100% }
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif;
-  color:var(--ink);
-  background:#fff;
-}
-.wrap{ max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px }
+body{ margin:0; color:var(--ink); background:var(--bg); font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; }
 
-/* ===== ヘッダー ===== */
-header{ background:#fff; border-bottom:1px solid var(--border) }
-.header-in{ display:flex; align-items:center; padding:12px 0 }
-.brand{
-  font-size:20px; font-weight:800; text-indent:.4em; position:relative;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.brand::before{
-  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
-  width:4px; height:1.2em; border-radius:2px; background:var(--brand);
-}
+/* --- ラッパー --- */
+.wrap{ max-width:var(--wrap); margin:0 auto; padding:0 16px }
+.header-in{ display:flex; align-items:center; height:56px }
+.brand{ font-weight:900 }
 
-/* ===== メニューバー ===== */
-.menubar{ position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border) }
-.menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0 }
-.menu-pill{
-  font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9;
-  border:1px solid #e2e8f0; border-radius:var(--btn-radius);
-  padding:8px 12px; white-space:nowrap; cursor:pointer;
-}
-.menu-right{ margin-left:auto }
-
-/* ▼ カテゴリボタン（選択時のクリア×） */
-#btnCategories.has-filter{ padding-right:28px; position:relative }
-#btnCategories .tag{ font-weight:800; color:#0f172a }
-#btnCategories .sep::before{ content:"›"; margin:0 4px; color:#94a3b8 }
-#btnCategories .x{
-  position:absolute; right:8px; top:50%; transform:translateY(-50%);
-  width:20px; height:20px; border-radius:6px; border:1px solid #e5e7eb;
-  display:grid; place-items:center; font-size:12px; cursor:pointer; background:#fff;
-}
-#btnCategories .x:active{ transform:translateY(-50%) translateY(1px) }
-@media (max-width:420px){
-  #btnCategories{ padding-right:12px }
-}
-
-/* ===== 並べ替えバー ===== */
-.sortbar{ display:none; background:#fff; border-bottom:1px solid #eef2f7 }
-.sortbar[aria-hidden="false"]{ display:block }
-.sortbar-in{
-  max-width:var(--wrap); margin:0 auto; padding:8px 16px;
-  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-}
-.sortbar .lbl{ font-size:12px; color:#64748b; margin-right:4px }
-.sortbtn{
-  font-size:12px; font-weight:800; color:#0f172a; background:#f8fafc;
-  border:1px solid #e5e7eb; border-radius:999px; padding:6px 10px; cursor:pointer;
-}
-.sortbtn.active{ background:#e6f7f1; border-color:#bbf7d0; color:#065f46 }
-
-/* ===== 商品カード（ノータッチ方針） ===== */
-#productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
-.ppp-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden }
-.ppp-crumbrow{ display:block; padding:10px 12px 0 }
-.ppp-crumb{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#475569; font-size:12px }
-.ppp-crumb a{ color:#0ea5e9; text-decoration:underline; text-underline-offset:2px; cursor:pointer }
-.ppp-crumb a:hover{ color:#0284c7 } .ppp-crumb a:active{ opacity:.6 }
-.ppp-titlebar{ display:flex; gap:8px; align-items:flex-start; padding:4px 12px 8px }
-.ppp-name{ flex:1; font-weight:800; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
-.ppp-fav{ width:32px; height:32px; border-radius:8px; background:#fff; border:1px solid var(--border); display:grid; place-items:center; cursor:pointer }
-.ppp-mi{ display:grid; grid-template-columns:minmax(160px,6fr) minmax(140px,4fr); column-gap:12px; align-items:start; padding:0 12px }
-.ppp-mi > .ppp-media, .ppp-mi > .ppp-info { min-width:0 }
-.ppp-img{ aspect-ratio:4/3; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
-.ppp-img>img{ width:100%; height:100%; object-fit:contain; display:block }
-.ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.ppp-price{ font-weight:900; font-size:22px }
-.ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
-.ppp-actions{ display:grid; grid-template-columns:7fr 3fr; gap:8px; margin-bottom:10px }
-.ppp-btn{
-  appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px;
-  cursor:pointer; font-weight:800; display:inline-flex; align-items:center; justify-content:center;
-  height:var(--btn-h); white-space:nowrap; min-width:0; padding:0 12px; font-size:clamp(13px,1.6vw,16px)
-}
-/* NOTE: カード用の .ppp-btn は幅可変にするため flex 指定なし */
-.ppp-btn.add{ background:var(--brand); color:#fff; border-color:transparent }
-.ppp-btn.add:active{ transform:translateY(1px) }
-.ppp-vars{ display:flex; flex-direction:column; gap:4px; margin-top:2px }
-.ppp-pill{ width:100%; padding:6px 8px; border:1px solid var(--border); background:#fff; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
-.ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px }
-.ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height:calc(1.5 * 3 * 1em); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
-/* UNUSED: MOREは現仕様で非表示のため残置だけど不使用
-.more--chev{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; text-decoration:none; color:#0ea5e9 }
-.more--chev::before{ content:"›"; font-size:18px; line-height:1 }
-.more--chev:active{ transform: translateY(1px) }
-*/
-@media(max-width:720px){
-  #productGrid.ppp-grid{ grid-template-columns:1fr; gap:12px }
-  .ppp-card{ width:auto }
-}
-
-/* ===== 固定フッター（ベース） ===== */
+/* --- カート下部バー（既存想定のベース） --- */
 .cart{ position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border) }
 .cart .wrap{ padding:0 16px }
 .cart-box{
@@ -128,75 +29,41 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   justify-content:flex-end;
   padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom));
 }
-.cart-left{ margin-right:auto; display:flex; align-items:center; gap:12px }
-.inline-pill{ font-size:14px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; border-radius:999px; padding:6px 14px; white-space:nowrap }
-.count{ min-width:60px; text-align:right; font-size:14px }
-.total{ min-width:80px; text-align:right; font-weight:900; font-size:18px }
-.btn-cart{ background:var(--brand); color:#fff; border:none; border-radius:var(--btn-radius); padding:10px 18px; cursor:pointer; font-weight:800; white-space:nowrap }
-.btn-cart:active{ transform:translateY(1px) }
+.cart-left{ margin-right:auto; display:flex; align-items:center; gap:8px }
+.inline-pill{ display:inline-block; padding:4px 8px; background:#f1f5f9; border-radius:999px; font-size:12px }
+.lbl-min{ display:none } .val-date{ display:none } .count{ display:none } .total{ display:none }
+.btn-cart{ background:var(--brand); color:#fff; border:0; border-radius:10px; height:40px; padding:0 16px; font-weight:800; }
 
-/* --- SPフッター（2行×3列） --- */
-@media(max-width:420px){
-  .cart-box{
-    display:grid; grid-template-columns: 1fr 1fr auto; grid-template-rows: auto auto;
-    gap:4px 12px; align-items:center;
-    padding:6px 0; padding-bottom:calc(6px + env(safe-area-inset-bottom));
-  }
-  .inline-pill{ display:none }
-  .lbl-min{ grid-column:1; grid-row:1; font-size:12px; color:#065f46; opacity:.95 }
-  .count{ grid-column:2; grid-row:1; text-align:right; font-weight:700 }
-  .count::before{ content:"商品点数 "; font-size:12px; font-weight:600; opacity:.9; margin-right:4px }
-  .val-date{ grid-column:1; grid-row:2; font-weight:700; font-size:14px; white-space:nowrap }
-  .total{ grid-column:2; grid-row:2; text-align:right; font-size:17px }
-  .total::before{ content:"合計金額 "; font-size:12px; font-weight:600; opacity:.9; margin-right:4px }
-  .btn-cart{ grid-column:3; grid-row:1 / 3; align-self:stretch; padding:10px 14px; min-width:72px }
-  .cart::after{ content:""; display:block; height:env(safe-area-inset-bottom); background:#fff }
-}
-
-/* PCではSP用ラベルを隠す */
-@media(min-width:421px){
-  .lbl-min{ display:none }
-  .val-date{ display:none }
-}
-
-/* ===== ドロワー（共通） ===== */
-.ppp-drawer{ position:fixed; inset:0; z-index:4000; display:none }
+/* --- Drawer 基本 --- */
+.ppp-drawer{ position:fixed; inset:0; display:none }
 .ppp-drawer[aria-hidden="false"]{ display:block }
-.ppp-drawer__scrim{ position:absolute; inset:0; background:rgba(0,0,0,.18); opacity:0; transition:opacity .18s ease; z-index:0 }
-.ppp-drawer[aria-hidden="false"] .ppp-drawer__scrim{ opacity:1 }
+.ppp-drawer__scrim{ position:absolute; inset:0; background:rgba(0,0,0,.3) }
 .ppp-drawer__panel{
-  position:absolute; top:0; right:0; height:100%; width:100%;
-  max-width:420px; background:#fff; box-shadow:-10px 0 24px rgba(0,0,0,.16);
-  transform:translateX(100%); transition:transform .24s ease;
-  display:grid; grid-template-rows:auto auto 1fr auto; overflow:hidden;
-  padding-bottom:env(safe-area-inset-bottom); z-index:1;
+  position:absolute; right:0; top:0; bottom:0; width:min(720px, 100%);
+  background:#fff; display:flex; flex-direction:column;
+  border-left:1px solid var(--border);
 }
-@media(min-width:768px){ .ppp-drawer__panel{ max-width:560px } }
-@media(min-width:1024px){ .ppp-drawer__panel{ max-width:640px } }
-@media(min-width:1280px){ .ppp-drawer__panel{ max-width:720px } }
-.ppp-drawer[aria-hidden="false"] .ppp-drawer__panel{ transform:translateX(0) }
-.ppp-drawer__bar{ display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--border) }
-.ppp-drawer__title{ font-weight:800; font-size:16px; flex:1 }
-.ppp-due{ margin-left:6px; font-size:11px; color:#475569; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:999px; padding:2px 6px; white-space:nowrap }
-.ppp-iconbtn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:10px; padding:8px 10px; cursor:pointer }
-.ppp-iconbtn:active{ transform:translateY(1px) }
-.ppp-chips{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px 14px; border-bottom:1px dashed #eef2f7 }
-.ppp-chip{ font-size:12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:999px; padding:4px 8px }
-.ppp-listwrap{ overflow:auto; -webkit-overflow-scrolling:touch }
-.ppp-listpad{ padding:10px 12px 16px }
-.ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:#fafafa }
+.ppp-drawer__bar{ display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border) }
+.ppp-drawer__title{ font-weight:900 }
+.ppp-due{ margin-left:auto; color:#64748b; font-size:12px }
+.ppp-iconbtn{ border:0; background:transparent; font-size:16px; cursor:pointer }
+.ppp-chips{ display:flex; gap:8px; padding:8px 16px }
+.ppp-chip{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:999px; padding:4px 10px; font-size:12px }
 
-/* ドロワーボタン（グローバル） */
-.ppp-btn{ flex:1 } /* ← 他所で使う場合があるので残す */
-.ppp-btn.primary{ background:var(--brand); color:#fff; border-color:transparent }
-.ppp-btn.primary.is-disabled{ opacity:.5; cursor:not-allowed }
-.ppp-btn.neutral{ background:#f3f4f6; border:1px solid var(--border); color:#111827 }
-.ppp-btn.neutral:hover{ background:#e5e7eb }
+.ppp-listwrap{ flex:1; overflow:auto }
+.ppp-listpad{ padding:16px }
 
-/* --- 右寄せFIX：フッター内だけ .ppp-btn の flex:1 を無効化 --- */
-.ppp-drawer__footer .ppp-btn{ flex:0 0 auto }  /* ← これが効かないと右寄せできない */
-.cart-footer{ display:flex; align-items:center; justify-content:flex-end; gap:10px }
-.cart-footer .cart-sum{ margin-right:auto }
+.ppp-drawer__footer{ position:sticky; bottom:0; background:#fff; padding:10px 16px; border-top:1px solid var(--border) }
+/* 右寄せFIX：フッター内だけ .ppp-btn の flex:1 を無効化 */
+.ppp-drawer__footer .ppp-btn{ flex:0 0 auto }
+
+/* --- 汎用ボタン --- */
+.ppp-btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 14px; height:var(--btn-h); border-radius:10px; border:1px solid var(--border); font-weight:800; background:#fff; cursor:pointer }
+.ppp-btn.primary{ background:var(--brand); border-color:var(--brand); color:#fff }
+.ppp-btn.neutral{ background:#fff; color:#111827 }
+.ppp-btn.is-disabled,
+.ppp-btn[disabled],
+.ppp-btn[aria-disabled="true"]{ opacity:.5; cursor:not-allowed }
 
 /* ===== カート中身・フォーム（PCの基本並び） ===== */
 .cartlist{ display:flex; flex-direction:column; gap:10px }
@@ -213,147 +80,63 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .cartqty{ width:72px; height:40px; border:1px solid var(--border); border-radius:8px; text-align:center; font-weight:700 }
 .totalline{ margin-top:6px; text-align:right; font-weight:800 }
 
-/* ===== SP（〜420px）: 指定の新レイアウト =====
-   親を 2列(25%｜1fr) × 5行(商品名/単価/数量/削除/合計) に設定し、
-   画像は“単価〜削除”の3行ぶち抜き（行2〜4）で左列。
-   商品名は右列の最上段（ぶち抜かない）。
-   =================================================================== */
+/* ===== SP（〜420px）：タイトル行ぶち抜き／画像2〜4段／合計は非表示 ===== */
 @media (max-width:420px){
   .cartrow{
     display:grid;
-    grid-template-columns:25% 1fr;        /* 画像 1/4 */
-    grid-template-rows:auto auto auto auto auto;
+    grid-template-columns:25% 1fr;        /* 左：画像 1/4 */
+    grid-template-rows:auto auto auto auto;  /* 1=タイトル, 2=小計/画像1, 3=数量/画像2, 4=削除/画像3 */
     column-gap:8px; align-items:start;
   }
 
-  /* 中間の“箱”を溶かして中身を親に直置き */
+  /* 中間の“箱”を溶かし、子を親グリッドに直配置 */
   .rowline{ display:contents }  /* .ttl, .prc を直配置 */
   .g2{ display:contents }       /* .thumb, .qtybar を直配置 */
-  .qtybar{ display:contents }   /* .group(数量), 削除btn を直配置 */
 
-  /* 商品名（右列 行1） */
-  .rowline .ttl{
-    grid-column:2; grid-row:1;
-    font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
+  /* タイトル（行1 全幅ぶち抜き） */
+  .rowline .ttl{ grid-column:1 / span 2; grid-row:1; text-align:left; font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 
-  /* 画像（左列 行2〜4 ぶち抜き） */
-  .thumb{
-    grid-column:1; grid-row:2 / span 3;
-    width:100%; height:auto; aspect-ratio:4/3; align-self:start;
-    border-radius:8px; overflow:hidden;
-  }
-
-  /* 単価（右列 行2） */
+  /* 小計（右列 行2） */
   .rowline .prc{ grid-column:2; grid-row:2; text-align:right; font-weight:700 }
 
-  /* 数量（右列 行3、右寄せ） */
-  .qtybar .group{ grid-column:2; grid-row:3; justify-self:end; display:inline-flex; gap:8px; align-items:center }
+  /* 画像（左列 行2〜4ぶち抜き） */
+  .g2 .thumb{ grid-column:1; grid-row:2 / span 3; width:100%; aspect-ratio:4/3; height:auto; border-radius:8px; border:1px solid var(--border); overflow:hidden; background:#f3f4f6 }
+  .g2 .thumb img{ width:100%; height:100%; object-fit:cover }
 
-  /* 削除（右列 行4、左寄せ） */
-  .qtybar .btn[data-cart="rm"]{ grid-column:2; grid-row:4; justify-self:start }
+  /* 数量（右列 行3 右寄せ） */
+  .g2 .qtybar{ grid-column:2; grid-row:3; display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px }
 
-  /* 合計（右列 行5、右寄せ） */
-  .totalline{ grid-column:2; grid-row:5; text-align:right; font-weight:800 }
+  /* 削除（右列 行4 右寄せ） */
+  .g2 .qtybar .btn[data-cart="rm"]{ grid-column:2; grid-row:4; justify-self:end }
+
+  /* 合計（行5）は使用しない */
+  .totalline{ display:none !important }
 
   /* フォーム2カラム→1カラム */
-  .cartgrid{ grid-template-columns:1fr }
+  .cartgrid{ display:grid; grid-template-columns:1fr; gap:10px }
 }
 
-/* PCでの既定値を再強制（保険） */
+/* PCでの保険 */
 @media (min-width:421px){
   .rowline{ display:grid; grid-template-columns:7fr 3fr; align-items:baseline }
-  .g2{ display:grid; grid-template-columns:112px 1fr; align-items:center }
-  .qtybar{ display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap }
-  .thumb{ width:112px; height:80px }
+  .g2{ display:grid; grid-template-columns:112px 1fr; gap:8px; align-items:center }
 }
 
-/* フォーム */
-.cartform{ border-top:1px dashed #eef2f7; margin-top:8px; padding-top:12px; display:flex; flex-direction:column; gap:10px }
-.cartgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
-.cartlbl{ font-size:13px; font-weight:700; margin-bottom:4px }
-.cartsel{ width:100%; height:40px; border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-size:14px; background:#fff }
-.carthelp{ font-size:12px; color:#6b7280 } /* NOTE: HTML側で注釈は非表示運用 */
-.cartmemo{ width:100%; min-height:88px; border:1px solid var(--border); border-radius:10px; padding:10px; font-size:14px }
-.agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
-.agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
-
-/* ===== 最終更新ピル（現仕様では未使用：UNUSED） =====
-.lastup{
-  display:inline-block; margin:8px 0 0; font-size:12px;
-  background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5;
-  border-radius:999px; padding:4px 10px;
+/* === ドロワーフッター：PC/SP別 2行構成（ボタン右寄せ） === */
+.cart-footer{ width:100%; display:flex; flex-direction:column; gap:6px }
+.cart-footer .footrow{ display:flex; align-items:center; gap:10px }
+.cart-footer .cart-sum{ margin-right:auto; display:flex; gap:8px; align-items:baseline }
+.cart-footer .cart-sum .lbl{ font-size:13px; color:#475569; font-weight:700 }
+.cart-footer .cart-sum .val{ font-size:18px; font-weight:900 }
+.cart-footer .actions{ display:flex; gap:10px; margin-left:auto }
+@media (max-width:420px){
+  .cart-footer--pc{ display:none }
+  .cart-footer--sp{ display:flex }
 }
-*/
-
-/* ===== カテゴリグリッド ===== */
-.ppp-catgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px }
-.ppp-catgrid button{
-  display:block; width:100%; text-align:left; border:1px solid var(--border);
-  background:#fff; border-radius:10px; padding:10px 12px; font-weight:700; cursor:pointer;
+@media (min-width:421px){
+  .cart-footer--sp{ display:none }
+  .cart-footer--pc{ display:flex }
 }
 
-/* ===== scroll-lock ===== */
-html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action:none !important }
-
-/* ===== Loading UX (skeleton + top progress + fades) ===== */
-
-/* Screen-reader live region */
-.sr-only{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
-
-/* Skeleton cards */
-.skel-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; padding:12px; overflow:hidden }
-@media(max-width:720px){ .skel-card{ width:auto } }
-.skel-img,.skel-line,.skel-btn{ position:relative; background:#f3f4f6; border-radius:10px; overflow:hidden }
-.skel-img{ aspect-ratio:4/3; border:1px solid var(--border) }
-.skel-line{ height:14px; margin-top:10px }
-.skel-line.big{ height:22px }
-.skel-btn{ height:var(--btn-h, 44px); margin-top:10px; border-radius:12px }
-@keyframes shimmer{ from{background-position:-200% 0} to{background-position:200% 0} }
-.skel-img::before,.skel-line::before,.skel-btn::before{
-  content:""; position:absolute; inset:0;
-  background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.6) 50%, rgba(255,255,255,0) 100%);
-  background-size:200% 100%; animation:shimmer 1.2s infinite;
-}
-
-/* Top progress bar */
-#topProgress{ position:fixed; inset:0 auto auto 0; right:0; height:2px; background:transparent; z-index:9999 }
-#topProgress.on::before{
-  content:""; position:absolute; left:0; top:0; height:100%; width:30%;
-  background:linear-gradient(90deg, var(--brand, #10b981), rgba(16,185,129,.2));
-  animation:topbar 0.9s linear infinite;
-}
-@keyframes topbar{0%{transform:translateX(0)}100%{transform:translateX(330%)}}
-
-/* Blur-up + fade-in for images */
-.ppp-img>img{ opacity:0; filter:blur(6px); transition:opacity .25s ease, filter .25s ease }
-.ppp-img>img.is-ready{ opacity:1; filter:none }
-
-/* Staggered reveal */
-@keyframes cardIn{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
-.ppp-card{ opacity:0; animation:cardIn .24s ease forwards }
-
-/* Motion safety */
-@media (prefers-reduced-motion: reduce){
-  .skel-img::before,.skel-line::before,.skel-btn::before{ animation:none }
-  #topProgress.on::before{ animation:none }
-  .ppp-card{ animation:none; opacity:1 }
-}
-
-/* ===== Variant Mode Bar ===== */
-.variantbar{ display:none; background:#fff; border-bottom:1px solid var(--border) }
-.variantbar[aria-hidden="false"]{ display:block }
-.variantbar-in{
-  max-width:var(--wrap); margin:0 auto; padding:8px 16px;
-  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-}
-.variantbar .lbl{ font-size:12px; color:#64748b }
-.variantbar .title{ font-weight:800 }
-.mini-btn,.mini-x{
-  appearance:none; border:1px solid var(--border); background:#fff; border-radius:999px;
-  padding:4px 10px; cursor:pointer; font-weight:700; font-size:12px;
-}
-.mini-btn:active,.mini-x:active{ transform:translateY(1px) }
-
-/* 選択中カードの軽ハイライト */
-.ppp-card.is-selected{ box-shadow:0 0 0 2px #bbf7d0 inset; border-color:#86efac }
+/* 上部チップの「点数/合計」をCSSでも隠す（保険） */
+#cartCountDrawer, #cartTotalDrawer { display:none !important }
