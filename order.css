@@ -1,3 +1,12 @@
+/* =====================================================================
+   order.css  (2025-10-16 完全版)
+   - PC/SP共通：フッターの「戻る／注文へ進む」右寄せ fix
+   - SPカート行：商品名は上段、画像は行2〜4ぶち抜き
+                  右列は [単価 → 数量 → 削除] の3行、最下段に合計(右)
+   - 文面変更はHTML側（「連絡欄」など）で対応済み／本CSSは見た目のみ
+   ===================================================================== */
+
+/* ===== CSS変数・ベース ===== */
 :root{
   --bg:#fafafa;
   --ink:#1f2937;
@@ -11,27 +20,40 @@
   --z-sticky:50;
 }
 
-*{box-sizing:border-box}
-body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; color:var(--ink); background:#fff }
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif;
+  color:var(--ink);
+  background:#fff;
+}
 .wrap{ max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px }
 
 /* ===== ヘッダー ===== */
 header{ background:#fff; border-bottom:1px solid var(--border) }
 .header-in{ display:flex; align-items:center; padding:12px 0 }
-.brand{ font-size:20px; font-weight:800; text-indent:.4em; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.brand::before{ content:""; position:absolute; left:0; top:50%; transform:translateY(-50%); width:4px; height:1.2em; border-radius:2px; background:var(--brand) }
+.brand{
+  font-size:20px; font-weight:800; text-indent:.4em; position:relative;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.brand::before{
+  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:4px; height:1.2em; border-radius:2px; background:var(--brand);
+}
 
 /* ===== メニューバー ===== */
 .menubar{ position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border) }
 .menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0 }
 .menu-pill{
   font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9;
-  border:1px solid #e2e8f0; border-radius:var(--btn-radius); padding:8px 12px; white-space:nowrap; cursor:pointer;
+  border:1px solid #e2e8f0; border-radius:var(--btn-radius);
+  padding:8px 12px; white-space:nowrap; cursor:pointer;
 }
 .menu-right{ margin-left:auto }
 
-/* ▼ カテゴリボタン（PC/タブで選択ラベル＆×表示） */
-#btnCategories.has-filter{ padding-right:28px; position:relative; }
+/* ▼ カテゴリボタン（選択時のクリア×） */
+#btnCategories.has-filter{ padding-right:28px; position:relative }
 #btnCategories .tag{ font-weight:800; color:#0f172a }
 #btnCategories .sep::before{ content:"›"; margin:0 4px; color:#94a3b8 }
 #btnCategories .x{
@@ -47,7 +69,10 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 /* ===== 並べ替えバー ===== */
 .sortbar{ display:none; background:#fff; border-bottom:1px solid #eef2f7 }
 .sortbar[aria-hidden="false"]{ display:block }
-.sortbar-in{ max-width:var(--wrap); margin:0 auto; padding:8px 16px; display:flex; gap:8px; align-items:center; flex-wrap:wrap }
+.sortbar-in{
+  max-width:var(--wrap); margin:0 auto; padding:8px 16px;
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
 .sortbar .lbl{ font-size:12px; color:#64748b; margin-right:4px }
 .sortbtn{
   font-size:12px; font-weight:800; color:#0f172a; background:#f8fafc;
@@ -55,7 +80,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .sortbtn.active{ background:#e6f7f1; border-color:#bbf7d0; color:#065f46 }
 
-/* ===== 商品カード（ノータッチ） ===== */
+/* ===== 商品カード（ノータッチ方針） ===== */
 #productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
 .ppp-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden }
 .ppp-crumbrow{ display:block; padding:10px 12px 0 }
@@ -73,19 +98,29 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-price{ font-weight:900; font-size:22px }
 .ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
 .ppp-actions{ display:grid; grid-template-columns:7fr 3fr; gap:8px; margin-bottom:10px }
-.ppp-btn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; cursor:pointer; font-weight:800; display:inline-flex; align-items:center; justify-content:center; height:var(--btn-h); white-space:nowrap; min-width:0; padding:0 12px; font-size:clamp(13px,1.6vw,16px) }
+.ppp-btn{
+  appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px;
+  cursor:pointer; font-weight:800; display:inline-flex; align-items:center; justify-content:center;
+  height:var(--btn-h); white-space:nowrap; min-width:0; padding:0 12px; font-size:clamp(13px,1.6vw,16px)
+}
+/* NOTE: カード用の .ppp-btn は幅可変にするため flex 指定なし */
 .ppp-btn.add{ background:var(--brand); color:#fff; border-color:transparent }
 .ppp-btn.add:active{ transform:translateY(1px) }
 .ppp-vars{ display:flex; flex-direction:column; gap:4px; margin-top:2px }
 .ppp-pill{ width:100%; padding:6px 8px; border:1px solid var(--border); background:#fff; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
 .ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px }
 .ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height:calc(1.5 * 3 * 1em); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
+/* UNUSED: MOREは現仕様で非表示のため残置だけど不使用
 .more--chev{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; text-decoration:none; color:#0ea5e9 }
 .more--chev::before{ content:"›"; font-size:18px; line-height:1 }
 .more--chev:active{ transform: translateY(1px) }
-@media(max-width:720px){ #productGrid.ppp-grid{ grid-template-columns:1fr; gap:12px } .ppp-card{ width:auto } }
+*/
+@media(max-width:720px){
+  #productGrid.ppp-grid{ grid-template-columns:1fr; gap:12px }
+  .ppp-card{ width:auto }
+}
 
-/* ===== フッター（PC横一列／SP 2行×3列） ===== */
+/* ===== 固定フッター（ベース） ===== */
 .cart{ position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border) }
 .cart .wrap{ padding:0 16px }
 .cart-box{
@@ -99,9 +134,14 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .total{ min-width:80px; text-align:right; font-weight:900; font-size:18px }
 .btn-cart{ background:var(--brand); color:#fff; border:none; border-radius:var(--btn-radius); padding:10px 18px; cursor:pointer; font-weight:800; white-space:nowrap }
 .btn-cart:active{ transform:translateY(1px) }
-/* SPレイアウト */
+
+/* --- SPフッター（2行×3列） --- */
 @media(max-width:420px){
-  .cart-box{ display:grid; grid-template-columns: 1fr 1fr auto; grid-template-rows: auto auto; gap:4px 12px; align-items:center; padding:6px 0; padding-bottom:calc(6px + env(safe-area-inset-bottom)) }
+  .cart-box{
+    display:grid; grid-template-columns: 1fr 1fr auto; grid-template-rows: auto auto;
+    gap:4px 12px; align-items:center;
+    padding:6px 0; padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  }
   .inline-pill{ display:none }
   .lbl-min{ grid-column:1; grid-row:1; font-size:12px; color:#065f46; opacity:.95 }
   .count{ grid-column:2; grid-row:1; text-align:right; font-weight:700 }
@@ -119,16 +159,22 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   .val-date{ display:none }
 }
 
-/* ===== ドロワー共通 ===== */
-.ppp-drawer{position:fixed;inset:0;z-index:4000;display:none}
-.ppp-drawer[aria-hidden="false"]{display:block}
-.ppp-drawer__scrim{position:absolute;inset:0;background:rgba(0,0,0,.18);opacity:0;transition:opacity .18s ease;z-index:0}
-.ppp-drawer[aria-hidden="false"] .ppp-drawer__scrim{opacity:1}
-.ppp-drawer__panel{position:absolute;top:0;right:0;height:100%;width:100%;max-width:420px;background:#fff;box-shadow:-10px 0 24px rgba(0,0,0,.16);transform:translateX(100%);transition:transform .24s ease;display:grid;grid-template-rows:auto auto 1fr auto;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);z-index:1}
+/* ===== ドロワー（共通） ===== */
+.ppp-drawer{ position:fixed; inset:0; z-index:4000; display:none }
+.ppp-drawer[aria-hidden="false"]{ display:block }
+.ppp-drawer__scrim{ position:absolute; inset:0; background:rgba(0,0,0,.18); opacity:0; transition:opacity .18s ease; z-index:0 }
+.ppp-drawer[aria-hidden="false"] .ppp-drawer__scrim{ opacity:1 }
+.ppp-drawer__panel{
+  position:absolute; top:0; right:0; height:100%; width:100%;
+  max-width:420px; background:#fff; box-shadow:-10px 0 24px rgba(0,0,0,.16);
+  transform:translateX(100%); transition:transform .24s ease;
+  display:grid; grid-template-rows:auto auto 1fr auto; overflow:hidden;
+  padding-bottom:env(safe-area-inset-bottom); z-index:1;
+}
 @media(min-width:768px){ .ppp-drawer__panel{ max-width:560px } }
 @media(min-width:1024px){ .ppp-drawer__panel{ max-width:640px } }
 @media(min-width:1280px){ .ppp-drawer__panel{ max-width:720px } }
-.ppp-drawer[aria-hidden="false"] .ppp-drawer__panel{transform:translateX(0)}
+.ppp-drawer[aria-hidden="false"] .ppp-drawer__panel{ transform:translateX(0) }
 .ppp-drawer__bar{ display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--border) }
 .ppp-drawer__title{ font-weight:800; font-size:16px; flex:1 }
 .ppp-due{ margin-left:6px; font-size:11px; color:#475569; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:999px; padding:2px 6px; white-space:nowrap }
@@ -139,122 +185,82 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-listwrap{ overflow:auto; -webkit-overflow-scrolling:touch }
 .ppp-listpad{ padding:10px 12px 16px }
 .ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:#fafafa }
-.ppp-btn{ flex:1; appearance:none; border:1px solid var(--border); background:#fff; border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer }
+
+/* ドロワーボタン（グローバル） */
+.ppp-btn{ flex:1 } /* ← 他所で使う場合があるので残す */
 .ppp-btn.primary{ background:var(--brand); color:#fff; border-color:transparent }
 .ppp-btn.primary.is-disabled{ opacity:.5; cursor:not-allowed }
-.ppp-btn.neutral{ background:#f3f4f6; border-color:#e5e7eb; color:#111827 }
+.ppp-btn.neutral{ background:#f3f4f6; border:1px solid var(--border); color:#111827 }
 .ppp-btn.neutral:hover{ background:#e5e7eb }
 
-/* カート中身・フォーム */
+/* --- 右寄せFIX：フッター内だけ .ppp-btn の flex:1 を無効化 --- */
+.ppp-drawer__footer .ppp-btn{ flex:0 0 auto }  /* ← これが効かないと右寄せできない */
+.cart-footer{ display:flex; align-items:center; justify-content:flex-end; gap:10px }
+.cart-footer .cart-sum{ margin-right:auto }
+
+/* ===== カート中身・フォーム（PCの基本並び） ===== */
 .cartlist{ display:flex; flex-direction:column; gap:10px }
-.cartrow{ border:1px solid var(--border); border-radius:8px; padding:10px }
+.cartrow{ border:1px solid var(--border); border-radius:8px; padding:10px; background:#fff }
 .rowline{ display:grid; grid-template-columns:7fr 3fr; gap:8px; align-items:baseline }
 .rowline .ttl{ font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 .rowline .prc{ font-weight:700; text-align:right }
 .g2{ display:grid; grid-template-columns:112px 1fr; gap:8px; align-items:center }
 .thumb{ width:112px; height:80px; border-radius:8px; border:1px solid var(--border); background:#f3f4f6; overflow:hidden }
 .thumb img{ width:100%; height:100%; object-fit:cover }
-.qtybar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
-.qtybar .group{ display:inline-flex; gap:8px; align-items:center; }
+.qtybar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end }
+.qtybar .group{ display:inline-flex; gap:8px; align-items:center }
 .qtybar .btn{ border:1px solid var(--border); background:#fff; border-radius:8px; height:40px; min-width:40px; font-weight:800; cursor:pointer }
 .cartqty{ width:72px; height:40px; border:1px solid var(--border); border-radius:8px; text-align:center; font-weight:700 }
 .totalline{ margin-top:6px; text-align:right; font-weight:800 }
 
-/* === SP（〜420px）: 指定の新レイアウト === */
-@media (max-width:420px){
-  /* 商品名／単価を2行 */
-  .rowline{ grid-template-columns:1fr }
-  .rowline .prc{ text-align:right }
-
-  /* 画像は幅の1/4、右側に数量→削除の2段 */
-  .g2{ grid-template-columns:25% 1fr; grid-template-rows:auto auto }
-  .thumb{ grid-column:1; grid-row:1 / span 2; width:100%; height:auto; aspect-ratio:4/3; }
-  .qtybar{
-    grid-column:2; grid-row:1 / span 2;
-    display:grid; grid-template-columns:1fr; grid-template-rows:auto auto; gap:8px;
-    justify-content:flex-start;
-  }
-  .qtybar .group{ justify-content:flex-start }
-  .qtybar .btn[data-cart="rm"]{ justify-self:end } /* 「削除」は2段目・右寄せ */
-
-  .cartgrid{ grid-template-columns:1fr } /* 既存 */
-}
-
-/* PC時の整列維持 */
-@media (min-width:421px){
-  .rowline{ grid-template-columns:7fr 3fr }
-  .g2{ grid-template-columns:112px 1fr }
-  .qtybar{ justify-content:flex-end }
-}
-
-.cartform{ border-top:1px dashed #eef2f7; margin-top:8px; padding-top:12px; display:flex; flex-direction:column; gap:10px }
-.cartgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
-.cartlbl{ font-size:13px; font-weight:700; margin-bottom:4px }
-.cartsel{ width:100%; height:40px; border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-size:14px; background:#fff }
-.carthelp{ font-size:12px; color:#6b7280 }
-.cartmemo{ width:100%; min-height:88px; border:1px solid var(--border); border-radius:10px; padding:10px; font-size:14px }
-.agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
-.agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
-
-/* ===== 最終更新ピル（未使用だが残置） ===== */
-.lastup{
-  display:inline-block;
-  margin:8px 0 0;
-  font-size:12px;
-  background:#f0fdf4;
-  color:var(--brand-ink);
-  border:1px solid #d1fae5;
-  border-radius:999px;
-  padding:4px 10px;
-}
-
-/* カテゴリグリッド */
-.ppp-catgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px }
-.ppp-catgrid button{ display:block; width:100%; text-align:left; border:1px solid var(--border); background:#fff; border-radius:10px; padding:10px 12px; font-weight:700; cursor:pointer }
-
-/* scroll-lock */
-html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action:none !important }
-
-/* --- Drawer footer buttons: right align fix --- */
-.ppp-drawer__footer .ppp-btn{ flex:0 0 auto }   /* ← globalのflex:1を無効化 */
-.cart-footer{ display:flex; align-items:center; justify-content:flex-end; gap:10px }
-.cart-footer .cart-sum{ margin-right:auto }
-
-
-/* --- SP cartrow: image spans 3 rows, right-column lines layout --- */
+/* ===== SP（〜420px）: 指定の新レイアウト =====
+   親を 2列(25%｜1fr) × 5行(商品名/単価/数量/削除/合計) に設定し、
+   画像は“単価〜削除”の3行ぶち抜き（行2〜4）で左列。
+   商品名は右列の最上段（ぶち抜かない）。
+   =================================================================== */
 @media (max-width:420px){
   .cartrow{
     display:grid;
-    grid-template-columns:25% 1fr;     /* 画像1/4：本文3/4 */
-    grid-template-rows:auto auto auto auto;
+    grid-template-columns:25% 1fr;        /* 画像 1/4 */
+    grid-template-rows:auto auto auto auto auto;
     column-gap:8px; align-items:start;
   }
-  /* 1行目：商品名＋単価の塊（.rowline）を右列に */
-  .rowline{ grid-column:2; grid-row:1; grid-template-columns:1fr }
-  .rowline .prc{ text-align:right }  /* 単価は右寄せ */
 
-  /* .g2の枠は溶かして中身を直配置 */
-  .g2{ display:contents }
+  /* 中間の“箱”を溶かして中身を親に直置き */
+  .rowline{ display:contents }  /* .ttl, .prc を直配置 */
+  .g2{ display:contents }       /* .thumb, .qtybar を直配置 */
+  .qtybar{ display:contents }   /* .group(数量), 削除btn を直配置 */
 
-  /* 画像：左列の1〜3行をぶち抜き */
+  /* 商品名（右列 行1） */
+  .rowline .ttl{
+    grid-column:2; grid-row:1;
+    font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  /* 画像（左列 行2〜4 ぶち抜き） */
   .thumb{
-    grid-column:1; grid-row:1 / span 3;
+    grid-column:1; grid-row:2 / span 3;
     width:100%; height:auto; aspect-ratio:4/3; align-self:start;
+    border-radius:8px; overflow:hidden;
   }
 
-  /* 2〜3行目：数量→削除（2段）、数量は右寄せ・削除は左寄せ */
-  .qtybar{
-    grid-column:2; grid-row:2 / span 2;
-    display:grid; grid-template-rows:auto auto; row-gap:8px; justify-items:end;
-  }
-  .qtybar .group{ justify-self:end }                /* 数量調整（右） */
-  .qtybar .btn[data-cart="rm"]{ justify-self:start }/* 削除（左） */
+  /* 単価（右列 行2） */
+  .rowline .prc{ grid-column:2; grid-row:2; text-align:right; font-weight:700 }
 
-  /* 4行目：合計金額 */
-  .totalline{ grid-column:2; grid-row:4; text-align:right }
+  /* 数量（右列 行3、右寄せ） */
+  .qtybar .group{ grid-column:2; grid-row:3; justify-self:end; display:inline-flex; gap:8px; align-items:center }
+
+  /* 削除（右列 行4、左寄せ） */
+  .qtybar .btn[data-cart="rm"]{ grid-column:2; grid-row:4; justify-self:start }
+
+  /* 合計（右列 行5、右寄せ） */
+  .totalline{ grid-column:2; grid-row:5; text-align:right; font-weight:800 }
+
+  /* フォーム2カラム→1カラム */
+  .cartgrid{ grid-template-columns:1fr }
 }
 
-/* PC(>420px)は従来どおりのレイアウト維持（必要なら再掲） */
+/* PCでの既定値を再強制（保険） */
 @media (min-width:421px){
   .rowline{ display:grid; grid-template-columns:7fr 3fr; align-items:baseline }
   .g2{ display:grid; grid-template-columns:112px 1fr; align-items:center }
@@ -262,3 +268,30 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   .thumb{ width:112px; height:80px }
 }
 
+/* フォーム */
+.cartform{ border-top:1px dashed #eef2f7; margin-top:8px; padding-top:12px; display:flex; flex-direction:column; gap:10px }
+.cartgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+.cartlbl{ font-size:13px; font-weight:700; margin-bottom:4px }
+.cartsel{ width:100%; height:40px; border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-size:14px; background:#fff }
+.carthelp{ font-size:12px; color:#6b7280 } /* NOTE: HTML側で注釈は非表示運用 */
+.cartmemo{ width:100%; min-height:88px; border:1px solid var(--border); border-radius:10px; padding:10px; font-size:14px }
+.agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
+.agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
+
+/* ===== 最終更新ピル（現仕様では未使用：UNUSED） =====
+.lastup{
+  display:inline-block; margin:8px 0 0; font-size:12px;
+  background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5;
+  border-radius:999px; padding:4px 10px;
+}
+*/
+
+/* ===== カテゴリグリッド ===== */
+.ppp-catgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px }
+.ppp-catgrid button{
+  display:block; width:100%; text-align:left; border:1px solid var(--border);
+  background:#fff; border-radius:10px; padding:10px 12px; font-weight:700; cursor:pointer;
+}
+
+/* ===== scroll-lock ===== */
+html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action:none !important }
