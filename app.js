@@ -1,6 +1,10 @@
 /**
- * app.js — 完全版（Variant Mode + 戻りバー / カート追加でドロワを開かない / ドロワHTML整合）
- * index.html / order.css とセットで動作
+ * app.js — 完全版 v5
+ * 目的：
+ *  - バリエーションpillが「何があっても」効く（Union-Find不発でもフォールバックで集合を組む）
+ *  - カート追加でドロワは開かない（#checkoutBtn2のみで開く）
+ *  - ドロワHTMLはCSSに完全整合
+ *  - Variantバー表示/非表示・Back復帰・スクロール/フォーカス復元
  */
 
 /** ========= 設定 ========= **/
@@ -27,8 +31,8 @@ const filterState = {
   subcat: null,
   sort: 'default',
   // Variant Mode
-  variantGroup: null,     // 代表ID（Union-Find root）
-  variantSelected: null,  // 先頭に出すid
+  variantGroup: null,     // 代表ID（Union-Find root想定・無くてもOK）
+  variantSelected: null,  // 選択id
   variantBackup: null,    // 元のcat/sub/sort退避
 };
 
@@ -187,7 +191,7 @@ function buildVariantGroups(){
   PRODUCTS.forEach(p=>{ p.group = find(p.id); });
 }
 
-/** ========= Variantバー（index.htmlの #variantbar を制御） ========= **/
+/** ========= Variantバー ========= **/
 function showVariantbar(title){
   const bar = document.getElementById('variantbar'); if(!bar) return;
   bar.setAttribute('aria-hidden','false');
@@ -198,27 +202,48 @@ function hideVariantbar(){
   bar.setAttribute('aria-hidden','true');
   const t = document.getElementById('variantTitle'); if(t) t.textContent = '';
 }
-// 戻る/×
 document.getElementById('variantBack')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
 document.getElementById('variantClose')?.addEventListener('click', (e)=>{ e.preventDefault(); clearVariantMode(); });
 
+/** ========= Variant集合のフォールバック構築 ========= **/
+function getVariantMembers(seedId, group){
+  const out = new Map();
+  const put = (id)=>{ const p=productById.get(String(id)); if(p) out.set(p.id,p); };
+
+  const seed = productById.get(String(seedId));
+  if(seed){
+    put(seed.id);
+    if(seed.var1Id) put(seed.var1Id);
+    if(seed.var2Id) put(seed.var2Id);
+  }
+  // 逆参照（自分を指している子）
+  (PRODUCTS||[]).forEach(x=>{
+    if(x.var1Id===seedId || x.var2Id===seedId) put(x.id);
+  });
+  // group一致（Union-Findが効いていればここで兄弟が入る）
+  if(group){
+    (PRODUCTS||[]).forEach(x=>{ if((x.group||x.id)===group) put(x.id); });
+  }
+  return Array.from(out.values());
+}
+
 /** ========= Variant Mode ========= **/
-function inVariantMode(){ return !!filterState.variantGroup; }
+function inVariantMode(){ return !!filterState.variantSelected; }
 let _scrollBackup = 0;
 function enterVariantMode(group, selectedId){
-  // 単品グループは入らない
-  const members = (PRODUCTS||[]).filter(x => (x.group||x.id) === (group||''));
-  if(members.length <= 1) return;
-
   filterState.variantBackup = { cat:filterState.cat, subcat:filterState.subcat, sort:filterState.sort };
-  filterState.variantGroup = group || ''; filterState.variantSelected = selectedId || null;
+  filterState.variantGroup = group || null;
+  filterState.variantSelected = selectedId || null;
 
   try{ history.pushState({ppp:'variant', group, selectedId}, ''); }catch(_){}
   _scrollBackup = window.scrollY || document.documentElement.scrollTop || 0;
 
   let title = '';
   const chosen = productById.get(selectedId); if(chosen) title = chosen.name||'';
-  if(!title && members[0]) title = members[0].name||'';
+  if(!title){
+    const mem = getVariantMembers(selectedId, group);
+    if(mem[0]) title = mem[0].name||'';
+  }
   showVariantbar(title || 'バリエーション');
 
   renderProducts();
@@ -265,17 +290,12 @@ function renderProducts(){
   const grid=document.getElementById('productGrid'); if(!grid) return;
   grid.className='ppp-grid'; grid.innerHTML='';
 
-  // Variant Mode
+  // Variant Mode（Union-Find失敗時もフォールバック集合で3枚まで）
   if(inVariantMode()){
-    let list=(PRODUCTS||[]).filter(x => (x.group||x.id) === filterState.variantGroup);
     const selId = filterState.variantSelected;
-    list.sort((a,b)=>{
-      if(a.id===selId) return -1;
-      if(b.id===selId) return 1;
-      return (a._idx||0) - (b._idx||0);
-    });
-    list = list.slice(0,3);
-    list.forEach((p, idx)=>appendProductCard(grid,p,idx, selId));
+    const members = getVariantMembers(selId, filterState.variantGroup);
+    members.sort((a,b)=> (a.id===selId?-1:b.id===selId?1:(a._idx||0)-(b._idx||0)));
+    members.slice(0,3).forEach((p, idx)=>appendProductCard(grid,p,idx, selId));
     return;
   }
 
@@ -363,7 +383,6 @@ function onCartKeydown(e){ if(e.key==='Escape') closeCartDrawer(); }
 document.querySelector('#cartDrawer .ppp-drawer__scrim')?.addEventListener('click',(e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeCartDrawer(); });
 document.getElementById('cartDrawerClose')?.addEventListener('click', closeCartDrawer);
 document.getElementById('cartDrawerCancel')?.addEventListener('click', closeCartDrawer);
-// フッターのカートボタンから開く
 document.getElementById('checkoutBtn2')?.addEventListener('click',(e)=>{ e.preventDefault(); openCartDrawer(); });
 
 function updateProceedDisabled(){
@@ -383,7 +402,6 @@ function renderCartDrawer(){
   document.getElementById('cartCountDrawer')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
   document.getElementById('cartTotalDrawer')?.replaceChildren(document.createTextNode(yen(t.total||0)));
 
-  // 明細（CSSが期待する構造）
   const list = document.getElementById('cartList');
   if(list){
     if(t.items.length===0){
@@ -416,24 +434,20 @@ function renderCartDrawer(){
     }
   }
 
-  // 受取日
   const dateEl = document.getElementById('pickupDate');
   if(dateEl){
     const d0 = new Date(state.minDateISO);
     const opts = [0,1,2,3].map(n=>{ const dd=new Date(d0); dd.setDate(dd.getDate()+n); return { iso: isoDate(dd), label: fmtJP(dd) }; });
     dateEl.innerHTML = opts.map(o=>`<option value="${o.iso}" ${o.iso===state.selectedDateISO?'selected':''}>${o.label}</option>`).join('');
   }
-  // 時間帯
   const slotEl = document.getElementById('pickupSlot');
   if(slotEl){
     const slots = ['14時〜17時','17時〜20時'];
     slotEl.innerHTML = slots.map(s=>`<option ${s===state.selectedSlot?'selected':''}>${s}</option>`).join('');
   }
-  // 連絡欄
   const memo = document.getElementById('pickupMemo');
   if(memo){ memo.value = state.memo||''; }
 
-  // 同意
   const agree = document.getElementById('agreeStock');
   if(agree){ agree.checked = !!state.agreeStock; }
   updateProceedDisabled();
@@ -441,8 +455,8 @@ function renderCartDrawer(){
   renderCartFooterTotals();
 }
 
-/** ========= 共通クリック（数量・追加・variant/カテゴリなど） ========= **/
-// 数量ボタン（del/rm 両対応）
+/** ========= クリック委譲 ========= **/
+// 数量・削除（del/rm 両対応）
 document.addEventListener('click',(ev)=>{
   const btn=ev.target.closest('[data-cart]'); if(!btn) return;
   const row=btn.closest('.cartrow'); const id=row?.dataset.id; if(!id) return;
@@ -455,7 +469,7 @@ document.addEventListener('click',(ev)=>{
   renderCartBar(); renderCartDrawer();
 });
 
-// 数量直接入力 & 各種フォーム
+// 入力や選択
 document.addEventListener('change',(ev)=>{
   const input=ev.target.closest('#cartList .cartqty');
   if(input){
@@ -471,7 +485,7 @@ document.addEventListener('change',(ev)=>{
 });
 document.addEventListener('input',(ev)=>{ if(ev.target.id==='pickupMemo'){ state.memo = ev.target.value; } });
 
-// 注文へ進む
+// 注文へ
 document.getElementById('cartProceed')?.addEventListener('click',(e)=>{
   e.preventDefault();
   const before = state.minDateISO;
@@ -527,7 +541,7 @@ document.addEventListener('click',(ev)=>{
     later.textContent = (localStorage.getItem(k)==='1') ? 'あとで済' : 'あとで';
     return;
   }
-  // バリエーションPill -> Variant Mode
+  // バリエーションPill -> Variant Mode（Union-Find不発でも動く）
   const pill = ev.target.closest('.ppp-vars .ppp-pill');
   if(pill){
     ev.preventDefault();
@@ -536,7 +550,7 @@ document.addEventListener('click',(ev)=>{
     const group = p.group || p.id;
     let targetId = pill.dataset.var || p.id;
     let cand = productById.get(targetId);
-    if(!cand || (cand.group||cand.id)!==group){
+    if(!cand){
       const label = pill.textContent.trim();
       cand = (PRODUCTS||[]).find(x => (x.group||x.id)===group && (
         (x.variant && x.variant.includes(label)) || (x.name && x.name.includes(label))
