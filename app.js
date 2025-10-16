@@ -10,6 +10,16 @@ const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
 
 let PRODUCTS = [];
 let productById = new Map();
+// -------- Utility: pick first non-empty from multiple keys --------
+function pick(o, keys){
+  for(const k of keys){
+    if(!o) continue;
+    const v = o[k];
+    if(v !== undefined && v !== null && String(v) !== '') return v;
+  }
+  return '';
+}
+
 
 /** ========= アプリ状態 ========= **/
 const state = {
@@ -154,8 +164,7 @@ async function loadProducts(){
     PRODUCTS = (data.items||[]).map((x,i)=>({
       id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
       img:x.img||x.imageUrl||'', desc:x.desc||'',
-      prenote: pick(x, ['prenote','preNote','pre_note','pre','badge','note1']),
-      unitNote: pick(x, ['unitNote','unit_note','unit','unitDesc']),
+      prenote: pick(x, ['prenote','preNote','pre_note','pre','badge','note1']), unitNote: pick(x, ['unitNote','unit_note','unit','unitDesc']),
       catGroup:x.catGroup||x.cat||'', subcatGroup:x.subcatGroup||'',
       var1Id:x.var1Id||'', var1Label:x.var1Label||'',
       var2Id:x.var2Id||'', var2Label:x.var2Label||'',
