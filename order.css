@@ -214,3 +214,51 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 
 /* scroll-lock */
 html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action:none !important }
+
+/* --- Drawer footer buttons: right align fix --- */
+.ppp-drawer__footer .ppp-btn{ flex:0 0 auto }   /* ← globalのflex:1を無効化 */
+.cart-footer{ display:flex; align-items:center; justify-content:flex-end; gap:10px }
+.cart-footer .cart-sum{ margin-right:auto }
+
+
+/* --- SP cartrow: image spans 3 rows, right-column lines layout --- */
+@media (max-width:420px){
+  .cartrow{
+    display:grid;
+    grid-template-columns:25% 1fr;     /* 画像1/4：本文3/4 */
+    grid-template-rows:auto auto auto auto;
+    column-gap:8px; align-items:start;
+  }
+  /* 1行目：商品名＋単価の塊（.rowline）を右列に */
+  .rowline{ grid-column:2; grid-row:1; grid-template-columns:1fr }
+  .rowline .prc{ text-align:right }  /* 単価は右寄せ */
+
+  /* .g2の枠は溶かして中身を直配置 */
+  .g2{ display:contents }
+
+  /* 画像：左列の1〜3行をぶち抜き */
+  .thumb{
+    grid-column:1; grid-row:1 / span 3;
+    width:100%; height:auto; aspect-ratio:4/3; align-self:start;
+  }
+
+  /* 2〜3行目：数量→削除（2段）、数量は右寄せ・削除は左寄せ */
+  .qtybar{
+    grid-column:2; grid-row:2 / span 2;
+    display:grid; grid-template-rows:auto auto; row-gap:8px; justify-items:end;
+  }
+  .qtybar .group{ justify-self:end }                /* 数量調整（右） */
+  .qtybar .btn[data-cart="rm"]{ justify-self:start }/* 削除（左） */
+
+  /* 4行目：合計金額 */
+  .totalline{ grid-column:2; grid-row:4; text-align:right }
+}
+
+/* PC(>420px)は従来どおりのレイアウト維持（必要なら再掲） */
+@media (min-width:421px){
+  .rowline{ display:grid; grid-template-columns:7fr 3fr; align-items:baseline }
+  .g2{ display:grid; grid-template-columns:112px 1fr; align-items:center }
+  .qtybar{ display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap }
+  .thumb{ width:112px; height:80px }
+}
+
