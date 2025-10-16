@@ -1,4 +1,3 @@
-
 :root{
   --bg:#fafafa;
   --ink:#1f2937;
@@ -11,6 +10,7 @@
   --btn-radius:10px;
   --z-sticky:50;
 }
+
 *{box-sizing:border-box}
 body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif; color:var(--ink); background:#fff }
 .wrap{ max-width:var(--wrap); width:100%; margin:0 auto; padding:0 16px }
@@ -30,7 +30,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .menu-right{ margin-left:auto }
 
-/* ▼ カテゴリボタンの動的ラベル＆クリア（PC/タブのみ表示） */
+/* ▼ カテゴリボタン（PC/タブで選択ラベル＆×表示） */
 #btnCategories.has-filter{ padding-right:28px; position:relative; }
 #btnCategories .tag{ font-weight:800; color:#0f172a }
 #btnCategories .sep::before{ content:"›"; margin:0 4px; color:#94a3b8 }
@@ -40,12 +40,11 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   display:grid; place-items:center; font-size:12px; cursor:pointer; background:#fff;
 }
 #btnCategories .x:active{ transform:translateY(-50%) translateY(1px) }
-/* SP（〜420px）は常に固定文言・余白も通常化 */
 @media (max-width:420px){
   #btnCategories{ padding-right:12px }
 }
 
-/* ===== 並べ替えオプションバー ===== */
+/* ===== 並べ替えバー ===== */
 .sortbar{ display:none; background:#fff; border-bottom:1px solid #eef2f7 }
 .sortbar[aria-hidden="false"]{ display:block }
 .sortbar-in{ max-width:var(--wrap); margin:0 auto; padding:8px 16px; display:flex; gap:8px; align-items:center; flex-wrap:wrap }
@@ -56,7 +55,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 .sortbtn.active{ background:#e6f7f1; border-color:#bbf7d0; color:#065f46 }
 
-/* ===== 商品カード ===== */
+/* ===== 商品カード（ノータッチ） ===== */
 #productGrid.ppp-grid{ display:grid; grid-template-columns:repeat(2,540px); justify-content:space-between; gap:0 }
 .ppp-card{ width:540px; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden }
 .ppp-crumbrow{ display:block; padding:10px 12px 0 }
@@ -81,15 +80,19 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-pill{ width:100%; padding:6px 8px; border:1px solid var(--border); background:#fff; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px }
 .ppp-descwrap{ display:grid; grid-template-columns:1fr auto; gap:8px; align-items:end; padding:0 12px 12px }
 .ppp-desc{ font-size:13px; color:#6b7280; line-height:1.5; min-height:calc(1.5 * 3 * 1em); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden }
-.ppp-more{ display:inline-flex; align-items:center; justify-content:center; text-decoration:none; color:#0ea5e9 }
-.more--chev{ width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff }
-.more--chev::before{ content:"›"; font-size:18px; line-height:1 } .more--chev:active{ transform: translateY(1px) }
+.more--chev{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; text-decoration:none; color:#0ea5e9 }
+.more--chev::before{ content:"›"; font-size:18px; line-height:1 }
+.more--chev:active{ transform: translateY(1px) }
 @media(max-width:720px){ #productGrid.ppp-grid{ grid-template-columns:1fr; gap:12px } .ppp-card{ width:auto } }
 
-/* ===== フッター（PC横一列／SP2行×3列） ===== */
+/* ===== フッター（PC横一列／SP 2行×3列） ===== */
 .cart{ position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border) }
 .cart .wrap{ padding:0 16px }
-.cart-box{ display:flex; align-items:center; gap:16px; justify-content:flex-end; padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom)) }
+.cart-box{
+  display:flex; align-items:center; gap:16px;
+  justify-content:flex-end;
+  padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom));
+}
 .cart-left{ margin-right:auto; display:flex; align-items:center; gap:12px }
 .inline-pill{ font-size:14px; background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5; border-radius:999px; padding:6px 14px; white-space:nowrap }
 .count{ min-width:60px; text-align:right; font-size:14px }
@@ -118,7 +121,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-drawer__panel{position:absolute;top:0;right:0;height:100%;width:100%;max-width:420px;background:#fff;box-shadow:-10px 0 24px rgba(0,0,0,.16);transform:translateX(100%);transition:transform .24s ease;display:grid;grid-template-rows:auto auto 1fr auto;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);z-index:1}
 @media(min-width:768px){ .ppp-drawer__panel{ max-width:560px } }
 @media(min-width:1024px){ .ppp-drawer__panel{ max-width:640px } }
-@media(min-width:1280px){ .ppp-drawer__panel{ max-width:840px } }
+@media(min-width:1280px){ .ppp-drawer__panel{ max-width:720px } }
 .ppp-drawer[aria-hidden="false"] .ppp-drawer__panel{transform:translateX(0)}
 .ppp-drawer__bar{ display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--border) }
 .ppp-drawer__title{ font-weight:800; font-size:16px; flex:1 }
@@ -126,6 +129,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-iconbtn{ appearance:none; border:1px solid var(--border); background:#fff; border-radius:10px; padding:8px 10px; cursor:pointer }
 .ppp-iconbtn:active{ transform:translateY(1px) }
 .ppp-chips{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:8px 14px; border-bottom:1px dashed #eef2f7 }
+.ppp-chip{ font-size:12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:999px; padding:4px 8px }
 .ppp-listwrap{ overflow:auto; -webkit-overflow-scrolling:touch }
 .ppp-listpad{ padding:10px 12px 16px }
 .ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:#fafafa }
@@ -135,7 +139,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-btn.neutral{ background:#f3f4f6; border-color:#e5e7eb; color:#111827 }
 .ppp-btn.neutral:hover{ background:#e5e7eb }
 
-/* ===== カートドロワー（中身） ===== */
+/* カート中身・フォーム */
 .cartlist{ display:flex; flex-direction:column; gap:10px }
 .cartrow{ border:1px solid var(--border); border-radius:8px; padding:10px }
 .rowline{ display:grid; grid-template-columns:7fr 3fr; gap:8px; align-items:baseline }
@@ -149,22 +153,17 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .qtybar .btn{ border:1px solid var(--border); background:#fff; border-radius:8px; height:40px; min-width:40px; font-weight:800; cursor:pointer }
 .cartqty{ width:72px; height:40px; border:1px solid var(--border); border-radius:8px; text-align:center; font-weight:700 }
 .totalline{ margin-top:6px; text-align:right; font-weight:800 }
-.cart-empty{ color:#9ca3af; font-size:13px; padding:16px; text-align:center }
-
-/* PC/SP 切り分け（ドロワ内） */
 @media (max-width:420px){
-  .rowline{ grid-template-columns:1fr 1fr }   /* SP: 1行目は均等 */
-  .g2{ grid-template-columns:1fr }            /* SP: 画像の下に数量操作を折り返す */
+  .rowline{ grid-template-columns:1fr 1fr }
+  .g2{ grid-template-columns:1fr }
   .thumb{ width:100%; height:auto; aspect-ratio:4/3; }
   .qtybar{ justify-content:flex-start }
 }
 @media (min-width:421px){
-  .rowline{ grid-template-columns:7fr 3fr }   /* PC: 7:3 */
-  .g2{ grid-template-columns:112px 1fr }      /* PC: 画像 | 操作 */
+  .rowline{ grid-template-columns:7fr 3fr }
+  .g2{ grid-template-columns:112px 1fr }
   .qtybar{ justify-content:flex-end }
 }
-
-/* ===== カートフォーム ===== */
 .cartform{ border-top:1px dashed #eef2f7; margin-top:8px; padding-top:12px; display:flex; flex-direction:column; gap:10px }
 .cartgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
 @media (max-width:420px){ .cartgrid{ grid-template-columns:1fr } }
@@ -175,39 +174,21 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
 .agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
 
-html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden!important; touch-action:none!important }
-/* === SOLD OUT overlay (added) === */
-.ppp-card.is-soldout .ppp-img{ position:relative; }
-.ppp-card.is-soldout .ppp-img::after{
-  content:"SOLD OUT";
-  position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  font-weight:900; letter-spacing:.08em;
-  background:rgba(0,0,0,.35); color:#fff;
+/* ===== 最終更新ピル ===== */
+.lastup{
+  display:inline-block;
+  margin:8px 0 0;
+  font-size:12px;
+  background:#f0fdf4;
+  color:var(--brand-ink);
+  border:1px solid #d1fae5;
+  border-radius:999px;
+  padding:4px 10px;
 }
-.ppp-card.is-soldout .ppp-media img{ filter:grayscale(100%); opacity:.7 }
 
-.ppp-descwrap{ cursor:pointer }
+/* カテゴリグリッド */
+.ppp-catgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px }
+.ppp-catgrid button{ display:block; width:100%; text-align:left; border:1px solid var(--border); background:#fff; border-radius:10px; padding:10px 12px; font-weight:700; cursor:pointer }
 
-/* === PPP Card SP (<=720px) Overrides — Savepoint 2025-10-16 ================= */
-@media (max-width: 720px){
-  :root{ --btn-h:36px; }
-  /* list: 1 column is assumed externally */
-  .ppp-crumb{ font-size:12px; }
-  .ppp-titlebar{ padding:2px 10px 0; }
-  .ppp-name{ font-size:17px; line-height:1.2; }
-  .ppp-fav{ width:26px; height:26px; }
-
-  /* Image|Info ratio 4:6 for readability */
-  .ppp-mi{ grid-template-columns:4fr 6fr; column-gap:8px; padding:0 10px; }
-
-  .ppp-prenote{ margin-bottom:2px; }
-  .ppp-price{ font-size:18px; text-indent:.5em; }
-  .ppp-unit{ font-size:11px; margin:0 0 4px; }
-
-  .ppp-btn{ font-size:13px; height:var(--btn-h); }
-  .ppp-pill{ font-size:12px; padding:2px 6px; }
-
-  .ppp-desc{ font-size:13px; line-height:1.4; min-height:calc(1.4 * 3 * 1em); }
-  .ppp-more, .morebtn{ height:26px; font-size:12px; color:#6b7280; border-color:#d1d5db; }
-}
+/* scroll-lock */
+html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action:none !important }

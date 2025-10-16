@@ -1,20 +1,27 @@
-
 /** ========= 設定 ========= **/
-const PRODUCTS_URL="https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
-const CUTOVER_HOUR = 2; // ← 26時（=2:00）までは前日扱い
-const FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";   // ← GoogleフォームURL
-let PRODUCTS=[]; let productById=new Map();
-const state={cart:{}, minDateISO:null, selectedDateISO:null, selectedSlot:"14時〜17時", memo:"", agreeStock:false};
+const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
+const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
+const CUTOVER_HOUR = 2; // 26時(=午前2:00)までは前日扱い
+
+let PRODUCTS = [];
+let productById = new Map();
+const state = { cart:{}, minDateISO:null, selectedDateISO:null, selectedSlot:"14時〜17時", memo:"", agreeStock:false };
 
 /** ========= フィルタ状態 ========= **/
 const filterState = { cat:null, subcat:null, sort:'default' };
 const norm = (s)=> String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
 
-/** ========= SP判定（〜420px） ========= **/
-const mqSP = window.matchMedia('(max-width: 480px)');
+/** ========= SP判定 ========= **/
+const mqSP = window.matchMedia('(max-width: 420px)');
 const isSP = () => mqSP.matches;
 
-/** ========= カテゴリボタンのラベル更新（SPは常に固定） ========= **/
+/** ========= ユーティリティ ========= **/
+function yen(n){ try{ return Number(n||0).toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}); }catch(e){ return '¥'+(n||0); } }
+function toJst(d=new Date()){ return new Date(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo'}).format(d)+' '+d.toTimeString().split(' ')[0]); }
+function fmtJP(d){ const w='日月火水木金土'[d.getDay()]; return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}(${w})`; }
+function isoDate(d){ return d.toISOString().slice(0,10); }
+
+/** ========= カテゴリボタンのラベル更新（SPは固定文言） ========= **/
 function updateCategoryButtonLabel(){
   const btn = document.getElementById('btnCategories');
   if(!btn) return;
@@ -26,7 +33,7 @@ function updateCategoryButtonLabel(){
   btn.innerHTML = `カテゴリ: ${label}<span class="x" aria-label="条件クリア" title="条件クリア">×</span>`;
 }
 
-/** ========= カテゴリツリー ========= **/
+/** ========= カテゴリツリー構築 ========= **/
 function buildCatTree(){
   const map=new Map();
   (PRODUCTS||[]).forEach(p=>{
@@ -37,17 +44,13 @@ function buildCatTree(){
     if(s) map.get(k).subs.add(s);
   });
   const arr=[...map.values()].map(v=>({label:v.label, subs:[...v.subs]}));
-  arr.sort((a,b)=>a.label.localeCompare(b.label,'ja')); arr.forEach(x=>x.subs.sort((a,b)=>a.localeCompare(b,'ja')));
+  arr.sort((a,b)=>a.label.localeCompare(b.label,'ja'));
+  arr.forEach(x=>x.subs.sort((a,b)=>a.localeCompare(b,'ja')));
   return arr;
 }
+function buildCatTreeCached(){ if(!buildCatTree._cache){ buildCatTree._cache=buildCatTree(); } return buildCatTree._cache; }
 
-/** ========= ユーティリティ ========= **/
-function yen(n){ try{ return Number(n||0).toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}); }catch(e){ return '¥'+(n||0); } }
-function toJst(d=new Date()){ return new Date(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo'}).format(d)+' '+d.toTimeString().split(' ')[0]); }
-function fmtJP(d){ const y=d.getFullYear(), m=d.getMonth()+1, day=d.getDate(); const w='日月火水木金土'[d.getDay()]; return `${y}/${String(m).padStart(2,'0')}/${String(day).padStart(2,'0')}(${w})`; }
-function isoDate(d){ return d.toISOString().slice(0,10); }
-
-/** ========= 並べ替えロジック ========= **/
+/** ========= 並べ替え ========= **/
 function sortProducts(list){
   const s = filterState.sort || 'default';
   const byNum = (a,b)=> (a||0)-(b||0);
@@ -61,13 +64,11 @@ function sortProducts(list){
   }
 }
 
-/** ========= 最短受取・カート ========= **/
+/** ========= 最短受取関係 ========= **/
 function calcMinDate(){
-  const now=toJst();               // JST
+  const now=toJst();
   const base=new Date(now);
-  if(now.getHours()<CUTOVER_HOUR){ // 2:00までは前日扱い
-    base.setDate(base.getDate()-1);
-  }
+  if(now.getHours()<CUTOVER_HOUR){ base.setDate(base.getDate()-1); }
   const min=new Date(base);
   min.setDate(min.getDate()+1);
   min.setHours(0,0,0,0);
@@ -81,6 +82,15 @@ function renderMinDateEverywhere(){
   if(pill)pill.textContent=`最短受取 ${fmtJP(d)}`;
   if(sp)sp.textContent=fmtJP(d);
 }
+
+/** ========= 「最終更新」ピル ========= **/
+function renderLastUpdated(ts){
+  const el=document.getElementById('lastUpdated'); if(!el) return;
+  const d = ts ? toJst(new Date(ts)) : toJst();
+  el.textContent = '最終更新 ' + fmtJP(d);
+}
+
+/** ========= カート小計 ========= **/
 function totals(){
   const ids=Object.keys(state.cart); let total=0,count=0;
   ids.forEach(id=>{
@@ -103,7 +113,7 @@ function addToCart(p,qty){
   renderCartBar();
 }
 
-/** ========= 受取日候補の生成（最短+20・年末年始除外） ========= **/
+/** ========= 受取日候補 ========= **/
 function buildPickupDateOptions(){
   const min = calcMinDate();
   const opts = [];
@@ -112,7 +122,7 @@ function buildPickupDateOptions(){
     const mm = String(d.getMonth()+1).padStart(2,'0');
     const dd = String(d.getDate()).padStart(2,'0');
     const md = `${mm}-${dd}`;
-    if(md==='12-31' || md==='01-01' || md==='01-02') continue; // 休業日
+    if(md==='12-31' || md==='01-01' || md==='01-02') continue;
     opts.push({ iso: isoDate(d), label: fmtJP(d) });
   }
   return opts;
@@ -134,12 +144,8 @@ function renderProducts(){
     const crumbHTML=[ catLabel?`<a href="#" class="ppp-crumb-link" data-cat="${catLabel}">${catLabel}</a>`:'', subcatLabel?`<a href="#" class="ppp-crumb-link" data-subcat="${subcatLabel}">${subcatLabel}</a>`:'' ].filter(Boolean).join(' › ');
     const vars=[]; if(p.var1Id&&p.var1Label)vars.push({id:String(p.var1Id),label:p.var1Label}); if(p.var2Id&&p.var2Label)vars.push({id:String(p.var2Id),label:p.var2Label});
     const varsHTML=vars.slice(0,2).map(v=>`<button class="ppp-pill" data-var="${v.id}">${v.label}</button>`).join('');
-    
-    // ← まずカード要素を作る
-    const el=document.createElement('article');
-    el.className='ppp-card';
-    el.dataset.id=p.id;
-    if(soldout) el.classList.add('soldout');
+    const el=document.createElement('article'); el.className='ppp-card'; el.dataset.id=p.id;
+    if(soldout){ try{ el.classList.add('is-soldout'); }catch(_){} }
     el.innerHTML=`
       <div class="ppp-crumbrow"><div class="ppp-crumb">${crumbHTML}</div></div>
       <div class="ppp-titlebar"><div class="ppp-name">${p.name||''}</div><button class="ppp-fav" data-fav="${p.id}">♡</button></div>
@@ -167,7 +173,8 @@ function renderProducts(){
 /** ========= データ読込 ========= **/
 async function loadProducts(){
   try{
-    const res=await fetch(PRODUCTS_URL,{cache:'no-store'}); const data=await res.json();
+    const res=await fetch(PRODUCTS_URL,{cache:'no-store'});
+    const data=await res.json();
     PRODUCTS=(data.items||[]).map((x,i)=>({
       id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
       img:x.img||x.imageUrl||'', desc:x.desc||'', prenote:x.prenote||'', unitNote:x.unitNote||'',
@@ -181,11 +188,13 @@ async function loadProducts(){
       _newTS: Date.parse(x.newAt||x.createdAt||x.updatedAt||x.date||'') || 0
     }));
     productById=new Map(PRODUCTS.map(p=>[p.id,p]));
+    buildCatTree._cache = null; // カテゴリキャッシュリセット
     renderProducts(); updateCategoryButtonLabel(); renderSortActive();
-  }catch(e){ console.error(e); }
+    renderLastUpdated(data.updated);
+  }catch(e){ console.error(e); renderLastUpdated(); }
 }
 
-/** ========= 並べ替えUI制御 ========= **/
+/** ========= 並べ替えUI ========= **/
 const sortbar = document.getElementById('sortbar');
 function toggleSortbar(show){
   const on = (show===undefined) ? sortbar.getAttribute('aria-hidden')==='true' : show;
@@ -198,7 +207,7 @@ function renderSortActive(){
   });
 }
 
-/** ========= カートドロワ 制御 ========= **/
+/** ========= カートドロワ ========= **/
 const cartDrawer = document.getElementById('cartDrawer');
 function lockScroll(on){ document.documentElement.classList.toggle('ppp-no-scroll', on); document.body.classList.toggle('ppp-no-scroll', on); }
 function openCartDrawer(){ cartDrawer.setAttribute('aria-hidden','false'); lockScroll(true); renderCartDrawer(); window.addEventListener('keydown',onCartKeydown); }
@@ -219,18 +228,15 @@ function updateProceedDisabled(){
 }
 
 function renderCartDrawer(){
-  // 最短受取の最新を反映
   const d=calcMinDate();
   state.minDateISO=isoDate(d);
   document.getElementById('cartMinDateDrawer').textContent=fmtJP(d);
 
-  // 合計・点数
   const t=totals();
   document.getElementById('cartCountDrawer').textContent=`${t.count}点`;
   document.getElementById('cartTotalDrawer').textContent=yen(t.total);
   document.getElementById('cartTotalFooter').textContent=yen(t.total);
 
-  // 明細（PC 3行2カラム / SP 折返し）
   const wrap=document.getElementById('cartList');
   wrap.innerHTML='';
   const ids=Object.keys(state.cart);
@@ -260,14 +266,12 @@ function renderCartDrawer(){
     });
   }
 
-  // 受取日候補の表示
   const opts = buildPickupDateOptions();
   const sel = document.getElementById('pickupDate');
   if(sel){ sel.innerHTML = opts.map(o=>`<option value="${o.iso}">${o.label}</option>`).join(''); }
   const initial = (state.selectedDateISO && opts.some(o=>o.iso===state.selectedDateISO)) ? state.selectedDateISO : (opts[0]?opts[0].iso:state.minDateISO);
   state.selectedDateISO = initial; if(sel) sel.value = initial;
 
-  // 既存の入力値反映
   document.getElementById('pickupSlot').value = state.selectedSlot;
   document.getElementById('pickupMemo').value = state.memo;
   document.getElementById('agreeStock').checked = !!state.agreeStock;
@@ -275,7 +279,8 @@ function renderCartDrawer(){
   updateProceedDisabled();
 }
 
-// カート行の操作（数量増減／削除）
+/** ========= 各種イベント ========= **/
+// カート中の行ボタン
 document.addEventListener('click',(ev)=>{
   const btn=ev.target.closest('#cartList .btn[data-cart]');
   if(!btn) return;
@@ -293,7 +298,6 @@ document.addEventListener('click',(ev)=>{
 
 // 数量直接入力 & フォーム値
 document.addEventListener('change',(ev)=>{
-  // qty
   const input=ev.target.closest('#cartList .cartqty');
   if(input){
     const row=input.closest('.cartrow'); const id=row?.dataset.id; if(!id) return;
@@ -303,12 +307,11 @@ document.addEventListener('change',(ev)=>{
     renderCartBar(); renderCartDrawer();
     return;
   }
-  // form controls
   if(ev.target.id==='pickupDate'){ state.selectedDateISO = ev.target.value; }
   if(ev.target.id==='pickupSlot'){ state.selectedSlot = ev.target.value; }
   if(ev.target.id==='agreeStock'){ state.agreeStock = ev.target.checked; updateProceedDisabled(); }
 });
-// クリックでも活性化を拾う（環境差対策）
+// クリックでも活性化
 document.addEventListener('click',(ev)=>{
   if(ev.target.id==='agreeStock'){ state.agreeStock = ev.target.checked; updateProceedDisabled(); }
 });
@@ -318,29 +321,24 @@ document.addEventListener('input',(ev)=>{
   if(ev.target.id==='pickupMemo'){ state.memo = ev.target.value; }
 });
 
-// 注文へ進む（最終チェック：2:00跨ぎ検知→更新なら停止）
+// 注文へ進む
 document.getElementById('cartProceed').addEventListener('click',(e)=>{
   e.preventDefault();
   const before = state.minDateISO;
-  renderMinDateEverywhere(); // 最新化（2:00跨ぎ検知）
+  renderMinDateEverywhere();
   const after = state.minDateISO;
   if(before && after && before!==after){
     alert('最短受取日が更新されました：'+after.replaceAll('-','/'));
     renderCartDrawer();
-    return; // 止める
+    return;
   }
-  // 同意チェック
   if(!state.agreeStock){ alert('「商品の確保について（必須）」をご確認のうえチェックしてください。'); return; }
-
-  // 受取日が最短より過去なら置換
   if(state.selectedDateISO && state.selectedDateISO < state.minDateISO){
     state.selectedDateISO = state.minDateISO;
     alert('受取希望日を最短日に更新しました：'+state.minDateISO.replaceAll('-','/'));
     renderCartDrawer();
     return;
   }
-
-  // 注文データ作成
   const order = Object.entries(state.cart).map(([id,qty])=>{
     const p=productById.get(id)||{}; const q=Number(qty||0);
     return { id, name:p.name||'', price:Number(p.price||0), qty:q, subtotal:Number(p.price||0)*q, leadDays:Number(p.leadDays||1) };
@@ -350,27 +348,25 @@ document.getElementById('cartProceed').addEventListener('click',(e)=>{
   const listText = order.map(o=> `${o.name} × ${o.qty} ＝ ${yen(o.subtotal)}`).join('\n');
 
   const params = new URLSearchParams();
-  params.set('entry.1515941336', state.selectedDateISO); // 受取希望日(ISO)
-  params.set('entry.224243122', state.minDateISO);        // システム最短受取日(ISO)
-  params.set('entry.145233294', state.selectedSlot);      // 受け取り時間帯（日本語ラベル）
-  params.set('entry.907378750', state.memo);              // 備考
-  params.set('entry.1286573866', listText);               // 注文商品一覧（人間可読）
-  params.set('entry.1040973575', JSON.stringify({items:order, totalCount:t.count, totalPrice:t.total})); // 取り込み用JSON
+  params.set('entry.1515941336', state.selectedDateISO);
+  params.set('entry.224243122', state.minDateISO);
+  params.set('entry.145233294', state.selectedSlot);
+  params.set('entry.907378750', state.memo);
+  params.set('entry.1286573866', listText);
+  params.set('entry.1040973575', JSON.stringify({items:order, totalCount:t.count, totalPrice:t.total}));
 
   const url = FORM_BASE + '?' + params.toString();
   window.open(url, '_blank');
 });
 
-/** ========= クリック系 ========= **/
+// 追加・あとで・メニュー・ソート
 document.addEventListener('click',ev=>{
   const add=ev.target.closest('.ppp-btn.add[data-add]'); if(add){ ev.preventDefault(); const p=productById.get(add.dataset.add); if(p) addToCart(p,1); }
   const later=ev.target.closest('.ppp-btn[data-later]'); if(later){ ev.preventDefault(); const key='later:'+later.dataset.later; const set=(localStorage.getItem(key)==='1'?'0':'1'); localStorage.setItem(key,set); later.textContent=set==='1'?'あとで済':'あとで'; }
   if(ev.target.closest('#menuRightAction')){ ev.preventDefault(); openCartDrawer(); }
   if(ev.target.closest('#checkoutBtn2')){ ev.preventDefault(); openCartDrawer(); }
 
-  // 並べ替えトグル
   if(ev.target.closest('#btnSort')){ ev.preventDefault(); toggleSortbar(); return; }
-  // 並べ替え選択
   const sortBtn = ev.target.closest('.sortbtn[data-sort]');
   if(sortBtn){
     ev.preventDefault();
@@ -380,12 +376,10 @@ document.addEventListener('click',ev=>{
     toggleSortbar(false);
     return;
   }
-  // sortbar外クリックで閉じる
   if(sortbar.getAttribute('aria-hidden')==='false' && !ev.target.closest('#sortbar') && !ev.target.closest('#btnSort')){
     toggleSortbar(false);
   }
 
-  // パンくずリンク（カード内）→ フィルタ
   const crumb = ev.target.closest('.ppp-crumb-link');
   if(crumb){
     ev.preventDefault();
@@ -402,7 +396,6 @@ document.addEventListener('click',ev=>{
     return;
   }
 
-  // すべて
   if(ev.target.closest('#btnAll')){
     ev.preventDefault();
     filterState.cat=null; filterState.subcat=null;
@@ -411,12 +404,10 @@ document.addEventListener('click',ev=>{
     return;
   }
 
-  // カテゴリボタン → ドロワーOPEN（×を除く）
   if(ev.target.closest('#btnCategories') && !ev.target.closest('#btnCategories .x')){
     ev.preventDefault(); openDrawer(); return;
   }
 
-  // カテゴリボタン内の × で条件クリア
   const clearX = ev.target.closest('#btnCategories .x');
   if(clearX){
     ev.preventDefault();
@@ -427,12 +418,14 @@ document.addEventListener('click',ev=>{
   }
 });
 
-/** ========= カテゴリドロワ 制御 ========= **/
+/** ========= カテゴリドロワ ========= **/
 const drawer = document.getElementById('catDrawer');
 document.querySelector('#catDrawer .ppp-drawer__scrim')?.addEventListener('click', (e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeDrawer(); });
 const titleEl= document.getElementById('catDrawerTitle');
 const backBtn= document.getElementById('catDrawerBack');
 const grid   = document.getElementById('catDrawerGrid');
+let CURRENT = { cat:null, sub:null };
+
 function openDrawer(){ drawer.setAttribute('aria-hidden','false'); lockScroll(true); titleEl.textContent='カテゴリを選ぶ'; backBtn.style.visibility='hidden'; renderCategories(); window.addEventListener('keydown',onKeydown); }
 function closeDrawer(){ drawer.setAttribute('aria-hidden','true'); lockScroll(false); window.removeEventListener('keydown',onKeydown); }
 function onKeydown(e){ if(e.key==='Escape') closeDrawer(); }
@@ -440,7 +433,7 @@ document.getElementById('catDrawerClose')?.addEventListener('click', closeDrawer
 document.getElementById('catDrawerBack')?.addEventListener('click', ()=>{ titleEl.textContent='カテゴリを選ぶ'; backBtn.style.visibility='hidden'; renderCategories(); });
 document.getElementById('catDrawerClear')?.addEventListener('click', ()=>{ CURRENT={cat:null,sub:null}; filterState.cat=null; filterState.subcat=null; updateCategoryButtonLabel(); renderProducts(); closeDrawer(); });
 document.getElementById('catDrawerApply')?.addEventListener('click', applyCurrentAndClose);
-let CURRENT = { cat:null, sub:null };
+
 function renderCategories(){
   grid.innerHTML='';
   const list=buildCatTreeCached();
@@ -474,7 +467,6 @@ function applyCurrentAndClose(){
   filterState.subcat = CURRENT.sub ? CURRENT.sub.label : null;
   updateCategoryButtonLabel(); renderProducts(); closeDrawer();
 }
-function buildCatTreeCached(){ if(!buildCatTree._cache){ buildCatTree._cache=buildCatTree(); } return buildCatTree._cache; }
 
 /** ========= 初期化 ========= **/
 (function init(){
@@ -483,14 +475,3 @@ function buildCatTreeCached(){ if(!buildCatTree._cache){ buildCatTree._cache=bui
   renderCartBar();
   loadProducts();
 })();
-
-// 全体説明エリアのクリック（将来の詳細ドロワー用フック）
-document.addEventListener('click', (ev)=>{
-  const wrap = ev.target.closest('.ppp-descwrap');
-  if(wrap){
-    ev.preventDefault();
-    const id = wrap.getAttribute('data-detail');
-    console.log('[detail] card id:', id);
-    // TODO: 詳細ドロワーを実装したらここから開く
-  }
-});
