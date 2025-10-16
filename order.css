@@ -339,3 +339,21 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   #topProgress.on::before{ animation:none }
   .ppp-card{ animation:none; opacity:1 }
 }
+
+/* ===== Variant Mode Bar ===== */
+.variantbar{ display:none; background:#fff; border-bottom:1px solid var(--border) }
+.variantbar[aria-hidden="false"]{ display:block }
+.variantbar-in{
+  max-width:var(--wrap); margin:0 auto; padding:8px 16px;
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.variantbar .lbl{ font-size:12px; color:#64748b }
+.variantbar .title{ font-weight:800 }
+.mini-btn,.mini-x{
+  appearance:none; border:1px solid var(--border); background:#fff; border-radius:999px;
+  padding:4px 10px; cursor:pointer; font-weight:700; font-size:12px;
+}
+.mini-btn:active,.mini-x:active{ transform:translateY(1px) }
+
+/* 選択中カードの軽ハイライト */
+.ppp-card.is-selected{ box-shadow:0 0 0 2px #bbf7d0 inset; border-color:#86efac }
