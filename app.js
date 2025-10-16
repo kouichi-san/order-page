@@ -154,7 +154,8 @@ async function loadProducts(){
     PRODUCTS = (data.items||[]).map((x,i)=>({
       id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
       img:x.img||x.imageUrl||'', desc:x.desc||'',
-      prenote:x.prenote||'', unitNote:x.unitNote||'',
+      prenote: pick(x, ['prenote','preNote','pre_note','pre','badge','note1']),
+      unitNote: pick(x, ['unitNote','unit_note','unit','unitDesc']),
       catGroup:x.catGroup||x.cat||'', subcatGroup:x.subcatGroup||'',
       var1Id:x.var1Id||'', var1Label:x.var1Label||'',
       var2Id:x.var2Id||'', var2Label:x.var2Label||'',
