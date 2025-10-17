@@ -14,74 +14,14 @@
     </div>
   </header>
 
-  <!-- 説明 -->
-  <main class="wrap">
-    <section class="section">
-      <h1 style="margin:.2em 0 0">翌日以降受取予約注文</h1>
-      <p style="color:#6b7280; font-size:14px; margin:.3em 0 0">
-        本ページは「取り置き予約（店頭受け取り）」の受付です。オンライン決済は行いません。お支払いは受け取り時に店頭にて。
-      </p>
-    </section>
-  </main>
-
-  <!-- ===== メニューバー ===== -->
-  <nav class="menubar">
-    <div class="wrap menubar-in">
-      <button class="menu-pill" id="btnAll">すべて</button>
-      <button class="menu-pill" id="btnCategories" aria-haspopup="dialog" aria-controls="catDrawer">カテゴリ</button>
-      <button class="menu-pill" id="btnSort" aria-controls="sortbar" aria-expanded="false">並べ替え</button>
-      <div class="menu-right">
-        <div id="menuRightAction" class="menu-pill">カートを見る</div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 並べ替えオプションバー -->
-  <div id="sortbar" class="sortbar" aria-hidden="true">
-    <div class="sortbar-in">
-      <div class="lbl">並べ替え:</div>
-      <button class="sortbtn" data-sort="default">おすすめ</button>
-      <button class="sortbtn" data-sort="price_asc">価格（安い順）</button>
-      <button class="sortbtn" data-sort="price_desc">価格（高い順）</button>
-      <button class="sortbtn" data-sort="popular">人気</button>
-      <button class="sortbtn" data-sort="new">新着</button>
-    </div>
-  </div>
-
-  <!-- バリエーション表示バー -->
-  <div id="variantbar" class="variantbar" aria-hidden="true">
-    <div class="variantbar-in">
-      <button id="variantBack" class="mini-btn" aria-label="一覧に戻る">◀ 一覧に戻る</button>
-      <div class="lbl">バリエーション表示中：</div>
-      <div id="variantTitle" class="title">—</div>
-      <button id="variantClose" class="mini-x" aria-label="解除">×</button>
-    </div>
-  </div>
-
-
-  <!-- ===== 商品グリッド（カード部分はノータッチ） ===== -->
-  <main class="wrap">
-    <section id="productGrid" class="ppp-grid"></section>
-
-    <section class="section">
-      <p style="color:#9ca3af;font-size:13px;margin:24px 0 16px">
-        写真はイメージ／価格は税込。入荷状況により数量調整のご相談をすることがあります。
-      </p>
-      <!-- ※ 最終更新ピルは削除済み -->
-    </section>
-  </main>
-
-  <!-- ===== 固定フッター（カートバー） ===== -->
-  <div class="cart" id="cartBar">
-    <div class="wrap">
-      <div class="cart-box">
-        <div class="cart-left"><span class="inline-pill" id="cartMinDateInline">最短受取 —</span></div>
-        <div class="lbl-min">最短受取日</div>
-        <div class="count" id="cartCount">0点</div>
-        <div class="val-date" id="cartMinDate">—</div>
-        <div class="total" id="cartTotal">¥0</div>
-        <button class="btn-cart" id="checkoutBtn2">カート</button>
-      </div>
+  <!-- ===== ステータスバー（PCのみ） ===== -->
+  <div class="statusbar">
+    <div class="wrap statusbar-in">
+      <div class="latest muted">最短受取 <span id="minDate">—</span></div>
+      <div class="spacer"></div>
+      <div class="count"><span>点数</span> <strong id="cartCount">0</strong></div>
+      <div class="total" id="cartTotal">¥0</div>
+      <button class="btn-cart" id="checkoutBtn2">カート</button>
     </div>
   </div>
 
@@ -91,10 +31,9 @@
     <section class="ppp-drawer__panel" role="document" aria-labelledby="catDrawerTitle">
       <div class="ppp-drawer__bar">
         <button class="ppp-iconbtn" id="catDrawerBack" title="戻る" aria-label="戻る" style="visibility:hidden">←</button>
-        <div class="ppp-drawer__title" id="catDrawerTitle">カテゴリを選ぶ</div>
+        <div class="ppp-drawer__title" id="catDrawerTitle">カテゴリ</div>
         <button class="ppp-iconbtn" id="catDrawerClose" title="閉じる" aria-label="閉じる">✕</button>
       </div>
-      <div class="ppp-chips" id="catDrawerChips" aria-live="polite"></div>
       <div class="ppp-listwrap"><div class="ppp-listpad"><div id="catDrawerGrid" class="ppp-catgrid" role="list"></div></div></div>
       <div class="ppp-drawer__footer">
         <button id="catDrawerClear" class="ppp-btn neutral">クリア</button>
@@ -114,8 +53,6 @@
       </div>
       <div class="ppp-chips" style="border-bottom:1px dashed #eef2f7">
         <span class="ppp-chip">最短受取 <strong id="cartMinDateDrawer">—</strong></span>
-        <span class="ppp-chip">点数 <strong id="cartCountDrawer">0点</strong></span>
-        <span class="ppp-chip">合計 <strong id="cartTotalDrawer">¥0</strong></span>
       </div>
       <div class="ppp-listwrap"><div class="ppp-listpad">
         <div id="cartList" class="cartlist"></div>
@@ -141,19 +78,27 @@
           </div>
           <div class="agrees">
             <label><input type="checkbox" id="agreePay"> <span>お支払いについて：お会計は店舗で精算となります。利用できる支払い手段は店頭と同様です。</span></label>
-            <label><input type="checkbox" id="agreeStock"> <span>商品の確保について（必須）：コストコ店頭に在庫がない場合があります。本注文は商品提供の確約ではありません。</span></label>
+            <label><input type="checkbox" id="agreeStock"> <span>在庫確保について（必須）：コストコ店頭に在庫がない場合があります。本注文は商品提供の確約ではありません。</span></label>
             <div class="carthelp">※ この項目がチェックされるまで「注文へ進む」は無効</div>
           </div>
         </div>
       </div></div>
       <div class="ppp-drawer__footer">
         <div class="cart-footer" style="width:100%">
-          <!-- 注記を削除し、合計のみ（左）＋ボタン群（右寄せ） -->
-          <div class="cart-sum" style="margin-right:auto;display:flex;flex-direction:column;gap:4px">
-            <div class="total" id="cartTotalFooter" style="font-weight:900;font-size:18px">¥0</div>
+          <div class="sumcount">
+            <div class="lbl">合計点数</div>
+            <div class="val" id="cartCountFooter">0点</div>
           </div>
-          <button id="cartDrawerCancel" class="ppp-btn neutral" style="height:var(--btn-h)">戻る</button>
-          <button id="cartProceed" class="ppp-btn primary is-disabled" style="height:var(--btn-h)" disabled aria-disabled="true">注文へ進む</button>
+          <div class="sumtotal">
+            <div class="lbl">合計金額</div>
+            <div class="val total" id="cartTotalFooter">¥0</div>
+          </div>
+          <div class="actions-back">
+            <button id="cartDrawerCancel" class="ppp-btn neutral" style="height:var(--btn-h)">戻る</button>
+          </div>
+          <div class="actions-next">
+            <button id="cartProceed" class="ppp-btn primary is-disabled" style="height:var(--btn-h)" disabled aria-disabled="true">注文へ進む</button>
+          </div>
         </div>
       </div>
     </section>
