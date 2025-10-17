@@ -399,8 +399,8 @@ function renderCartDrawer(){
 
   document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(fmtJP(toJst(new Date(state.minDateISO)))));
   const t = totals();
-  document.getElementById('cartCountDrawer')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
-  document.getElementById('cartTotalDrawer')?.replaceChildren(document.createTextNode(yen(t.total||0)));
+  document.getElementById('cartCountFooter')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
+  document.getElementById('cartTotalFooter')?.replaceChildren(document.createTextNode(yen(t.total||0)));
 
   const list = document.getElementById('cartList');
   if(list){
@@ -668,8 +668,30 @@ document.getElementById('catDrawerApply')?.addEventListener('click',(e)=>{
 
 /* === PPP Core Contract (SP-20251017-SPCartDrawer-1) === */
 window.PPP = window.PPP || {};
-(function (PPP) {
-  "use strict";
+(function(PPP){
+  PPP = PPP || (window.PPP = window.PPP || {});
+  PPP.util = PPP.util || {};
+  PPP.util.toYen = PPP.util.toYen || (n => n.toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}));
+
+  PPP.patch = PPP.patch || {};
+  PPP.patch.cartFooter = function(){
+    var elCnt = document.getElementById('cartCountFooter');
+    var elTot = document.getElementById('cartTotalFooter');
+    if(!elCnt || !elTot) return;
+    var count = 0, total = 0;
+    // 既存のカート配列/DOMから集計（環境に合わせて片方だけでOK）
+    if (PPP.cart && Array.isArray(PPP.cart.items)) {
+      PPP.cart.items.forEach(it => { count += (it.qty||0); total += (it.price||0) * (it.qty||0); });
+    } else {
+      document.querySelectorAll('#cartList .cartrow').forEach(row=>{
+        var qty = +(row.querySelector('[data-qty]')?.value || row.querySelector('.qtybar input')?.value || 0);
+        var price = +(row.getAttribute('data-price') || row.querySelector('[data-price]')?.textContent?.replace(/[^0-9]/g,'') || 0);
+        count += qty; total += price * qty;
+      });
+    }
+    elCnt.textContent = count + '点';
+    elTot.textContent = PPP.util.toYen(total);
+  };
 
   /* [LOCKED] セレクタ契約（改名は仕様から） */
   const SEL = Object.freeze({
@@ -746,5 +768,7 @@ window.PPP = window.PPP || {};
       }
     };
   })();
-
+  
+  // 初期・変更時に都度更新
+  document.addEventListener('DOMContentLoaded', PPP.patch.cartFooter);
 })(window.PPP);

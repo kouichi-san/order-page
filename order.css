@@ -230,7 +230,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 
 /* --- 右寄せFIX：フッター内だけ .ppp-btn の flex:1 を無効化 --- */
 .ppp-drawer__footer .ppp-btn{ flex:0 0 auto }  /* ← これが効かないと右寄せできない */
-.cart-footer{ display:flex; align-items:center; justify-content:flex-end; gap:10px }
+/* .cart-footer{ display:flex; align-items:center; justify-content:flex-end; gap:10px } */
 .cart-footer .cart-sum{ margin-right:auto }
 
 /* ===== カート中身・フォーム（PCの基本並び） ===== */
