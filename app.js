@@ -371,7 +371,6 @@ function renderCartBar(){
 }
 function renderCartFooterTotals(){
   const t = totals();
-  document.getElementById('cartCountFooter')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
   document.getElementById('cartTotalFooter')?.replaceChildren(document.createTextNode(yen(t.total||0)));
 }
 
@@ -400,7 +399,9 @@ function renderCartDrawer(){
 
   document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(fmtJP(toJst(new Date(state.minDateISO)))));
   const t = totals();
-    
+  document.getElementById('cartCountDrawer')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
+  document.getElementById('cartTotalDrawer')?.replaceChildren(document.createTextNode(yen(t.total||0)));
+
   const list = document.getElementById('cartList');
   if(list){
     if(t.items.length===0){
@@ -427,7 +428,8 @@ function renderCartDrawer(){
                 <button class="btn warn" data-cart="rm">削除</button>
               </div>
             </div>
-            </div>`;
+            <div class="totalline">${yen(it.price*it.qty)}</div>
+          </div>`;
       }).join('');
     }
   }
