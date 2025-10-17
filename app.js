@@ -677,7 +677,7 @@ window.PPP = window.PPP || {};
     list:   '#cartList',
     footer: '.ppp-drawer__footer',
     checkout: '#checkoutBtn2',
-    spGuardNodes: ['.cartrow', '.rowline', '.g2', '.qtybar'] // SP行構成の必須ノード
+    spGuardNodes: ['.rowline', '.g2', '.qtybar'] // SP行構成の必須ノード
   });
 
   /* [LOCKED] 超軽量ガード（自動テストじゃなく“鳴る”仕組み） */
@@ -689,16 +689,17 @@ window.PPP = window.PPP || {};
     const issues = [];
     if (missing.length) issues.push(`Missing nodes → ${missing.join(', ')}`);
 
-    const list = document.querySelector(SEL.list);
-    if (list && list.children.length) {
-      // カート行がある時だけSP構造を軽くチェック
-      const item = list.querySelector('.cartrow');
-      if (item) {
-        SEL.spGuardNodes.forEach(s => {
-          if (!item.querySelector(s)) issues.push(`SP構造NG → ${s}`);
-        });
-      }
+  const list = document.querySelector(SEL.list);
+  if (list) {
+    const firstRow = list.querySelector('.cartrow');
+    if (!firstRow) {
+      issues.push('SP構造NG → .cartrow');     // 行が1つも無い
+    } else {
+      SEL.spGuardNodes.forEach(s => {
+        if (!firstRow.querySelector(s)) issues.push(`SP構造NG → ${s}`);
+      });
     }
+  }
 
     showBadge(issues);
   }
