@@ -26,7 +26,25 @@
 @layer components {
   /* SPカートドロワのレイアウト（確定仕様） */
   .ppp-cartdrawer{ display:grid; /* 既存に合わせる */ }
-  /* ・・・既存の“確定仕様”CSSをここへ寄せる・・・ */
+  .cart-footer{
+    display:grid;
+    grid-template-columns:auto auto 1fr auto;
+    align-items:center;
+    gap:6px;
+    padding:8px 10px;
+    width:100%;
+    background:#f8fafc; /* 既存のドロワフッター色に合わせるなら削除可 */
+    border-top:1px solid var(--border);
+  }
+  .cart-footer .sumcount,
+  .cart-footer .sumtotal{
+    line-height:1.1;
+  }
+  .cart-footer .actions-back .ppp-btn,
+  .cart-footer .actions-next .ppp-btn{
+    height:var(--btn-h,44px);
+    white-space:nowrap;
+  }
 }
 
 /* 例：ユーティリティ（小さな補助、safe） */
@@ -37,7 +55,21 @@
 
 /* 例：最終上書き（緊急パッチ枠のみ） */
 @layer overrides {
-  /* 原則ここは空。やむを得ない時だけ1行ずつ。 */
+  .cart-footer .sumcount .lbl,
+  .cart-footer .sumtotal .lbl{
+    font-size:11px;
+    color:var(--muted,#64748b);
+  }
+  .cart-footer .sumcount .val{
+    font-weight:800;
+    text-align:center; /* 合計点数ラベルと値を中央寄せ */
+  }
+  .cart-footer .sumtotal .val{
+    font-weight:800;
+  }
+  @media (min-width:768px){
+    .cart-footer{ gap:12px; padding:10px 16px; }
+  }
 }
 
 @layer components {

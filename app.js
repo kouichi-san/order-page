@@ -377,7 +377,7 @@ function renderCartFooterTotals(){
 /** ========= カートドロワ ========= **/
 const cartDrawer = document.getElementById('cartDrawer');
 function lockScroll(on){ document.documentElement.classList.toggle('ppp-no-scroll', on); document.body.classList.toggle('ppp-no-scroll', on); }
-function openCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','false'); lockScroll(true); renderCartDrawer(); window.addEventListener('keydown',onCartKeydown); PPP.guard.run();}
+function openCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','false'); lockScroll(true); renderCartDrawer(); window.addEventListener('keydown',onCartKeydown); PPP.guard.run(); PPP.guard.run && PPP.guard.run(); PPP.patch.cartFooter();}
 function closeCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','true');  lockScroll(false); window.removeEventListener('keydown',onCartKeydown); }
 function onCartKeydown(e){ if(e.key==='Escape') closeCartDrawer(); }
 document.querySelector('#cartDrawer .ppp-drawer__scrim')?.addEventListener('click',(e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeCartDrawer(); });
@@ -428,7 +428,6 @@ function renderCartDrawer(){
                 <button class="btn warn" data-cart="rm">削除</button>
               </div>
             </div>
-            <div class="totalline">${yen(it.price*it.qty)}</div>
           </div>`;
       }).join('');
     }
@@ -768,7 +767,7 @@ window.PPP = window.PPP || {};
       }
     };
   })();
-  
+
   // 初期・変更時に都度更新
   document.addEventListener('DOMContentLoaded', PPP.patch.cartFooter);
 })(window.PPP);
