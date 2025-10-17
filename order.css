@@ -2,10 +2,45 @@
    order.css  (2025-10-16 完全版)
    - PC/SP共通：フッターの「戻る／注文へ進む」右寄せ fix
    - SPカート行：商品名は上段、画像は行2〜4ぶち抜き
-                  右列は [単価 → 数量 → 削除] の3行、最下段に合計(右)
+                  右列は [単価 → 数量 → 削除] の3行、行5（合計）は表示しない
    - 文面変更はHTML側（「連絡欄」など）で対応済み／本CSSは見た目のみ
    ===================================================================== */
 
+/* === CSS Layers (固定) === */
+@layer reset, base, components, utilities, overrides;
+
+/* 例：ブラウザ初期化 */
+@layer reset {
+  /* normalize等があればここ */
+}
+
+/* 例：共通トークン/タイポ/色 */
+@layer base {
+  :root{
+    --col-gap: 16px;
+    --sp-cart-left-col: 25%; /* SPドロワ左列の幅：調整はここだけ */
+  }
+}
+
+/* 例：コンポーネント本体（触るな危険ゾーン） */
+@layer components {
+  /* SPカートドロワのレイアウト（確定仕様） */
+  .ppp-cartdrawer{ display:grid; /* 既存に合わせる */ }
+  /* ・・・既存の“確定仕様”CSSをここへ寄せる・・・ */
+}
+
+/* 例：ユーティリティ（小さな補助、safe） */
+@layer utilities {
+  .u-right { text-align: right; }
+  .u-hide  { display: none !important; }
+}
+
+/* 例：最終上書き（緊急パッチ枠のみ） */
+@layer overrides {
+  /* 原則ここは空。やむを得ない時だけ1行ずつ。 */
+}
+
+@layer components {
 /* ===== CSS変数・ベース ===== */
 :root{
   --bg:#fafafa;
@@ -223,7 +258,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 @media (max-width:420px){
   .cartrow{
     display:grid;
-    grid-template-columns:25% 1fr;        /* 左列=画像(25%) / 右列=情報 */
+    grid-template-columns:var(--sp-cart-left-col) 1fr; /* ← baseレイヤの変数を実際に使用 */
     grid-template-rows:auto auto auto auto auto;
     column-gap:8px; align-items:start;
   }
@@ -359,3 +394,5 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
 
 /* 選択中カードの軽ハイライト */
 .ppp-card.is-selected{ box-shadow:0 0 0 2px #bbf7d0 inset; border-color:#86efac }
+
+}

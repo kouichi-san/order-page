@@ -377,7 +377,7 @@ function renderCartFooterTotals(){
 /** ========= カートドロワ ========= **/
 const cartDrawer = document.getElementById('cartDrawer');
 function lockScroll(on){ document.documentElement.classList.toggle('ppp-no-scroll', on); document.body.classList.toggle('ppp-no-scroll', on); }
-function openCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','false'); lockScroll(true); renderCartDrawer(); window.addEventListener('keydown',onCartKeydown); }
+function openCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','false'); lockScroll(true); renderCartDrawer(); window.addEventListener('keydown',onCartKeydown); PPP.guard.run();}
 function closeCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','true');  lockScroll(false); window.removeEventListener('keydown',onCartKeydown); }
 function onCartKeydown(e){ if(e.key==='Escape') closeCartDrawer(); }
 document.querySelector('#cartDrawer .ppp-drawer__scrim')?.addEventListener('click',(e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeCartDrawer(); });
@@ -665,3 +665,87 @@ document.getElementById('catDrawerApply')?.addEventListener('click',(e)=>{
   document.getElementById('sortbar')?.setAttribute('aria-hidden','true');
   loadProducts();
 })();
+
+/* === PPP Core Contract (SP-20251017-SPCartDrawer-1) === */
+window.PPP = window.PPP || {};
+(function (PPP) {
+  "use strict";
+
+  /* [LOCKED] セレクタ契約（改名は仕様から） */
+  const SEL = Object.freeze({
+    drawer: '#cartDrawer',
+    list:   '#cartList',
+    footer: '.ppp-drawer__footer',
+    checkout: '#checkoutBtn2',
+    spGuardNodes: ['.cartrow', '.rowline', '.g2', '.qtybar'] // SP行構成の必須ノード
+  });
+
+  /* [LOCKED] 超軽量ガード（自動テストじゃなく“鳴る”仕組み） */
+  function runGuard() {
+    const missing = Object.entries(SEL)
+      .filter(([k, s]) => typeof s === 'string' && !document.querySelector(s))
+      .map(([k, s]) => `${k}:${s}`);
+
+    const issues = [];
+    if (missing.length) issues.push(`Missing nodes → ${missing.join(', ')}`);
+
+    const list = document.querySelector(SEL.list);
+    if (list && list.children.length) {
+      // カート行がある時だけSP構造を軽くチェック
+      const item = list.querySelector('.cartrow');
+      if (item) {
+        SEL.spGuardNodes.forEach(s => {
+          if (!item.querySelector(s)) issues.push(`SP構造NG → ${s}`);
+        });
+      }
+    }
+
+    showBadge(issues);
+  }
+
+  /* [LOCKED] 画面で知らせる小さなバッジ */
+  function showBadge(issues) {
+    let badge = document.querySelector('.ppp-dev-badge');
+    if (!badge) {
+      badge = document.createElement('button');
+      badge.className = 'ppp-dev-badge';
+      badge.type = 'button';
+      badge.style.cssText =
+        'position:fixed;top:8px;right:8px;z-index:9999;padding:.4em .7em;border-radius:9999px;font:12px/1.2 system-ui;color:#fff;background:#ef4444;border:0;box-shadow:0 1px 6px rgba(0,0,0,.2);';
+      badge.title = 'Dev check';
+      document.body.appendChild(badge);
+    }
+    if (issues.length) {
+      badge.hidden = false;
+      badge.textContent = `CHECK ${issues.length}`;
+      badge.onclick = () => alert(issues.join('\n'));
+      console.warn('[PPP-DEV]', issues);
+    } else {
+      badge.hidden = true;
+    }
+  }
+
+  /* [API] 公開：任意のタイミングで再チェックできるように */
+  PPP.guard = { run: runGuard };
+
+  /* 初期化：DOMContentLoaded + カート変化で再チェック */
+  document.addEventListener('DOMContentLoaded', runGuard);
+  document.addEventListener('DOMContentLoaded', () => {
+    const target = document.querySelector(SEL.list);
+    if (target) {
+      const mo = new MutationObserver(runGuard);
+      mo.observe(target, { childList: true, subtree: true });
+    }
+  });
+
+  /* [PATCH] 今日の小修正はここだけで完結させる */
+  PPP.patch = (function () {
+    return {
+      // 例：カート追加後に自動でドロワを開かない仕様の再確認
+      ensureNoAutoOpen() {
+        // 既存のイベントがあればここで無効化/上書き（idempotentに）
+      }
+    };
+  })();
+
+})(window.PPP);
