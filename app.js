@@ -689,17 +689,15 @@ window.PPP = window.PPP || {};
     const issues = [];
     if (missing.length) issues.push(`Missing nodes → ${missing.join(', ')}`);
 
+  // --- SPカート構造チェックは「行が存在する時だけ」実施 ---
   const list = document.querySelector(SEL.list);
-  if (list) {
-    const firstRow = list.querySelector('.cartrow');
-    if (!firstRow) {
-      issues.push('SP構造NG → .cartrow');     // 行が1つも無い
-    } else {
-      SEL.spGuardNodes.forEach(s => {
-        if (!firstRow.querySelector(s)) issues.push(`SP構造NG → ${s}`);
-      });
-    }
+  const firstRow = list && list.querySelector('.cartrow');
+  if (firstRow) {
+    SEL.spGuardNodes.forEach(s => {
+      if (!firstRow.querySelector(s)) issues.push(`SP構造NG → ${s}`);
+    });
   }
+
 
     showBadge(issues);
   }
