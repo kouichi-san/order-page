@@ -45,6 +45,32 @@
     height:var(--btn-h,44px);
     white-space:nowrap;
   }
+    .cart-footer{
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    width: 100%;
+    background: var(--drawer-bg, #f8fafc);
+    /* 水平線は親で消すのでここでは付けない */
+  }
+  .cart-footer .sumcount,
+  .cart-footer .sumtotal { line-height: 1.1; }
+
+  /* 合計点数ブロックのセンタリングを崩さない（フォント差が出ても中央） */
+  .cart-footer .sumcount { text-align: center; }
+
+  /* 値のタイポを統一（PC/SP共通）。clampで端末差を吸収 */
+  .cart-footer .sumcount .val,
+  .cart-footer .sumtotal .val {
+    font-weight: 800;
+    font-size: clamp(14px, 2.3vw, 18px);
+  }
+
+  /* 右2カラムは右寄せ固定 */
+  .cart-footer .actions-back { justify-self: end; }
+  .cart-footer .actions-next { justify-self: end; }
 }
 
 /* 例：ユーティリティ（小さな補助、safe） */
@@ -67,6 +93,8 @@
   .cart-footer .sumtotal .val{
     font-weight:800;
   }
+  .cart-footer .actions-back{ justify-self: end; }
+  .cart-footer .actions-next{ justify-self: end; }
   @media (min-width:768px){
     .cart-footer{ gap:12px; padding:10px 16px; }
   }
@@ -251,7 +279,7 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-chip{ font-size:12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:999px; padding:4px 8px }
 .ppp-listwrap{ overflow:auto; -webkit-overflow-scrolling:touch }
 .ppp-listpad{ padding:10px 12px 16px }
-.ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:#fafafa }
+.ppp-drawer__footer{ display:flex; gap:10px; padding:10px 14px; background:#fafafa }
 
 /* ドロワーボタン（グローバル） */
 .ppp-btn{ flex:1 } /* ← 他所で使う場合があるので残す */
