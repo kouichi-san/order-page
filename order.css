@@ -1,73 +1,81 @@
 /* =====================================================================
-   order.css  (Stage A：SPタイトルぶち抜き＋PC/SP別フッター)
+   order.css — 修正版（ブランド棒 / スケルトン / 200msバー / ドロワーSP行割り）
    ===================================================================== */
-
 :root{
   --bg:#fafafa;
-  --ink:#1f2937;
+  --ink:#111827;
   --muted:#6b7280;
-  --brand:#10b981;
-  --brand-ink:#064e3b;
+  --brand:#10b981;         /* 緑の飾り棒の色 */
   --border:#e5e7eb;
   --wrap:1080px;
   --btn-h:44px;
 }
 
 html,body{ height:100% }
-body{ margin:0; color:var(--ink); background:var(--bg); font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; }
+body{ margin:0; color:var(--ink); background:var(--bg); font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif }
 
-/* --- ラッパー --- */
+/* ===== ヘッダー（ブランド名＋緑棒） ===== */
 .wrap{ max-width:var(--wrap); margin:0 auto; padding:0 16px }
-.header-in{ display:flex; align-items:center; height:56px }
-.brand{ font-weight:900 }
+.ppp-header .header-in{ display:flex; align-items:center; height:60px }
+.brand{ font-weight:900; font-size:18px; display:flex; align-items:center; gap:10px }
+.brand-bar{ display:inline-block; width:6px; height:18px; background:var(--brand); border-radius:4px }
 
-/* --- カート下部バー（既存想定のベース） --- */
+.page-title{ margin:.2em 0 0; font-size:28px }
+.page-lead{ color:var(--muted); font-size:14px; margin:.3em 0 0 }
+.inline-min{ margin:.8rem 0 }
+
+.inline-pill{ display:inline-block; padding:4px 8px; background:#f1f5f9; border-radius:999px; font-size:12px }
+
+/* ===== プログレスバー（200ms以上で表示） ===== */
+.top-progress{ position:sticky; top:0; left:0; right:0; height:3px; background:transparent; z-index:40 }
+.top-progress .bar{ height:3px; width:0%; background:var(--brand); transition:width .3s ease }
+.top-progress[active] .bar{ width:85% }
+.top-progress[done] .bar{ width:100% }
+
+/* ===== 商品グリッド・カード（最小構成） ===== */
+.grid.products{ display:grid; grid-template-columns:1fr; gap:12px }
+@media (min-width:768px){ .grid.products{ grid-template-columns:1fr 1fr } }
+
+.card{ border:1px solid var(--border); background:#fff; border-radius:12px; overflow:hidden }
+.card .ph{ background:#f3f4f6; aspect-ratio:4/3; display:block; width:100%; }
+.card .pad{ padding:10px }
+.card .name{ font-weight:800; font-size:16px; line-height:1.3; margin:2px 0 6px }
+.card .price{ font-weight:900; text-align:right; font-size:16px }
+.card .act{ display:flex; justify-content:flex-end; padding:10px; gap:8px }
+.card .btn{ height:36px; border-radius:10px; border:1px solid var(--border); background:#fff; padding:0 12px; font-weight:800; cursor:pointer }
+.card .btn.primary{ background:var(--brand); border-color:var(--brand); color:#fff }
+
+/* ===== スケルトン ===== */
+.skeleton{ border:1px solid var(--border); background:#fff; border-radius:12px; overflow:hidden }
+.skeleton .img{ aspect-ratio:4/3; background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%); background-size:400% 100%; animation:sh 1.2s infinite }
+.skeleton .t1,.skeleton .t2{ height:14px; margin:10px; border-radius:6px; background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%); background-size:400% 100%; animation:sh 1.2s infinite }
+.skeleton .t2{ width:60%; margin-top:6px }
+@keyframes sh{ 0%{background-position:100% 0} 100%{background-position:0 0} }
+
+/* ===== カート下部バー（シンプル） ===== */
 .cart{ position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border) }
 .cart .wrap{ padding:0 16px }
-.cart-box{
-  display:flex; align-items:center; gap:16px;
-  justify-content:flex-end;
-  padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom));
-}
-.cart-left{ margin-right:auto; display:flex; align-items:center; gap:8px }
-.inline-pill{ display:inline-block; padding:4px 8px; background:#f1f5f9; border-radius:999px; font-size:12px }
-.lbl-min{ display:none } .val-date{ display:none } .count{ display:none } .total{ display:none }
-.btn-cart{ background:var(--brand); color:#fff; border:0; border-radius:10px; height:40px; padding:0 16px; font-weight:800; }
+.cart-box{ display:flex; align-items:center; justify-content:flex-end; gap:16px; padding:10px 0; padding-bottom:calc(10px + env(safe-area-inset-bottom)) }
+.cart-left{ margin-right:auto }
+.btn-cart{ background:var(--brand); color:#fff; border:0; border-radius:10px; height:40px; padding:0 16px; font-weight:800 }
 
-/* --- Drawer 基本 --- */
+/* ===== Drawer 基本 ===== */
 .ppp-drawer{ position:fixed; inset:0; display:none }
 .ppp-drawer[aria-hidden="false"]{ display:block }
-.ppp-drawer__scrim{ position:absolute; inset:0; background:rgba(0,0,0,.3) }
-.ppp-drawer__panel{
-  position:absolute; right:0; top:0; bottom:0; width:min(720px, 100%);
-  background:#fff; display:flex; flex-direction:column;
-  border-left:1px solid var(--border);
-}
+.ppp-drawer__scrim{ position:absolute; inset:0; background:rgba(0,0,0,.35) }
+.ppp-drawer__panel{ position:absolute; right:0; top:0; bottom:0; width:min(720px,100%); background:#fff; display:flex; flex-direction:column; border-left:1px solid var(--border) }
 .ppp-drawer__bar{ display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border) }
 .ppp-drawer__title{ font-weight:900 }
 .ppp-due{ margin-left:auto; color:#64748b; font-size:12px }
-.ppp-iconbtn{ border:0; background:transparent; font-size:16px; cursor:pointer }
+.ppp-iconbtn{ border:0; background:transparent; font-size:18px; cursor:pointer }
 .ppp-chips{ display:flex; gap:8px; padding:8px 16px }
-.ppp-chip{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:999px; padding:4px 10px; font-size:12px }
 
 .ppp-listwrap{ flex:1; overflow:auto }
 .ppp-listpad{ padding:16px }
 
-.ppp-drawer__footer{ position:sticky; bottom:0; background:#fff; padding:10px 16px; border-top:1px solid var(--border) }
-/* 右寄せFIX：フッター内だけ .ppp-btn の flex:1 を無効化 */
-.ppp-drawer__footer .ppp-btn{ flex:0 0 auto }
-
-/* --- 汎用ボタン --- */
-.ppp-btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 14px; height:var(--btn-h); border-radius:10px; border:1px solid var(--border); font-weight:800; background:#fff; cursor:pointer }
-.ppp-btn.primary{ background:var(--brand); border-color:var(--brand); color:#fff }
-.ppp-btn.neutral{ background:#fff; color:#111827 }
-.ppp-btn.is-disabled,
-.ppp-btn[disabled],
-.ppp-btn[aria-disabled="true"]{ opacity:.5; cursor:not-allowed }
-
-/* ===== カート中身・フォーム（PCの基本並び） ===== */
+/* ===== カート行（PC基本） ===== */
 .cartlist{ display:flex; flex-direction:column; gap:10px }
-.cartrow{ border:1px solid var(--border); border-radius:8px; padding:10px; background:#fff }
+.cartrow{ border:1px solid var(--border); border-radius:10px; background:#fff; padding:10px }
 .rowline{ display:grid; grid-template-columns:7fr 3fr; gap:8px; align-items:baseline }
 .rowline .ttl{ font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 .rowline .prc{ font-weight:700; text-align:right }
@@ -80,49 +88,27 @@ body{ margin:0; color:var(--ink); background:var(--bg); font-family:system-ui, -
 .cartqty{ width:72px; height:40px; border:1px solid var(--border); border-radius:8px; text-align:center; font-weight:700 }
 .totalline{ margin-top:6px; text-align:right; font-weight:800 }
 
-/* ===== SP（〜420px）：タイトル行ぶち抜き／画像2〜4段／合計は非表示 ===== */
+/* ===== SP：行1=タイトルぶち抜き／行2-4=画像＋右列（小計→数量→削除）／行5合計なし ===== */
 @media (max-width:420px){
-  .cartrow{
-    display:grid;
-    grid-template-columns:25% 1fr;        /* 左：画像 1/4 */
-    grid-template-rows:auto auto auto auto;  /* 1=タイトル, 2=小計/画像1, 3=数量/画像2, 4=削除/画像3 */
-    column-gap:8px; align-items:start;
-  }
+  .cartrow{ display:grid; grid-template-columns:25% 1fr; grid-template-rows:auto auto auto auto; column-gap:8px; align-items:start }
+  .rowline{ display:contents }
+  .g2{ display:contents }
 
-  /* 中間の“箱”を溶かし、子を親グリッドに直配置 */
-  .rowline{ display:contents }  /* .ttl, .prc を直配置 */
-  .g2{ display:contents }       /* .thumb, .qtybar を直配置 */
+  .rowline .ttl{ grid-column:1 / span 2; grid-row:1; text-align:left; font-weight:800 }
+  .rowline .prc{ grid-column:2; grid-row:2; text-align:right }
 
-  /* タイトル（行1 全幅ぶち抜き） */
-  .rowline .ttl{ grid-column:1 / span 2; grid-row:1; text-align:left; font-weight:800; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-
-  /* 小計（右列 行2） */
-  .rowline .prc{ grid-column:2; grid-row:2; text-align:right; font-weight:700 }
-
-  /* 画像（左列 行2〜4ぶち抜き） */
-  .g2 .thumb{ grid-column:1; grid-row:2 / span 3; width:100%; aspect-ratio:4/3; height:auto; border-radius:8px; border:1px solid var(--border); overflow:hidden; background:#f3f4f6 }
+  .g2 .thumb{ grid-column:1; grid-row:2 / span 3; width:100%; aspect-ratio:4/3; height:auto; border-radius:8px; border:1px solid var(--border); background:#f3f4f6; overflow:hidden }
   .g2 .thumb img{ width:100%; height:100%; object-fit:cover }
 
-  /* 数量（右列 行3 右寄せ） */
-  .g2 .qtybar{ grid-column:2; grid-row:3; display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px }
-
-  /* 削除（右列 行4 右寄せ） */
+  .g2 .qtybar{ grid-column:2; grid-row:3; display:flex; justify-content:flex-end; gap:8px }
   .g2 .qtybar .btn[data-cart="rm"]{ grid-column:2; grid-row:4; justify-self:end }
 
-  /* 合計（行5）は使用しない */
   .totalline{ display:none !important }
-
-  /* フォーム2カラム→1カラム */
-  .cartgrid{ display:grid; grid-template-columns:1fr; gap:10px }
 }
 
-/* PCでの保険 */
-@media (min-width:421px){
-  .rowline{ display:grid; grid-template-columns:7fr 3fr; align-items:baseline }
-  .g2{ display:grid; grid-template-columns:112px 1fr; gap:8px; align-items:center }
-}
-
-/* === ドロワーフッター：PC/SP別 2行構成（ボタン右寄せ） === */
+/* ===== ドロワーフッター：PC/SP別 2行構成（ボタン右寄せ） ===== */
+.ppp-drawer__footer{ position:sticky; bottom:0; background:#fff; padding:10px 16px; border-top:1px solid var(--border) }
+.ppp-drawer__footer .ppp-btn{ flex:0 0 auto }
 .cart-footer{ width:100%; display:flex; flex-direction:column; gap:6px }
 .cart-footer .footrow{ display:flex; align-items:center; gap:10px }
 .cart-footer .cart-sum{ margin-right:auto; display:flex; gap:8px; align-items:baseline }
@@ -137,6 +123,3 @@ body{ margin:0; color:var(--ink); background:var(--bg); font-family:system-ui, -
   .cart-footer--sp{ display:none }
   .cart-footer--pc{ display:flex }
 }
-
-/* 上部チップの「点数/合計」をCSSでも隠す（保険） */
-#cartCountDrawer, #cartTotalDrawer { display:none !important }

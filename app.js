@@ -1,13 +1,15 @@
 /* =====================================================================
-   app.js — 完全版（Stage A）
-   - カートSP行：行1=タイトルぶち抜き、行2=小計、行3=数量、行4=削除、行5は廃止
-   - ドロワー上部チップの点数/合計は非表示（DOMは保持）
-   - フッターはPC/SP別の2行構成（ボタン右寄せ、現行幅を踏襲）
+   app.js — 修正版（データ取得 / スケルトン / 200msバー / ドロワーSP行割り）
    ===================================================================== */
 
-/* ---- シンプルな状態とユーティリティ（最小構成。既存プロジェクトに合わせて差し替え可） ---- */
+/* ====== 設定 ====== */
+const PRODUCTS_URL = 'https://script.google.com/macros/s/AKfycbzaMJ8p9_Fj9pr7dgFBzl0cApTQn0llr6-I1b9YhyKPGwbD461NBA6_U6WEzPqOpf4b/exec?endpoint=products';
+const FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform';
+
+/* ====== 状態 ====== */
 const state = {
-  cart: new Map(),   // id -> { id, name, price, qty }
+  products: [],
+  cart: new Map(), // id -> {id, name, price, qty, img}
   agreeStock: false,
   selectedSlot: '14時〜17時',
   memo: '',
@@ -15,188 +17,205 @@ const state = {
   selectedDateISO: null,
 };
 
-const productById = new Map();
-const FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform';
-
+/* ====== ユーティリティ ====== */
 const yen = (n)=>`¥${(n||0).toLocaleString('ja-JP')}`;
-const escapeHtml = (s)=>String(s??'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-
+const esc = (s)=>String(s??'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const isoDate = (d)=>d.toISOString().slice(0,10);
+const toJst = (d)=>new Date(d.getTime()+9*3600*1000);
+const fmtJP = (d)=>{const w=['日','月','火','水','木','金','土'][d.getDay()];return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}(${w})`;};
+function calcMinDate(){ const now = new Date(); const dd = new Date(now.getFullYear(),now.getMonth(),now.getDate()+1); return dd; }
 function totals(){
-  const items = [...state.cart.values()].map(x=>({ ...x, total:x.price*x.qty }));
-  return {
-    count: items.reduce((a,c)=>a + c.qty, 0),
-    total: items.reduce((a,c)=>a + c.total, 0),
-    items
-  };
+  const items = [...state.cart.values()].map(x=>({...x, total:x.price*x.qty}));
+  return { items, count: items.reduce((a,c)=>a+c.qty,0), total: items.reduce((a,c)=>a+c.total,0) };
 }
 
-function isoDate(d){ return d.toISOString().slice(0,10); }
-function toJst(d){
-  // naive JST convert for display
-  const u = d.getTime() + (9*60*60*1000);
-  return new Date(u);
+/* ====== スケルトン＆プログレス ====== */
+let progressTimer = null;
+function showProgress(){
+  const bar = document.getElementById('topProgress');
+  if(!bar) return;
+  bar.hidden = false;
+  progressTimer = setTimeout(()=> bar.setAttribute('active',''), 200);
 }
-function fmtJP(d){
-  const w = ['日','月','火','水','木','金','土'][d.getDay()];
-  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}(${w})`;
+function doneProgress(){
+  const bar = document.getElementById('topProgress');
+  if(!bar) return;
+  if(progressTimer){ clearTimeout(progressTimer); progressTimer = null; }
+  bar.setAttribute('done','');
+  setTimeout(()=>{ bar.hidden = true; bar.removeAttribute('active'); bar.removeAttribute('done'); }, 300);
 }
-function calcMinDate(){
-  const now = new Date();
-  // とりあえず「翌日」を最短受取日に
-  const dd = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1);
-  return dd;
+function showSkeleton(n=8){
+  const wrap = document.getElementById('skeletonWrap'); if(!wrap) return;
+  wrap.hidden = false;
+  wrap.innerHTML = Array.from({length:n}).map(()=>`
+    <div class="skeleton">
+      <div class="img"></div>
+      <div class="t1"></div>
+      <div class="t2"></div>
+    </div>`).join('');
+}
+function hideSkeleton(){
+  const wrap = document.getElementById('skeletonWrap'); if(!wrap) return;
+  wrap.hidden = true; wrap.innerHTML = '';
 }
 
-/* ---- カートBar ---- */
+/* ====== データ取得・描画 ====== */
+async function loadProducts(){
+  showProgress();
+  showSkeleton(8);
+  try{
+    const res = await fetch(PRODUCTS_URL, { cache:'no-store' });
+    const data = await res.json();
+    state.products = Array.isArray(data) ? data : (data.products || []);
+  }catch(err){
+    console.warn('Products fetch error, fallback to demo:', err);
+    state.products = [
+      { id:'demo-1', name:'ディナーロール 36個入り', price:598, img:'' },
+      { id:'demo-2', name:'プルコギビーフ', price:2580, img:'' }
+    ];
+  }finally{
+    hideSkeleton(); doneProgress();
+    renderProducts();
+    state.minDateISO = isoDate(calcMinDate());
+    document.getElementById('inlineMinDate')?.replaceChildren(document.createTextNode(`最短受取 ${fmtJP(toJst(new Date(state.minDateISO)))}`));
+    document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode(`最短受取 ${fmtJP(toJst(new Date(state.minDateISO)))}`));
+  }
+}
+
+function renderProducts(){
+  const root = document.getElementById('productList'); if(!root) return;
+  root.innerHTML = state.products.map(p=>{
+    const img = esc(p.img||'');
+    return `
+      <article class="card" data-id="${esc(p.id)}">
+        <img class="ph" src="${img||'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='}" alt="${esc(p.name)}">
+        <div class="pad">
+          <div class="name">${esc(p.name)}</div>
+          <div class="price">${yen(p.price||0)}</div>
+        </div>
+        <div class="act">
+          <button class="btn primary" data-add="${esc(p.id)}">カート追加</button>
+        </div>
+      </article>`;
+  }).join('');
+}
+
+/* ====== カート操作 ====== */
+function addToCart(id){
+  const p = state.products.find(x=>String(x.id)===String(id)); if(!p) return;
+  const cur = state.cart.get(id) || { id, name:p.name, price:+p.price||0, qty:0, img:p.img||'' };
+  cur.qty += 1;
+  state.cart.set(id, cur);
+  renderCartBar();
+}
 function renderCartBar(){
   const t = totals();
-  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}点`;
-  const sum = document.getElementById('cartTotal'); if(sum) sum.textContent = yen(t.total||0);
-  const md  = document.getElementById('cartMinDate'); if(md) md.textContent = fmtJP(toJst(new Date(state.minDateISO||isoDate(calcMinDate()))));
-  const mdi = document.getElementById('cartMinDateInline'); if(mdi) mdi.textContent = `最短受取 ${fmtJP(toJst(new Date(state.minDateISO||isoDate(calcMinDate()))))}`;
+  document.getElementById('inlineMinDate')?.replaceChildren(document.createTextNode(`最短受取 ${fmtJP(toJst(new Date(state.minDateISO||isoDate(calcMinDate()))))}`));
+  // 下部バー表示はシンプル（数値はドロワーで表示）
 }
+document.addEventListener('click', (e)=>{
+  const add = e.target.closest('[data-add]'); if(add){ addToCart(add.getAttribute('data-add')); }
+});
 
-/* ---- フッター合計（PC/SP両対応） ---- */
+/* ====== カートドロワー ====== */
+const drawer = document.getElementById('cartDrawer');
+function openCart(){ drawer?.setAttribute('aria-hidden','false'); renderCartDrawer(); }
+function closeCart(){ drawer?.setAttribute('aria-hidden','true'); }
+document.getElementById('openCartBtn')?.addEventListener('click', (e)=>{ e.preventDefault(); openCart(); });
+document.getElementById('cartDrawerClose')?.addEventListener('click', closeCart);
+document.getElementById('cartDrawerCancel')?.addEventListener('click', closeCart);
+document.querySelector('#cartDrawer .ppp-drawer__scrim')?.addEventListener('click',(e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeCart(); });
+
 function renderCartFooterTotals(){
   const t = totals();
-  // legacy single target (if still present)
-  document.getElementById('cartTotalFooter')?.replaceChildren(document.createTextNode(yen(t.total||0)));
-  // PC
-  document.getElementById('cartCountFooterPC')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
-  document.getElementById('cartTotalFooterPC')?.replaceChildren(document.createTextNode(yen(t.total||0)));
-  // SP
-  document.getElementById('cartCountFooterSP')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
-  document.getElementById('cartTotalFooterSP')?.replaceChildren(document.createTextNode(yen(t.total||0)));
+  document.getElementById('cartCountFooterPC')?.replaceChildren(document.createTextNode(`${t.count}点`));
+  document.getElementById('cartTotalFooterPC')?.replaceChildren(document.createTextNode(yen(t.total)));
+  document.getElementById('cartCountFooterSP')?.replaceChildren(document.createTextNode(`${t.count}点`));
+  document.getElementById('cartTotalFooterSP')?.replaceChildren(document.createTextNode(yen(t.total)));
 }
 
-/* ---- ドロワー開閉 ---- */
-const cartDrawer = document.getElementById('cartDrawer');
-function openCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','false'); renderCartDrawer(); window.addEventListener('keydown',onCartKeydown); }
-function closeCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','true'); window.removeEventListener('keydown',onCartKeydown); }
-function onCartKeydown(e){ if(e.key==='Escape') closeCartDrawer(); }
-document.querySelector('#cartDrawer .ppp-drawer__scrim')?.addEventListener('click',(e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeCartDrawer(); });
-document.getElementById('cartDrawerClose')?.addEventListener('click', closeCartDrawer);
-document.getElementById('cartDrawerCancel')?.addEventListener('click', closeCartDrawer);
-document.getElementById('checkoutBtn2')?.addEventListener('click',(e)=>{ e.preventDefault(); openCartDrawer(); });
-
-/* ---- 進むボタン活性制御 ---- */
 function updateProceedDisabled(){
-  const on = !!state.agreeStock;
-  const btns = Array.from(document.querySelectorAll('#cartProceed, [data-act="proceed"]'));
-  for(const btn of btns){
-    btn.disabled = !on;
-    btn.setAttribute('aria-disabled', String(!on));
-    btn.classList.toggle('is-disabled', !on);
-  }
+  const on = !!state.agreeStock && totals().count>0;
+  const btns = Array.from(document.querySelectorAll('#cartProceed,[data-act="proceed"]'));
+  btns.forEach(b=>{ b.disabled=!on; b.setAttribute('aria-disabled',String(!on)); b.classList.toggle('is-disabled',!on); });
 }
 
-/* ---- カート描画 ---- */
 function renderCartDrawer(){
-  const d=calcMinDate();
-  state.minDateISO=isoDate(d);
-  if(!state.selectedDateISO) state.selectedDateISO = state.minDateISO;
-
-  // 上部チップ（点数/合計はCSSで非表示だが互換で更新）
-  document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(fmtJP(toJst(new Date(state.minDateISO)))));
-  const t = totals();
-  document.getElementById('cartCountDrawer')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
-  document.getElementById('cartTotalDrawer')?.replaceChildren(document.createTextNode(yen(t.total||0)));
+  const d = state.minDateISO || isoDate(calcMinDate());
+  document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(fmtJP(toJst(new Date(d)))));
 
   const list = document.getElementById('cartList');
-  if(list){
-    if(t.items.length===0){
-      list.innerHTML = '<div class="muted">カートは空です</div>';
-    }else{
-      list.innerHTML = t.items.map(it=>{
-        const p = productById.get(it.id) || {};
-        const img = p.img || 'https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image';
-        const name = escapeHtml(it.name);
-        return `
-          <div class="cartrow" data-id="\${it.id}">
-            <div class="rowline">
-              <div class="ttl">\${name}</div>
-              <div class="prc">\${yen(it.price)} × \${it.qty} = \${yen(it.price*it.qty)}</div>
-            </div>
-            <div class="g2">
-              <div class="thumb"><img src="\${img}" alt="\${name}" onerror="this.src='https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image'"></div>
-              <div class="qtybar">
-                <div class="group">
-                  <button class="btn" data-cart="dec">−</button>
-                  <input class="cartqty" type="number" min="0" step="1" value="\${it.qty}">
-                  <button class="btn" data-cart="inc">＋</button>
-                </div>
-                <button class="btn warn" data-cart="rm">削除</button>
+  const t = totals();
+  if(!list) return;
+  if(t.count===0){
+    list.innerHTML = '<div class="muted">カートは空です</div>';
+  }else{
+    list.innerHTML = t.items.map(it=>{
+      const name = esc(it.name);
+      const img = esc(it.img||'');
+      return `
+        <div class="cartrow" data-id="${esc(it.id)}">
+          <div class="rowline">
+            <div class="ttl">${name}</div>
+            <div class="prc">${yen(it.price)} × ${it.qty} = ${yen(it.price*it.qty)}</div>
+          </div>
+          <div class="g2">
+            <div class="thumb"><img src="${img||'https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image'}" alt="${name}"></div>
+            <div class="qtybar">
+              <div class="group">
+                <button class="btn" data-cart="dec">−</button>
+                <input class="cartqty" type="number" min="0" step="1" value="${it.qty}">
+                <button class="btn" data-cart="inc">＋</button>
               </div>
+              <button class="btn" data-cart="rm">削除</button>
             </div>
-            <div class="totalline">\${yen(it.price*it.qty)}</div>
-          </div>`;
-      }).join('');
-    }
+          </div>
+          <div class="totalline">${yen(it.price*it.qty)}</div>
+        </div>`;
+    }).join('');
   }
 
-  // 受取日/時間帯/メモ
+  // date/slot/memo
   const dateEl = document.getElementById('pickupDate');
   if(dateEl){
-    const d0 = new Date(state.minDateISO);
-    const opts = [0,1,2,3].map(n=>{ const dd=new Date(d0); dd.setDate(dd.getDate()+n); return { iso: isoDate(dd), label: fmtJP(toJst(dd)) }; });
+    const start = new Date(d);
+    const opts = [0,1,2,3].map(n=>{ const x=new Date(start); x.setDate(x.getDate()+n); return { iso: isoDate(x), label: fmtJP(toJst(x)) }; });
     dateEl.innerHTML = opts.map(o=>`<option value="${o.iso}" ${o.iso===state.selectedDateISO?'selected':''}>${o.label}</option>`).join('');
   }
-  const slotEl = document.getElementById('pickupSlot');
-  if(slotEl){
-    const slots = ['14時〜17時','17時〜20時'];
-    if(!state.selectedSlot) state.selectedSlot = slots[0];
-    slotEl.innerHTML = slots.map(s=>`<option ${s===state.selectedSlot?'selected':''}>${s}</option>`).join('');
-  }
-  const memoEl = document.getElementById('pickupMemo'); if(memoEl){ memoEl.value = state.memo||''; }
-
-  const agree = document.getElementById('agreeStock');
-  if(agree){
-    agree.removeEventListener('change', agree._h || (()=>{}));
-    agree._h = (e)=>{ state.agreeStock = !!e.target.checked; updateProceedDisabled(); };
-    agree.addEventListener('change', agree._h);
-    agree.checked = !!state.agreeStock;
-  }
+  document.getElementById('pickupSlot')?.addEventListener('change',(e)=> state.selectedSlot = e.target.value );
+  document.getElementById('pickupMemo')?.addEventListener('input',(e)=> state.memo = e.target.value );
+  document.getElementById('agreeStock')?.addEventListener('change',(e)=>{ state.agreeStock = !!e.target.checked; updateProceedDisabled(); });
 
   renderCartFooterTotals();
   updateProceedDisabled();
 }
 
-/* ---- イベント（数量/削除） ---- */
-document.addEventListener('click',(ev)=>{
-  const btn = ev.target.closest('[data-cart]');
-  if(!btn) return;
+document.addEventListener('click',(e)=>{
+  const btn = e.target.closest('[data-cart]'); if(!btn) return;
   const row = btn.closest('.cartrow'); if(!row) return;
   const id = row.getAttribute('data-id');
-  const item = state.cart.get(id); if(!item) return;
+  const it = state.cart.get(id); if(!it) return;
 
-  if(btn.dataset.cart==='inc'){ item.qty+=1; }
-  if(btn.dataset.cart==='dec'){ item.qty=Math.max(0, item.qty-1); }
+  if(btn.dataset.cart==='inc'){ it.qty += 1; }
+  if(btn.dataset.cart==='dec'){ it.qty = Math.max(0, it.qty-1); }
   if(btn.dataset.cart==='rm'){ state.cart.delete(id); }
 
-  renderCartDrawer(); renderCartBar();
-});
-document.addEventListener('input',(ev)=>{
-  const input = ev.target.closest('.cartqty'); if(!input) return;
-  const row = input.closest('.cartrow'); if(!row) return;
-  const id = row.getAttribute('data-id');
-  const item = state.cart.get(id); if(!item) return;
-  const v = Math.max(0, parseInt(input.value||'0', 10)||0);
-  item.qty = v;
-  renderCartDrawer(); renderCartBar();
+  renderCartDrawer();
 });
 
-/* ---- 進む（GoogleフォームへURL連携） ---- */
+document.querySelectorAll('[data-act="cancel"]').forEach(b=>b.addEventListener('click',(e)=>{ e.preventDefault(); closeCart(); }));
+document.querySelectorAll('[data-act="proceed"]').forEach(b=>b.addEventListener('click',(e)=>{ e.preventDefault(); document.getElementById('cartProceed')?.click(); }));
+
 document.getElementById('cartProceed')?.addEventListener('click',(e)=>{
   e.preventDefault();
-  const t = totals(); if(t.items.length===0) return;
-  const before = state.minDateISO;
+  const t = totals(); if(t.count===0) return;
+  const before = state.minDateISO || isoDate(calcMinDate());
   const chosen = document.getElementById('pickupDate')?.value || before;
   const slot   = document.getElementById('pickupSlot')?.value || '';
   const memo   = document.getElementById('pickupMemo')?.value || '';
   const json = encodeURIComponent(JSON.stringify(t.items));
   const text = encodeURIComponent(t.items.map(x=>`${x.name} x${x.qty} = ${x.total}`).join('\n'));
   const url = new URL(FORM_BASE);
-  url.searchParams.set('usp','pp_url');
   url.searchParams.set('entry.1000001', before);
   url.searchParams.set('entry.1000002', chosen);
   url.searchParams.set('entry.1000003', slot);
@@ -206,25 +225,11 @@ document.getElementById('cartProceed')?.addEventListener('click',(e)=>{
   window.location.href = url.toString();
 });
 
-// Stage A: duplicate footer buttons (data-act) handlers
-document.querySelectorAll('[data-act="cancel"]').forEach(btn=>btn.addEventListener('click', (e)=>{
-  e.preventDefault();
-  document.getElementById('cartDrawerCancel')?.click();
-}));
-document.querySelectorAll('[data-act="proceed"]').forEach(btn=>btn.addEventListener('click', (e)=>{
-  e.preventDefault();
-  document.getElementById('cartProceed')?.click();
-}));
-
-/* ---- デモ用：商品を1つだけ用意（実環境では既存の一覧レンダを利用） ---- */
-(function demoSeed(){
-  const demo = { id:'demo-1', name:'テスト商品', price:598, img:'' };
-  productById.set(demo.id, demo);
-  state.cart.set(demo.id, { id:demo.id, name:demo.name, price:demo.price, qty:2 });
-})();
-
-/* ---- 初期化 ---- */
+/* ====== 初期化 ====== */
 (function init(){
   state.minDateISO = isoDate(calcMinDate());
-  renderCartBar();
+  document.getElementById('inlineMinDate')?.replaceChildren(document.createTextNode(`最短受取 ${fmtJP(toJst(new Date(state.minDateISO)))}`));
+  document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode(`最短受取 ${fmtJP(toJst(new Date(state.minDateISO)))}`));
+
+  loadProducts();
 })();
