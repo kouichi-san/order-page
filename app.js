@@ -5,7 +5,7 @@ window.PPP = window.PPP || {};
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
 const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
-const MAX_ADVANCE_DAYS = 7; // 最短日から＋7日（合計8候補）
+const MAX_ADVANCE_DAYS = 20; // 最短日から＋20日（合計21候補）
 
 
 let PRODUCTS = [];
@@ -75,7 +75,7 @@ function setMinDateAll(date){
     ['minDate', s],                 // 旧ステータスバー（残っていれば更新される）
     ['cartMinDate', s],             // SP/PC 通常フッターの値
     ['cartMinDateDrawer', s],       // カートドロワ上部
-    ['cartMinDateInline', '最短受取 ' + s] // 左のピル
+    ['cartMinDateInline', '最短受取 '] // 左のピル
   ];
   for (var i=0;i<map.length;i++){
     var el = document.getElementById(map[i][0]);
@@ -739,7 +739,7 @@ window.PPP = window.PPP || {};
   // document.getElementById('minDate')?.replaceChildren(document.createTextNode(s));
   // document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(s));
   // インラインの “最短受取 …” を使っている箇所があればここでまとめて
-  document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode('最短受取 ' + s));
+  // document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode('最短受取 ' + s));
 
 
 
