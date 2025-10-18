@@ -12,6 +12,8 @@ window.PPP = window.PPP || {};
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
 const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
+const MAX_ADVANCE_DAYS = 7; // 最短日から＋7日（合計8候補）
+
 
 let PRODUCTS = [];
 let productById = new Map();
@@ -54,7 +56,15 @@ function toJst(d=new Date()){
   const tzOffset = 9*60; // Asia/Tokyo
   return new Date(d.getTime() + (d.getTimezoneOffset() + tzOffset)*60000);
 }
-function isoDate(d){ const z=new Date(d); z.setHours(0,0,0,0); return z.toISOString().slice(0,10); }
+// function isoDate(d){ const z=new Date(d); z.setHours(0,0,0,0); return z.toISOString().slice(0,10); }
+function isoDate(d){
+  const x = new Date(d);
+  // ローカル日の 00:00 をそのままローカル基準の YYYY-MM-DD で返す（UTCにしない）
+  const y = x.getFullYear();
+  const m = String(x.getMonth()+1).padStart(2,'0');
+  const da = String(x.getDate()).padStart(2,'0');
+  return `${y}-${m}-${da}`;
+}
 function fmtJP(d){
   const y=d.getFullYear(), m=d.getMonth()+1, da=d.getDate();
   const w='日月火水木金土'[d.getDay()];
@@ -452,9 +462,24 @@ function renderCartDrawer(){
 
   const dateEl = document.getElementById('pickupDate');
   if(dateEl){
+      // const d0 = new Date(state.minDateISO);
+      // const opts = [0,1,2,3].map(n=>{ const dd=new Date(d0); dd.setDate(dd.getDate()+n); return { iso: isoDate(dd), label: fmtJP(dd) }; });
+      // dateEl.innerHTML = opts.map(o=>`<option value="${o.iso}" ${o.iso===state.selectedDateISO?'selected':''}>${o.label}</option>`).join('');
     const d0 = new Date(state.minDateISO);
-    const opts = [0,1,2,3].map(n=>{ const dd=new Date(d0); dd.setDate(dd.getDate()+n); return { iso: isoDate(dd), label: fmtJP(dd) }; });
-    dateEl.innerHTML = opts.map(o=>`<option value="${o.iso}" ${o.iso===state.selectedDateISO?'selected':''}>${o.label}</option>`).join('');
+    const opts = Array.from({length: MAX_ADVANCE_DAYS + 1}, (_, n) => {
+    const dd = new Date(d0);
+    dd.setDate(dd.getDate() + n);
+    return { iso: isoDate(dd), label: fmtJP(dd) };
+    });
+    dateEl.innerHTML = opts
+      .map(o => `<option value="${o.iso}" ${o.iso===state.selectedDateISO?'selected':''}>${o.label}</option>`)
+      .join('');
+
+    // 既存選択が候補外なら最短日に巻き戻す（安全策）
+    const values = opts.map(o => o.iso);
+    if (!values.includes(state.selectedDateISO)) {
+      state.selectedDateISO = values[0];
+      dateEl.value = state.selectedDateISO;
   }
   const slotEl = document.getElementById('pickupSlot');
   if(slotEl){
@@ -469,7 +494,8 @@ function renderCartDrawer(){
   updateProceedDisabled();
 
   renderCartFooterTotals();
-}
+  }
+ }
 
 /** ========= クリック委譲 ========= **/
 // 数量・削除（del/rm 両対応）
