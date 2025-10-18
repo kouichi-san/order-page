@@ -82,6 +82,12 @@
 
 /* 例：最終上書き（緊急パッチ枠のみ） */
 @layer overrides {
+  /* PCではSP用の2行表示を隠し、ピルだけにする */
+  @media (min-width:421px){
+    .cart .lbl-min,
+    .cart .val-date { display:none !important; }
+    .cart .inline-pill { display:inline-flex !important; }
+  } 
   .cart-footer .sumcount .lbl,
   .cart-footer .sumtotal .lbl{
     font-size:11px;
