@@ -1,6 +1,22 @@
-console.info('PPP app.js v2025-10-18a');
-// pppの空ブート
+/*!
+ * PPP Order Page - app.js
+ * SavePoint: SP-20251019-FavLater-1
+ * Version: 20251019a
+ * Purpose: お気に入り（♡）/ あとで の実装安定化 & 表示整合
+ */
 window.PPP = window.PPP || {};
+PPP.meta = Object.freeze({
+  sp: 'SP-20251019-FavLater-1',
+  ver: '20251019a',
+  builtAt: '2025-10-19T00:00:00+09:00'
+});
+
+// 画像などのキャッシュバストに使う既存の IMG_BUST が未定義ならフォールバック
+if (typeof window.IMG_BUST === 'undefined') window.IMG_BUST = PPP.meta.ver;
+
+// バナー表示（本番でも邪魔にならないよう1行）
+console.info(`[PPP] ${PPP.meta.sp} / ver ${PPP.meta.ver}`);
+
 /** ========= 設定 ========= **/
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
@@ -374,7 +390,10 @@ function updateCategoryButtonLabel(){
   const btn = document.getElementById('btnCategories'); if(!btn) return;
   const s1 = filterState.cat ? filterState.cat : 'すべて';
   const s2 = filterState.subcat ? ` / ${filterState.subcat}` : '';
-  btn.querySelector('.label')?.replaceChildren(document.createTextNode(`${s1}${s2}`));
+  // btn.querySelector('.label')?.replaceChildren(document.createTextNode(`${s1}${s2}`));
+  const label = `${s1}${s2}`;
+  const span = btn.querySelector('.label');
+  if(span) span.textContent = label; else btn.textContent = label;
 }
 
 /** ========= 商品描画 ========= **/
@@ -438,7 +457,7 @@ function appendProductCard(grid, p, idx, selectedId){
       </div>
     </div>
     <div class="ppp-descwrap" data-detail="${p.id}">
-      <div class="ppp-desc">${p.desc||''}</div>
+      <div class="ppp-desc">${escapeHtml(p.desc||'')}</div>
       <a class="ppp-more more--chev" href="#" data-detail="${p.id}" aria-label="詳しく"></a>
     </div>`;
       // 初期表示（お気に入り状態）
@@ -551,10 +570,17 @@ function renderCartDrawer(){
       state.selectedDateISO = values[0];
       dateEl.value = state.selectedDateISO;
   }
+  // const slotEl = document.getElementById('pickupSlot');
+  // if(slotEl){
+  //   const slots = ['14時〜17時','17時〜19時'];
+  //   slotEl.innerHTML = slots.map(s=>`<option ${s===state.selectedSlot?'selected':''}>${s}</option>`).join('');
+  // }
   const slotEl = document.getElementById('pickupSlot');
-  if(slotEl){
-    const slots = ['14時〜17時','17時〜19時'];
-    slotEl.innerHTML = slots.map(s=>`<option ${s===state.selectedSlot?'selected':''}>${s}</option>`).join('');
+  if (slotEl) {
+    // 既存HTMLの選択肢を尊重：一致すれば選択、なければ現行の先頭を採用
+    const has = [...slotEl.options].some(o => o.value===state.selectedSlot || o.textContent===state.selectedSlot);
+    slotEl.value = has ? state.selectedSlot : slotEl.value;
+    state.selectedSlot = slotEl.value;
   }
   const memo = document.getElementById('pickupMemo');
   if(memo){ memo.value = state.memo||''; }
@@ -835,25 +861,32 @@ window.PPP = window.PPP || {};
   };
 
   PPP.patch = PPP.patch || {};
-  PPP.patch.cartFooter = function(){
-    var elCnt = document.getElementById('cartCountFooter');
-    var elTot = document.getElementById('cartTotalFooter');
-    if(!elCnt || !elTot) return;
-    var count = 0, total = 0;
-    // 既存のカート配列/DOMから集計（環境に合わせて片方だけでOK）
-    if (PPP.cart && Array.isArray(PPP.cart.items)) {
-      PPP.cart.items.forEach(it => { count += (it.qty||0); total += (it.price||0) * (it.qty||0); });
-    } else {
-      document.querySelectorAll('#cartList .cartrow').forEach(row=>{
-        var qty = +(row.querySelector('[data-qty]')?.value || row.querySelector('.qtybar input')?.value || 0);
-        var price = +(row.getAttribute('data-price') || row.querySelector('[data-price]')?.textContent?.replace(/[^0-9]/g,'') || 0);
-        count += qty; total += price * qty;
-      });
-    }
-    elCnt.textContent = count + '点';
-    elTot.textContent = PPP.util.toYen(total);
-  };
-  
+  // PPP.patch.cartFooter = function(){
+  //   var elCnt = document.getElementById('cartCountFooter');
+  //   var elTot = document.getElementById('cartTotalFooter');
+  //   if(!elCnt || !elTot) return;
+  //   var count = 0, total = 0;
+  //   // 既存のカート配列/DOMから集計（環境に合わせて片方だけでOK）
+  //   if (PPP.cart && Array.isArray(PPP.cart.items)) {
+  //     PPP.cart.items.forEach(it => { count += (it.qty||0); total += (it.price||0) * (it.qty||0); });
+  //   } else {
+  //     document.querySelectorAll('#cartList .cartrow').forEach(row=>{
+  //       var qty = +(row.querySelector('[data-qty]')?.value || row.querySelector('.qtybar input')?.value || 0);
+  //       var price = +(row.getAttribute('data-price') || row.querySelector('[data-price]')?.textContent?.replace(/[^0-9]/g,'') || 0);
+  //       count += qty; total += price * qty;
+  //     });
+  //   }
+  //   elCnt.textContent = count + '点';
+  //   elTot.textContent = PPP.util.toYen(total);
+  // };
+    PPP.patch.cartFooter = function(){
+      var elCnt = document.getElementById('cartCountFooter');
+      var elTot = document.getElementById('cartTotalFooter');
+      if(!elCnt || !elTot) return;
+      var t = totals();
+      elCnt.textContent = (t.count||0) + '点';
+      elTot.textContent = yen(t.total||0);
+    };
   // 追記
   PPP.ui = PPP.ui || {};
   // PPP.ui.setMinDate = function(date){
