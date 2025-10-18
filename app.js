@@ -123,10 +123,9 @@ function calcMinDate(){
 function renderMinDateEverywhere(){
   const d=calcMinDate();
   state.minDateISO=isoDate(d);
-  const pill=document.getElementById('cartMinDateInline'); if(pill) pill.textContent=`最短受取 ${fmtJP(d)}`;
-  const val=document.getElementById('cartMinDate'); if(val) val.textContent=fmtJP(d);
-  const dwr=document.getElementById('cartMinDateDrawer'); if(dwr) dwr.textContent=fmtJP(d);
+  PPP.ui.setMinDate(d);
 }
+
 
 /** ========= 「最終更新」表示 ========= **/
 function renderLastUpdated(ts){
@@ -366,7 +365,7 @@ function totals(){
 }
 function renderCartBar(){
   const t = totals();
-  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}`;
+  const cnt = document.getElementById('cartCount'); if(cnt) cnt.textContent = `${t.count||0}点`;
   const sum = document.getElementById('cartTotal'); if(sum) sum.textContent = yen(t.total||0);
 }
 function renderCartFooterTotals(){
@@ -671,6 +670,10 @@ window.PPP = window.PPP || {};
   PPP = PPP || (window.PPP = window.PPP || {});
   PPP.util = PPP.util || {};
   PPP.util.toYen = PPP.util.toYen || (n => n.toLocaleString('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}));
+  PPP.util.formatYMDW = PPP.util.formatYMDW || function(d){
+  if(!(d instanceof Date)) d = new Date(d);
+  return fmtJP(d);              // ← ここで一本化（括弧前スペース含む現行表記を維持）
+  };
 
   PPP.patch = PPP.patch || {};
   PPP.patch.cartFooter = function(){
@@ -691,6 +694,17 @@ window.PPP = window.PPP || {};
     elCnt.textContent = count + '点';
     elTot.textContent = PPP.util.toYen(total);
   };
+  
+  // 追記
+  PPP.ui = PPP.ui || {};
+  PPP.ui.setMinDate = function(date){
+  const s = PPP.util.formatYMDW(date);
+  document.getElementById('minDate')?.replaceChildren(document.createTextNode(s));
+  document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(s));
+  // インラインの “最短受取 …” を使っている箇所があればここでまとめて
+  document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode('最短受取 ' + s));
+};
+
 
   /* [LOCKED] セレクタ契約（改名は仕様から） */
   const SEL = Object.freeze({
@@ -718,8 +732,6 @@ window.PPP = window.PPP || {};
       if (!firstRow.querySelector(s)) issues.push(`SP構造NG → ${s}`);
     });
   }
-
-
     showBadge(issues);
   }
 
