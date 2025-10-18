@@ -64,6 +64,17 @@ function yen(n){ n=Number(n||0); return n.toLocaleString('ja-JP',{style:'currenc
 function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; }
 function escapeHtml(str){ return String(str||'').replace(/[&<>"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s])); }
 
+// --- 最短受取：2箇所（+任意のInline）を同時に更新する安全版 ---
+function setMinDateAll(date){
+  var d = (date instanceof Date) ? date : new Date(date);
+  var s = fmtJP(d);
+  var ids = ['minDate','cartMinDateDrawer','cartMinDateInline']; // 存在するものだけ更新
+  for (var i=0;i<ids.length;i++){
+    var el = document.getElementById(ids[i]);
+    if (el) el.textContent = s;
+  }
+}
+
 /** ========= Loading UX（200msルール） ========= **/
 let loadingTimer = null;
 function showSkeleton(){
@@ -124,13 +135,7 @@ function calcMinDate(){
 function renderMinDateEverywhere(){
   const d = calcMinDate();
   state.minDateISO = isoDate(d);
-  if (window.PPP && PPP.ui && typeof PPP.ui.setMinDate === 'function') {
-    PPP.ui.setMinDate(d);
-  } else {
-    const s = fmtJP(d);
-    const a = document.getElementById('minDate');           if (a) a.textContent = s;
-    const b = document.getElementById('cartMinDateDrawer'); if (b) b.textContent = s;
-  }
+  setMinDateAll(d);   // ← ここだけに集約
 }
 
 
@@ -404,7 +409,7 @@ function renderCartDrawer(){
   state.minDateISO=isoDate(d);
   if(!state.selectedDateISO) state.selectedDateISO = state.minDateISO;
 
-  document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(fmtJP(toJst(new Date(state.minDateISO)))));
+  // document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(fmtJP(toJst(new Date(state.minDateISO)))));
   const t = totals();
   document.getElementById('cartCountFooter')?.replaceChildren(document.createTextNode(`${t.count||0}点`));
   document.getElementById('cartTotalFooter')?.replaceChildren(document.createTextNode(yen(t.total||0)));
@@ -705,13 +710,13 @@ window.PPP = window.PPP || {};
   
   // 追記
   PPP.ui = PPP.ui || {};
-  PPP.ui.setMinDate = function(date){
-  const s = PPP.util.formatYMDW(date);
-  document.getElementById('minDate')?.replaceChildren(document.createTextNode(s));
-  document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(s));
+  // PPP.ui.setMinDate = function(date){
+  // const s = PPP.util.formatYMDW(date);
+  // document.getElementById('minDate')?.replaceChildren(document.createTextNode(s));
+  // document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(s));
   // インラインの “最短受取 …” を使っている箇所があればここでまとめて
-  document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode('最短受取 ' + s));
-};
+  // document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode('最短受取 ' + s));
+
 
 
   /* [LOCKED] セレクタ契約（改名は仕様から） */
@@ -776,6 +781,7 @@ window.PPP = window.PPP || {};
       const mo = new MutationObserver(runGuard);
       mo.observe(target, { childList: true, subtree: true });
     }
+  setMinDateAll(calcMinDate());   // ← まずは即時表示（確定値も同じなので上書きOK）
   });
 
   /* [PATCH] 今日の小修正はここだけで完結させる */
