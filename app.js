@@ -1,11 +1,4 @@
-/**
- * app.js — 完全版 v5
- * 目的：
- *  - バリエーションpillが「何があっても」効く（Union-Find不発でもフォールバックで集合を組む）
- *  - カート追加でドロワは開かない（#checkoutBtn2のみで開く）
- *  - ドロワHTMLはCSSに完全整合
- *  - Variantバー表示/非表示・Back復帰・スクロール/フォーカス復元
- */
+console.info('PPP app.js v2025-10-18a');
 // pppの空ブート
 window.PPP = window.PPP || {};
 /** ========= 設定 ========= **/
@@ -483,7 +476,7 @@ function renderCartDrawer(){
   }
   const slotEl = document.getElementById('pickupSlot');
   if(slotEl){
-    const slots = ['14時〜17時','17時〜20時'];
+    const slots = ['14時〜17時','17時〜19時'];
     slotEl.innerHTML = slots.map(s=>`<option ${s===state.selectedSlot?'selected':''}>${s}</option>`).join('');
   }
   const memo = document.getElementById('pickupMemo');
