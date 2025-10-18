@@ -715,7 +715,7 @@ window.PPP = window.PPP || {};
   // document.getElementById('minDate')?.replaceChildren(document.createTextNode(s));
   // document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(s));
   // インラインの “最短受取 …” を使っている箇所があればここでまとめて
-  // document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode('最短受取 ' + s));
+  document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode('最短受取 ' + s));
 
 
 
