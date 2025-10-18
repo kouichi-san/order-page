@@ -24,6 +24,7 @@
 
 /* 例：コンポーネント本体（触るな危険ゾーン） */
 @layer components {
+  .cart .lbl-min { display:block; }
   /* SPカートドロワのレイアウト（確定仕様） */
   .ppp-cartdrawer{ display:grid; /* 既存に合わせる */ }
   .cart-footer{
@@ -97,6 +98,7 @@
   .cart-footer .actions-next{ justify-self: end; }
   @media (min-width:768px){
     .cart-footer{ gap:12px; padding:10px 16px; }
+    .cart .inline-pill { display:none; }
   }
 }
 

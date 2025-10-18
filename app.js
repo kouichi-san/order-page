@@ -68,10 +68,15 @@ function escapeHtml(str){ return String(str||'').replace(/[&<>"]/g, s => ({'&':'
 function setMinDateAll(date){
   var d = (date instanceof Date) ? date : new Date(date);
   var s = fmtJP(d);
-  var ids = ['minDate','cartMinDateDrawer','cartMinDateInline']; // 存在するものだけ更新
-  for (var i=0;i<ids.length;i++){
-    var el = document.getElementById(ids[i]);
-    if (el) el.textContent = s;
+  var map = [
+    ['minDate', s],                 // 旧ステータスバー（残っていれば更新される）
+    ['cartMinDate', s],             // SP/PC 通常フッターの値
+    ['cartMinDateDrawer', s],       // カートドロワ上部
+    ['cartMinDateInline', '最短受取 ' + s] // 左のピル
+  ];
+  for (var i=0;i<map.length;i++){
+    var el = document.getElementById(map[i][0]);
+    if (el) el.textContent = map[i][1];
   }
 }
 
