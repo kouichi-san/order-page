@@ -98,7 +98,7 @@
   .cart-footer .actions-next{ justify-self: end; }
   @media (min-width:768px){
     .cart-footer{ gap:12px; padding:10px 16px; }
-    .cart .inline-pill { display:none; }
+    /* .cart .inline-pill { display:none; } */
   }
 }
 
