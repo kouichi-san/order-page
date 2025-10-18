@@ -75,7 +75,7 @@ function setMinDateAll(date){
     ['minDate', s],                 // 旧ステータスバー（残っていれば更新される）
     ['cartMinDate', s],             // SP/PC 通常フッターの値
     ['cartMinDateDrawer', s],       // カートドロワ上部
-    ['cartMinDateInline', '最短受取 '] // 左のピル
+    ['cartMinDateInline', '最短受取 ' + s] // 左のピル
   ];
   for (var i=0;i<map.length;i++){
     var el = document.getElementById(map[i][0]);
