@@ -78,6 +78,10 @@
 @layer utilities {
   .u-right { text-align: right; }
   .u-hide  { display: none !important; }
+  
+  .muted{ font-size:13px; color:#6b7280; padding:8px 4px }
+  .ppp-fav.active{ background:#fef2f2; border-color:#fecaca; color:#ef4444 }
+
 }
 
 /* 例：最終上書き（緊急パッチ枠のみ） */
