@@ -6,7 +6,8 @@
  *  - ドロワHTMLはCSSに完全整合
  *  - Variantバー表示/非表示・Back復帰・スクロール/フォーカス復元
  */
-
+// pppの空ブート
+window.PPP = window.PPP || {};
 /** ========= 設定 ========= **/
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
@@ -121,10 +122,17 @@ function calcMinDate(){
   return min;
 }
 function renderMinDateEverywhere(){
-  const d=calcMinDate();
-  state.minDateISO=isoDate(d);
-  PPP.ui.setMinDate(d);
+  const d = calcMinDate();
+  state.minDateISO = isoDate(d);
+  if (window.PPP && PPP.ui && typeof PPP.ui.setMinDate === 'function') {
+    PPP.ui.setMinDate(d);
+  } else {
+    const s = fmtJP(d);
+    const a = document.getElementById('minDate');           if (a) a.textContent = s;
+    const b = document.getElementById('cartMinDateDrawer'); if (b) b.textContent = s;
+  }
 }
+
 
 
 /** ========= 「最終更新」表示 ========= **/
