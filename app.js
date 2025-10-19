@@ -99,6 +99,14 @@ function setMinDateAll(date){
     if (el) el.textContent = map[i][1];
   }
 }
+// 詳細ドロワのスクロール復帰用
+let _detailScrollY = 0;
+let _detailAnchorId = null;
+const cssEscape = (s)=> {
+  try { return (window.CSS && CSS.escape) ? CSS.escape(String(s)) : String(s).replace(/["\\]/g,'\\$&'); }
+  catch(_) { return String(s||''); }
+};
+
 
 /** ========= Loading UX（200msルール） ========= **/
 let loadingTimer = null;
@@ -720,9 +728,26 @@ document.addEventListener('click',(ev)=>{
   const a = ev.target.closest('[data-detail]');
   if(a){
     ev.preventDefault();
+    // 開く前に現在位置とカードIDを保存
+    _detailScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    const card = a.closest('.ppp-card');
+    _detailAnchorId = (card && card.dataset.id) || a.dataset.detail || null;
     openDetailDrawer(a.dataset.detail);
   }
 });
+
+function restoreDetailScroll(){
+  // ドロワを閉じた次フレームで実施（iOSのscroll-lock解放待ち）
+  requestAnimationFrame(()=>{
+    if(_detailAnchorId){
+      const sel = `.ppp-card[data-id="${cssEscape(_detailAnchorId)}"]`;
+      const target = document.querySelector(sel);
+      if(target){ target.scrollIntoView({ block:'nearest', behavior:'auto' }); return; }
+    }
+    window.scrollTo({ top: _detailScrollY, behavior:'auto' });
+  });
+}
+
 document.addEventListener('click',(e)=>{
   const g = e.target.closest('[data-goto-cat]');
   if(!g) return;
@@ -1062,8 +1087,12 @@ function openDetailDrawer(id){
     if(e.target.matches('.ppp-drawer__scrim')) closeDetailDrawer();
   }, { once:true });
   document.getElementById('detailDrawerClose')?.addEventListener('click', closeDetailDrawer, { once:true });
-  document.getElementById('detailBack')?.addEventListener('click', closeDetailDrawer, { once:true });
-
+  // document.getElementById('detailBack')?.addEventListener('click', closeDetailDrawer, { once:true });
+  document.getElementById('detailBack')?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    closeDetailDrawer();
+    restoreDetailScroll();
+  }, { once:true });
   window.addEventListener('keydown', onDetailKeydown);
 }
 function onDetailKeydown(e){ if(e.key==='Escape') closeDetailDrawer(); }
@@ -1105,7 +1134,6 @@ function renderDetailDrawer(p){
       ${p.prenote?`<div class="detail-prenote">${escapeHtml(p.prenote)}</div>`:''}
       <div class="detail-price">${(p.price>0?yen(p.price):'店頭価格')}</div>
       ${p.unitNote?`<div class="detail-unit">${escapeHtml(p.unitNote)}</div>`:''}
-      <div class="detail-min">この商品の最短受取 <strong>${fmtJP(min)}</strong></div>
       ${vars.length? `<div class="detail-variants">${
         vars.map(v=>`<button class="ppp-pill" data-var="${v.id}">${escapeHtml(v.label)}</button>`).join('')
       }</div>`:''}
