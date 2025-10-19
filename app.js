@@ -192,6 +192,9 @@ function renderLaterList(){
         </div>
       </div>`;
   }).join('');
+  document.getElementById('laterCount')?.replaceChildren(document.createTextNode(`（${ids.length}）`));
+  const laterSec = document.getElementById('laterSec');
+  if (laterSec) laterSec.open = ids.length > 0;   // 0件なら自動で畳む
 }
 /** ========= お気に入り描画 ========= **/
 function renderFavList(limit=8){
@@ -217,6 +220,9 @@ function renderFavList(limit=8){
         </div>
       </div>`;
   }).join('');
+  document.getElementById('favCount')?.replaceChildren(document.createTextNode(`（${ids.length}）`));
+  const favSec = document.getElementById('favSec');
+  if (favSec) favSec.open = ids.length > 0;       // 0件なら自動で畳む
 }
 
 /** ========= 最短受取関係 ========= **/
