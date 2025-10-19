@@ -18,7 +18,7 @@ if (typeof window.IMG_BUST === 'undefined') window.IMG_BUST = PPP.meta.ver;
 console.info(`[PPP] ${PPP.meta.sp} / ver ${PPP.meta.ver}`);
 
 /** ========= 設定 ========= **/
-const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbx-yCsl4gt8OvsP52llzlBmiWEW1JFyXAp3rmMRkKIll4r7IHO8hOiKO4dXoKgWAQJMTA/exec?endpoint=products";
+const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycby4489YlOmucAj4DguggZsQox2Kg3yfALImCfma0rYPCNTV_OBQ13u_llxSOv8xO6USKw/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
 const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
 const MAX_ADVANCE_DAYS = 20; // 最短日から＋20日（合計21候補）
