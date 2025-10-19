@@ -151,24 +151,31 @@
   #favList .cartrow{
     background:#fef2f2; border-color:#fecaca; border-left:6px solid #f87171;
   }
-    /* 折りたたみ（details/summary）の見た目と操作性 */
-  .collapsible{ margin-top: 12px; }
+  /* 折りたたみ（details/summary） */
+  .collapsible{ margin-top:12px; }
   .collapsible > summary.cartlbl{
-    /* 点線→実線は既に適用済み想定。念のため強制で濃い実線 */
-    border-top: 2px solid #cbd5e1;
+    border-top: 2px solid #cbd5e1; /* 濃い実線 */
     padding-top: 12px;
     cursor: pointer;
-    list-style: none;
     display: flex; align-items: center; gap: 8px;
+    list-style: none;
   }
-  /* 既定の三角を非表示（自前のシェブロンを出す） */
+  /* 既定の三角は非表示にして自前のシェブロン */
   .collapsible > summary::-webkit-details-marker{ display:none }
   .collapsible > summary::after{
     content: '›';
     margin-left: auto;
-    transform: rotate(90deg);
+    transform: rotate(0deg);       /* デフォルト閉＝右向き */
     transition: transform .15s ease;
     font-size: 16px; opacity: .6;
+  }
+  .collapsible[open] > summary::after{ transform: rotate(90deg); } /* 開くと下向き */
+
+  /* 件数を強調（太字・わずかに大きく） */
+  .cartnum{
+    font-weight: 900;  /* ← 太字で強調 */
+    font-size: 13px;
+    color:#1f2937;
   }
   .collapsible:not([open]) > summary::after{ transform: rotate(0deg); }
 
