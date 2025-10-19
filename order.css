@@ -109,6 +109,30 @@
     .cart-footer{ gap:12px; padding:10px 16px; }
     /* .cart .inline-pill { display:none; } */
   }
+    /* SP：あとで/お気に入り の「解除」ボタンを行4右寄せ＆二行対応で統一 */
+  @media (max-width:420px){
+    #laterList .qtybar .btn[data-later-del],
+    #favList   .qtybar .btn[data-fav-del]{
+      /* 位置を明示して自動回りのブレを消す */
+      grid-column: 2;
+      grid-row: 4;
+      justify-self: end;
+
+      /* 見た目（2行許容） */
+      height: auto;          /* 固定40pxを解除 */
+      min-height: 40px;      /* 1行時は40pxを維持 */
+      max-width: 10em;       /* 幅を統一（調整可） */
+      padding: 6px 10px;
+      line-height: 1.15;
+      white-space: normal;   /* 折返し可 */
+      text-align: center;
+      font-weight: 800;      /* 既存のトーンに合わせる */
+      /* 必要なら font-size:13px; も可 */
+    }
+
+    /* 「解除」（短文）も幅を合わせて見た目を揃える */
+    #laterList .qtybar .btn[data-later-del]{ width: 10em; }
+  }
 }
 
 @layer components {
