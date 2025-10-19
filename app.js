@@ -714,6 +714,14 @@ document.getElementById('cartProceed')?.addEventListener('click',(e)=>{
   url.searchParams.set('entry.1000006', text);
   window.location.href = url.toString();
 });
+// ===== 「もっと見る」→商品詳細ドロワ =====
+document.addEventListener('click',(ev)=>{
+  const a = ev.target.closest('[data-detail]');
+  if(a){
+    ev.preventDefault();
+    openDetailDrawer(a.dataset.detail);
+  }
+});
 
 /** ========= クリック（一覧・並べ替え・カテゴリ・Variant） ========= **/
 document.addEventListener('click',(ev)=>{
@@ -1028,3 +1036,137 @@ window.PPP = window.PPP || {};
   // 初期・変更時に都度更新
   document.addEventListener('DOMContentLoaded', PPP.patch.cartFooter);
 })(window.PPP);
+
+/* ===== 商品詳細ドロワ（翌日受取・クロスセル必須） ===== */
+let currentDetailId = null;
+
+function openDetailDrawer(id){
+  const p = productById.get(String(id)); if(!p) return;
+  currentDetailId = p.id;
+  renderDetailDrawer(p);
+  const drawer = document.getElementById('detailDrawer');
+  drawer?.setAttribute('aria-hidden','false');
+  lockScroll(true);
+  drawer.querySelector('.ppp-drawer__scrim')?.addEventListener('click',(e)=>{
+    if(e.target.matches('.ppp-drawer__scrim')) closeDetailDrawer();
+  }, { once:true });
+  document.getElementById('detailDrawerClose')?.addEventListener('click', closeDetailDrawer, { once:true });
+  window.addEventListener('keydown', onDetailKeydown);
+}
+function onDetailKeydown(e){ if(e.key==='Escape') closeDetailDrawer(); }
+function closeDetailDrawer(){
+  document.getElementById('detailDrawer')?.setAttribute('aria-hidden','true');
+  lockScroll(false);
+  window.removeEventListener('keydown', onDetailKeydown);
+}
+
+function renderDetailDrawer(p){
+  const body = document.getElementById('detailBody'); if(!body) return;
+
+  // 最短受取（常に翌日。CUTOVER_HOURを考慮）
+  const min = calcMinDate();
+  document.getElementById('detailMinDate')?.replaceChildren(document.createTextNode(fmtJP(min)));
+
+  // 在庫/終売チップ（在庫は有無のみ／終売=active=false）
+  const hasStock = (p.stock===undefined) ? true : Number(p.stock)>0;
+  const eol = (p.active===false);
+  const stockChip = document.getElementById('detailStockChip');
+  const eolChip   = document.getElementById('detailEolChip');
+  if(stockChip){ stockChip.hidden = !hasStock; stockChip.textContent = hasStock ? '在庫あり' : '入荷待ち'; }
+  if(eolChip){ eolChip.hidden = !eol; }
+
+  const img = p.img || 'https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';
+  const vars = [];
+  if (p.var1Id && p.var1Label) vars.push({id:String(p.var1Id), label:p.var1Label});
+  if (p.var2Id && p.var2Label) vars.push({id:String(p.var2Id), label:p.var2Label});
+
+  body.innerHTML = `
+    <div class="detail-media">
+      <!-- 未来の複数画像に備えたラッパ（現状1枚） -->
+      <img src="${img}" alt="${escapeHtml(p.name)}"
+           loading="lazy" decoding="async" referrerpolicy="no-referrer"
+           onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image'">
+    </div>
+    <div class="detail-info">
+      <div class="detail-name">${escapeHtml(p.name)}</div>
+      ${p.prenote?`<div class="detail-prenote">${escapeHtml(p.prenote)}</div>`:''}
+      <div class="detail-price">${(p.price>0?yen(p.price):'店頭価格')}</div>
+      ${p.unitNote?`<div class="detail-unit">${escapeHtml(p.unitNote)}</div>`:''}
+      <div class="detail-min">この商品の最短受取 <strong>${fmtJP(min)}</strong></div>
+      ${vars.length? `<div class="detail-variants">${
+        vars.map(v=>`<button class="ppp-pill" data-var="${v.id}">${escapeHtml(v.label)}</button>`).join('')
+      }</div>`:''}
+      <div class="detail-desc">${escapeHtml(p.desc||'')}</div>
+      <div style="margin-top:8px">
+        <button class="sortbtn" data-sort="popular">人気順で一覧</button>
+        ${(p.catGroup||p.cat)?`<button class="sortbtn" data-goto-cat="${escapeHtml(p.catGroup||p.cat)}">${escapeHtml(p.catGroup||p.cat)} を開く</button>`:''}
+      </div>
+    </div>
+  `;
+
+  // フッターCTAの状態反映
+  const laterBtn = document.getElementById('detailLater');
+  const favBtn   = document.getElementById('detailFav');
+  const addBtn   = document.getElementById('detailAdd');
+
+  const laterOn = localStorage.getItem('later:'+p.id)==='1';
+  laterBtn.textContent = laterOn ? 'あとで済' : 'あとで';
+  favBtn.textContent   = localStorage.getItem('fav:'+p.id)==='1' ? '♥ お気に入り' : '♡ お気に入り';
+  addBtn.disabled      = !hasStock || eol;
+  addBtn.innerHTML     = (!hasStock || eol) ? '入荷待ち' : 'カート追加';
+
+  // バリエーション（＝フル/小分け 想定）
+  body.querySelector('.detail-variants')?.addEventListener('click',(e)=>{
+    const b = e.target.closest('[data-var]'); if(!b) return;
+    openDetailDrawer(b.dataset.var);
+  });
+
+  // CTA
+  addBtn?.addEventListener('click',()=>{
+    if(addBtn.disabled) return;
+    state.cart[p.id] = (state.cart[p.id]||0) + 1;
+    localStorage.setItem('cart', JSON.stringify(state.cart));
+    renderCartBar();
+  });
+  laterBtn?.addEventListener('click',()=>{
+    const k='later:'+p.id; const on = localStorage.getItem(k)==='1';
+    on ? localStorage.removeItem(k) : localStorage.setItem(k,'1');
+    laterBtn.textContent = localStorage.getItem(k)==='1' ? 'あとで済' : 'あとで';
+    renderLaterList();
+  });
+  favBtn?.addEventListener('click',()=>{
+    const k='fav:'+p.id; const on = localStorage.getItem(k)==='1';
+    on ? localStorage.removeItem(k) : localStorage.setItem(k,'1');
+    favBtn.textContent = localStorage.getItem(k)==='1' ? '♥ お気に入り' : '♡ お気に入り';
+    renderFavList();
+    if(filterState.favsOnly) renderProducts();
+  });
+
+  // クロスセル（同カテゴリ 人気上位 3〜4件）
+  renderDetailSuggest(p);
+}
+
+function renderDetailSuggest(p){
+  const box = document.getElementById('detailSuggest'); if(!box) return;
+  const list = (PRODUCTS||[])
+    .filter(x => x.id!==p.id && (x.catGroup||x.cat)===(p.catGroup||p.cat) && x.active!==false)
+    .sort((a,b)=> (b._pop||0)-(a._pop||0))
+    .slice(0,4);
+  if(list.length===0){ box.innerHTML = '<div class="muted">—</div>'; return; }
+  box.innerHTML = list.map(x=>`
+    <div class="sugg" data-id="${x.id}">
+      <div class="img"><img src="${x.img||''}" alt="${escapeHtml(x.name)}"
+           onerror="this.onerror=null;this.src='https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image'"></div>
+      <div class="nm">${escapeHtml(x.name)}</div>
+      <div class="pr">${x.price>0?yen(x.price):'店頭価格'}</div>
+      <button class="btn" data-suggest-add="${x.id}">＋ カート</button>
+    </div>`).join('');
+
+  box.addEventListener('click',(e)=>{
+    const b = e.target.closest('[data-suggest-add]'); if(!b) return;
+    const id = b.dataset.suggestAdd;
+    state.cart[id] = (state.cart[id]||0) + 1;
+    localStorage.setItem('cart', JSON.stringify(state.cart));
+    renderCartBar();
+  }, { once:true });
+}
