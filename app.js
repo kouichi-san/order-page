@@ -1,13 +1,13 @@
 /*!
  * PPP Order Page - app.js
  * SavePoint: SP-20251019-FavLater-1
- * Version: 20251019a
+ * Version: 20251019b
  * Purpose: お気に入り（♡）/ あとで の実装安定化 & 表示整合
  */
 window.PPP = window.PPP || {};
 PPP.meta = Object.freeze({
   sp: 'SP-20251019-FavLater-1',
-  ver: '20251019a',
+  ver: '20251019b',
   builtAt: '2025-10-19T00:00:00+09:00'
 });
 
@@ -387,14 +387,19 @@ function buildCatTree(){
   return arr;
 }
 function buildCatTreeCached(){ if(!buildCatTree._cache){ buildCatTree._cache=buildCatTree(); } return buildCatTree._cache; }
+/** ========= カテゴリボタンラベル更新 ========= **/
 function updateCategoryButtonLabel(){
   const btn = document.getElementById('btnCategories'); if(!btn) return;
-  const s1 = filterState.cat ? filterState.cat : 'すべて';
+  const noSel = !filterState.cat && !filterState.subcat;
+  if (noSel){
+    btn.textContent = 'カテゴリ';         // ← 未選択は常にこれ
+    btn.classList.remove('has-filter');
+    return;
+  }
+  const s1 = filterState.cat || 'すべて';
   const s2 = filterState.subcat ? ` / ${filterState.subcat}` : '';
-  // btn.querySelector('.label')?.replaceChildren(document.createTextNode(`${s1}${s2}`));
-  const label = `${s1}${s2}`;
-  const span = btn.querySelector('.label');
-  if(span) span.textContent = label; else btn.textContent = label;
+  btn.textContent = `${s1}${s2}`;
+  btn.classList.add('has-filter');
 }
 /* ====== お気に入りボタンのON/OFF反映 ====== */
 function renderFavButtonActive(){
@@ -417,13 +422,29 @@ function renderProducts(){
 
   // 通常描画
   const nCat=norm(filterState.cat), nSub=norm(filterState.subcat);
-  const filtered=(PRODUCTS||[]).filter(p=>{
+  let filtered=(PRODUCTS||[]).filter(p=>{
     if(p.active===false) return false;
     const pc=norm(p.catGroup||p.cat||''); const ps=norm(p.subcatGroup||'');
-    if(nCat && pc!==nCat) return false; if(nSub && ps!==nSub) return false; return true;
+    if(nCat && pc!==nCat) return false;
+    if(nSub && ps!==nSub) return false;
+    return true;
   });
+
+  // ★ ここが“差し込み場所”
+  // 「お気に入り」ON中は、localStorage の fav: を元に絞り込み
+  if (filterState.favsOnly) {
+    const favSet = new Set(getFavIds());
+    filtered = filtered.filter(p => favSet.has(p.id));
+  }
+
   const list = sortProducts(filtered);
+  if (list.length === 0) {
+    // 空のときの見栄え（任意）
+    grid.innerHTML = '<div class="muted">条件に合う商品がありません（♡を付けると「お気に入り」で一覧できます）</div>';
+    return;
+  }
   list.forEach((p, idx)=>appendProductCard(grid,p,idx, null));
+
 }
 
 function appendProductCard(grid, p, idx, selectedId){
