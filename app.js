@@ -42,6 +42,7 @@ const filterState = {
   cat: null,
   subcat: null,
   sort: 'default',
+  favsOnly: false,
   // Variant Mode
   variantGroup: null,     // 代表ID（Union-Find root想定・無くてもOK）
   variantSelected: null,  // 選択id
@@ -395,7 +396,11 @@ function updateCategoryButtonLabel(){
   const span = btn.querySelector('.label');
   if(span) span.textContent = label; else btn.textContent = label;
 }
-
+/* ====== お気に入りボタンのON/OFF反映 ====== */
+function renderFavButtonActive(){
+  const b=document.getElementById('btnFavs'); if(!b) return;
+  b.setAttribute('aria-pressed', String(!!filterState.favsOnly));
+}
 /** ========= 商品描画 ========= **/
 function renderProducts(){
   const grid=document.getElementById('productGrid'); if(!grid) return;
@@ -722,6 +727,7 @@ document.addEventListener('click',(ev)=>{
     else  { localStorage.setItem(k,'1'); favBtn.classList.add('active'); favBtn.textContent = '♥'; }
     // ドロワーを開いていたら一覧も更新
     renderFavList();
+    if(filterState.favsOnly) renderProducts();
     return;
   }
   // バリエーションPill -> Variant Mode（Union-Find不発でも動く）
@@ -770,6 +776,16 @@ document.addEventListener('click',(ev)=>{
     filterState.cat=null; filterState.subcat=null;
     updateCategoryButtonLabel(); renderProducts(); return;
   }
+    // お気に入りフィルタ（メニューバー）
+  if(ev.target.closest('#btnFavs')){
+    ev.preventDefault();
+    clearVariantMode();
+    filterState.favsOnly = !filterState.favsOnly;
+    renderFavButtonActive();
+    renderProducts();
+    return;
+  }
+
 });
 
 /** ========= カテゴリドロワ ========= **/
@@ -846,6 +862,8 @@ document.getElementById('catDrawerApply')?.addEventListener('click',(e)=>{
   renderMinDateEverywhere();
   renderCartBar();
   document.getElementById('sortbar')?.setAttribute('aria-hidden','true');
+  renderFavButtonActive();              // ★ 初期反映
+  updateCategoryButtonLabel();          // ★ 初期は「カテゴリ」固定表示
   loadProducts();
 })();
 
