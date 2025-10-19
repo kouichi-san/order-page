@@ -495,9 +495,10 @@ function appendProductCard(grid, p, idx, selectedId){
         ${varsHTML?`<div class="ppp-vars">${varsHTML}</div>`:''}
       </div>
     </div>
-    <div class="ppp-descwrap" data-detail="${p.id}">
+    <div class="ppp-descwrap">
       <div class="ppp-desc">${escapeHtml(p.desc||'')}</div>
-      <a class="ppp-more more--chev" href="#" data-detail="${p.id}" aria-label="詳しく"></a>
+      <!-- 明確なボタンでのみ詳細へ -->
+      <a class="ppp-morebtn" href="#" data-detail="${p.id}" aria-label="もっと見る">もっと見る</a>
     </div>`;
       // 初期表示（お気に入り状態）
   if(localStorage.getItem('fav:'+p.id)==='1'){
@@ -1170,3 +1171,4 @@ function renderDetailSuggest(p){
     renderCartBar();
   }, { once:true });
 }
+
