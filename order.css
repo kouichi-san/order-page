@@ -582,6 +582,24 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
 }
 .ppp-morebtn::after{ content:"→"; }
 
+/* 最短受取（囲い文字ごと）非表示 */
+#detailDrawer .ppp-chips [data-chip="min"]{ display:none !important; }
+#detailDrawer #detailMinDate,
+#detailDrawer .detail-min{ display:none !important; } /* 念押し */
+
+/* フッター：左＝あとで/お気に入り、右＝戻る/カート追加 */
+#detailDrawer .ppp-drawer__footer{
+  display:flex; align-items:center; gap:8px; padding:8px 12px;
+  justify-content:flex-start;
+}
+#detailDrawer #detailBack{ margin-left:auto; }   /* ここから右側グループ */
+#detailDrawer #detailAdd{ /* カート追加は右端に寄る */ }
+
+/* 戻るの見た目（控えめなゴーストボタン） */
+.ppp-btn.ghost{
+  background:#fff; border:1px solid var(--border); color:#334155; font-weight:800;
+}
+
 /* ===== 詳細ドロワ：SPで“詳細中”の視覚サイン強化 ===== */
 @media (max-width: 720px){
   #detailDrawer .ppp-drawer__panel{ box-shadow:-24px 0 48px rgba(0,0,0,.20); }

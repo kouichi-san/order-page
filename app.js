@@ -723,6 +723,16 @@ document.addEventListener('click',(ev)=>{
     openDetailDrawer(a.dataset.detail);
   }
 });
+document.addEventListener('click',(e)=>{
+  const g = e.target.closest('[data-goto-cat]');
+  if(!g) return;
+  e.preventDefault();
+  filterState.cat = g.dataset.gotoCat;
+  filterState.subcat = null;
+  updateCategoryButtonLabel && updateCategoryButtonLabel();
+  renderProducts && renderProducts();
+  closeDetailDrawer && closeDetailDrawer();   // ← ここで必ず閉じる
+});
 
 /** ========= クリック（一覧・並べ替え・カテゴリ・Variant） ========= **/
 document.addEventListener('click',(ev)=>{
@@ -1052,6 +1062,8 @@ function openDetailDrawer(id){
     if(e.target.matches('.ppp-drawer__scrim')) closeDetailDrawer();
   }, { once:true });
   document.getElementById('detailDrawerClose')?.addEventListener('click', closeDetailDrawer, { once:true });
+  document.getElementById('detailBack')?.addEventListener('click', closeDetailDrawer, { once:true });
+
   window.addEventListener('keydown', onDetailKeydown);
 }
 function onDetailKeydown(e){ if(e.key==='Escape') closeDetailDrawer(); }
