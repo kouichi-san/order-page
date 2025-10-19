@@ -275,7 +275,8 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .ppp-mi > .ppp-media, .ppp-mi > .ppp-info { min-width:0 }
 .ppp-img{ aspect-ratio:4/3; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
 .ppp-img>img{ width:100%; height:100%; object-fit:contain; display:block }
-.ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+/* .ppp-prenote{ background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; font-size:13px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis } */
+.ppp-prenote{ font-size:11px; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 .ppp-price{ font-weight:900; font-size:22px }
 .ppp-unit{ font-size:12px; color:#6b7280; text-align:right }
 .ppp-actions{ display:grid; grid-template-columns:7fr 3fr; gap:8px; margin-bottom:10px }
