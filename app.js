@@ -18,11 +18,14 @@ if (typeof window.IMG_BUST === 'undefined') window.IMG_BUST = PPP.meta.ver;
 console.info(`[PPP] ${PPP.meta.sp} / ver ${PPP.meta.ver}`);
 
 /** ========= 設定 ========= **/
+const LIFF_ID = '2008359016-DYakKQJd'; // 例: '2008359016-DYakKQJd'
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycby4489YlOmucAj4DguggZsQox2Kg3yfALImCfma0rYPCNTV_OBQ13u_llxSOv8xO6USKw/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
 const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
 const MAX_ADVANCE_DAYS = 20; // 最短日から＋20日（合計21候補）
-
+// Googleフォームの entry 番号（手順1で取得）
+const ENTRY_LINE_NAME = 'entry.733179957';   // 例 '1234567890'
+const ENTRY_LINE_UID  = 'entry.1260088783'; // 例 '0987654321'
 
 let PRODUCTS = [];
 let productById = new Map();
@@ -752,10 +755,14 @@ document.getElementById('cartProceed')?.addEventListener('click', (e) => {
   const url = new URL(FORM_BASE);
   url.searchParams.set('usp', 'pp_url');
 
-  // ★ 確定 entry 番号に差し替え（あなたの一覧に合わせ済み）
+  // フォームの項目IDに合わせてセット
+  if (window.PPP_LINE && window.PPP_LINE.name && ENTRY_LINE_NAME){
+    url.searchParams.set(`entry.${ENTRY_LINE_NAME}`, window.PPP_LINE.name);
+  }
+  if (window.PPP_LINE && window.PPP_LINE.userId && ENTRY_LINE_UID){
+    url.searchParams.set(`entry.${ENTRY_LINE_UID}`, window.PPP_LINE.userId);
+  }
   url.searchParams.set('entry.1286573866', text);      // 商品一覧（確認用テキスト）
-  // 氏名（entry.1872572951）/ 電話番号（entry.823790722）はユーザー入力
-  // url.searchParams.set('entry.1515941336', chosenIso); // 受取希望日（日付型は ISO が正解）
   url.searchParams.set('entry.145233294',  slot);      // 希望時間帯（ラジオ：完全一致）
   url.searchParams.set('entry.907378750',  memo);      // 備考欄
   url.searchParams.set('entry.224243122',  beforeIso); // システム最短日（テキスト項目：ISOで安定）
@@ -981,9 +988,31 @@ document.getElementById('catDrawerApply')?.addEventListener('click',(e)=>{
   updateCategoryButtonLabel(); renderProducts(); closeDrawer();
 });
 
+/** ========= LIFF 初期化（薄め） ========= **/
+async function initLIFF(){
+  if (!window.liff || !LIFF_ID) return; // SDK未読込やID未設定でも壊さない
+  try{
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) {
+      // 直リンクで来た場合もここでログインへ
+      liff.login(); return; // ここで遷移するので以降は走らない
+    }
+    const prof = await liff.getProfile(); // { userId, displayName, pictureUrl }
+    window.PPP_LINE = {
+      userId: prof.userId || '',
+      name: prof.displayName || ''
+    };
+    console.info('[PPP] LIFF OK:', window.PPP_LINE);
+  }catch(err){
+    console.warn('[PPP] LIFF init error', err);
+  }
+}
+
+
 /** ========= 初期化 ========= **/
 (function init(){
   ensureTopProgress(); ensureSr();
+  initLIFF();
   try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
   renderMinDateEverywhere();
   renderCartBar();
@@ -1005,24 +1034,7 @@ window.PPP = window.PPP || {};
   };
 
   PPP.patch = PPP.patch || {};
-  // PPP.patch.cartFooter = function(){
-  //   var elCnt = document.getElementById('cartCountFooter');
-  //   var elTot = document.getElementById('cartTotalFooter');
-  //   if(!elCnt || !elTot) return;
-  //   var count = 0, total = 0;
-  //   // 既存のカート配列/DOMから集計（環境に合わせて片方だけでOK）
-  //   if (PPP.cart && Array.isArray(PPP.cart.items)) {
-  //     PPP.cart.items.forEach(it => { count += (it.qty||0); total += (it.price||0) * (it.qty||0); });
-  //   } else {
-  //     document.querySelectorAll('#cartList .cartrow').forEach(row=>{
-  //       var qty = +(row.querySelector('[data-qty]')?.value || row.querySelector('.qtybar input')?.value || 0);
-  //       var price = +(row.getAttribute('data-price') || row.querySelector('[data-price]')?.textContent?.replace(/[^0-9]/g,'') || 0);
-  //       count += qty; total += price * qty;
-  //     });
-  //   }
-  //   elCnt.textContent = count + '点';
-  //   elTot.textContent = PPP.util.toYen(total);
-  // };
+
     PPP.patch.cartFooter = function(){
       var elCnt = document.getElementById('cartCountFooter');
       var elTot = document.getElementById('cartTotalFooter');
@@ -1033,13 +1045,6 @@ window.PPP = window.PPP || {};
     };
   // 追記
   PPP.ui = PPP.ui || {};
-  // PPP.ui.setMinDate = function(date){
-  // const s = PPP.util.formatYMDW(date);
-  // document.getElementById('minDate')?.replaceChildren(document.createTextNode(s));
-  // document.getElementById('cartMinDateDrawer')?.replaceChildren(document.createTextNode(s));
-  // インラインの “最短受取 …” を使っている箇所があればここでまとめて
-  // document.getElementById('cartMinDateInline')?.replaceChildren(document.createTextNode('最短受取 ' + s));
-
 
 
   /* [LOCKED] セレクタ契約（改名は仕様から） */
