@@ -756,11 +756,11 @@ document.getElementById('cartProceed')?.addEventListener('click', (e) => {
   url.searchParams.set('usp', 'pp_url');
 
   // フォームの項目IDに合わせてセット
-  if (window.PPP_LINE && window.PPP_LINE.name && ENTRY_LINE_NAME){
-    url.searchParams.set(`entry.${ENTRY_LINE_NAME}`, window.PPP_LINE.name);
+  if (window.PPP_LINE?.name) {
+    url.searchParams.set(ENTRY_LINE_NAME, window.PPP_LINE.name);
   }
-  if (window.PPP_LINE && window.PPP_LINE.userId && ENTRY_LINE_UID){
-    url.searchParams.set(`entry.${ENTRY_LINE_UID}`, window.PPP_LINE.userId);
+  if (window.PPP_LINE?.userId) {
+    url.searchParams.set(ENTRY_LINE_UID, window.PPP_LINE.userId);
   }
   url.searchParams.set('entry.1286573866', text);      // 商品一覧（確認用テキスト）
   url.searchParams.set('entry.145233294',  slot);      // 希望時間帯（ラジオ：完全一致）
