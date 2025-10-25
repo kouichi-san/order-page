@@ -107,6 +107,14 @@ const cssEscape = (s)=> {
   catch(_) { return String(s||''); }
 };
 
+// === 送信直前 正規化：フォームのラジオと“完全一致”用 ===
+function slotForForm(slotText){
+  const s = String(slotText || '').trim();
+  if (s === '14時〜17時') return s;
+  if (s.startsWith('17時')) return '17時〜19時'; // ← 旧文言や注釈付きもここで丸める
+  return '14時〜17時'; // フォールバック
+}
+
 
 /** ========= Loading UX（200msルール） ========= **/
 let loadingTimer = null;
@@ -704,25 +712,49 @@ document.addEventListener('change',(ev)=>{
 document.addEventListener('input',(ev)=>{ if(ev.target.id==='pickupMemo'){ state.memo = ev.target.value; } });
 
 // 注文へ
-document.getElementById('cartProceed')?.addEventListener('click',(e)=>{
+document.getElementById('cartProceed')?.addEventListener('click', (e) => {
   e.preventDefault();
-  const before = state.minDateISO;
-  const chosen = state.selectedDateISO || before;
-  const slot   = state.selectedSlot || '';
-  const memo   = state.memo || '';
-  const t = totals(); if(t.items.length===0) return;
-  const json = encodeURIComponent(JSON.stringify(t.items));
-  const text = encodeURIComponent(t.items.map(x=>`${x.name} x${x.qty} = ${x.total}`).join('\n'));
+
+  const beforeIso = state.minDateISO;                   // システム最短日（ISO）
+  const chosenIso = state.selectedDateISO || beforeIso; // 受取希望日（ISO / 日付型に安全）
+  const slot      = slotForForm(state.selectedSlot || '');
+  const memo      = state.memo || '';
+
+  const t = totals();
+  if (t.items.length === 0) return;
+
+  // 人間確認用テキスト（フォームの「商品一覧」に入れる）
+  const text = t.items
+    .map(x => `${x.name} ×${x.qty} = ${yen(x.price * x.qty)}`)
+    .join('\n');
+
+  // 取り込み用JSON（GAS/Discord通知でパース）
+  const json = JSON.stringify(
+    t.items.map(x => ({
+      id: x.id,
+      name: x.name,
+      price: x.price,
+      qty: x.qty,
+      subtotal: x.price * x.qty
+    }))
+  );
+
   const url = new URL(FORM_BASE);
-  url.searchParams.set('usp','pp_url');
-  url.searchParams.set('entry.1000001', before);
-  url.searchParams.set('entry.1000002', chosen);
-  url.searchParams.set('entry.1000003', slot);
-  url.searchParams.set('entry.1000004', memo);
-  url.searchParams.set('entry.1000005', json);
-  url.searchParams.set('entry.1000006', text);
+  url.searchParams.set('usp', 'pp_url');
+
+  // ★ 確定 entry 番号に差し替え（あなたの一覧に合わせ済み）
+  url.searchParams.set('entry.1286573866', text);      // 商品一覧（確認用テキスト）
+  // 氏名（entry.1872572951）/ 電話番号（entry.823790722）はユーザー入力
+  url.searchParams.set('entry.1515941336', chosenIso); // 受取希望日（日付型は ISO が正解）
+  url.searchParams.set('entry.145233294',  slot);      // 希望時間帯（ラジオ：完全一致）
+  url.searchParams.set('entry.907378750',  memo);      // 備考欄
+  url.searchParams.set('entry.224243122',  beforeIso); // システム最短日（テキスト項目：ISOで安定）
+  url.searchParams.set('entry.1040973575', json);      // 取り込み用JSON
+
   window.location.href = url.toString();
 });
+
+
 // ===== 「もっと見る」→商品詳細ドロワ =====
 document.addEventListener('click',(ev)=>{
   const a = ev.target.closest('[data-detail]');
