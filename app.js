@@ -115,6 +115,16 @@ function slotForForm(slotText){
   return '14時〜17時'; // フォールバック
 }
 
+// Googleフォームの日付プリフィル（entryId は数値文字列）
+function setGFormDate(url, entryId, iso){ // iso="YYYY-MM-DD"
+  if(!iso) return;
+  const [y,m,d] = iso.split('-').map(n=>String(Number(n))); // 先頭ゼロを落とす
+  url.searchParams.set(`entry.${entryId}_year`,  y);
+  url.searchParams.set(`entry.${entryId}_month`, m);
+  url.searchParams.set(`entry.${entryId}_day`,   d);
+}
+
+
 
 /** ========= Loading UX（200msルール） ========= **/
 let loadingTimer = null;
@@ -745,11 +755,17 @@ document.getElementById('cartProceed')?.addEventListener('click', (e) => {
   // ★ 確定 entry 番号に差し替え（あなたの一覧に合わせ済み）
   url.searchParams.set('entry.1286573866', text);      // 商品一覧（確認用テキスト）
   // 氏名（entry.1872572951）/ 電話番号（entry.823790722）はユーザー入力
-  url.searchParams.set('entry.1515941336', chosenIso); // 受取希望日（日付型は ISO が正解）
+  // url.searchParams.set('entry.1515941336', chosenIso); // 受取希望日（日付型は ISO が正解）
   url.searchParams.set('entry.145233294',  slot);      // 希望時間帯（ラジオ：完全一致）
   url.searchParams.set('entry.907378750',  memo);      // 備考欄
   url.searchParams.set('entry.224243122',  beforeIso); // システム最短日（テキスト項目：ISOで安定）
   url.searchParams.set('entry.1040973575', json);      // 取り込み用JSON
+
+    // ★ 受取希望日（日付型）は3分割で送る（これが重要）
+  setGFormDate(url, '1515941336', chosenIso);
+
+  // デバッグ：実際のURLをコンソールで確認
+  console.log('[PPP] Prefill URL:', url.toString());
 
   window.location.href = url.toString();
 });
