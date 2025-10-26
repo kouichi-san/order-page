@@ -11,6 +11,23 @@ PPP.meta = Object.freeze({
   builtAt: '2025-10-19T00:00:00+09:00'
 });
 
+/* ===== 画面ミニログ（?debug=1 でON） ===== */
+(function(){
+  if (!location.search.includes('debug=1')) return;
+  const box = document.createElement('pre');
+  box.style.cssText = 'position:fixed;right:8px;top:8px;z-index:99999;max-width:70vw;max-height:40vh;overflow:auto;background:#111;color:#0f0;padding:8px;border-radius:8px;font:11px/1.4 ui-monospace;opacity:.9';
+  box.textContent = '[debug] ready\n';
+  document.body.appendChild(box);
+  const echo = (...args) => { try { box.textContent += args.map(x => typeof x==='string'?x:JSON.stringify(x)).join(' ') + '\n'; } catch(_){} };
+  const origLog = console.log, origErr = console.error, origWarn = console.warn;
+  console.log  = (...a)=>{ origLog(...a);  echo('[log]',  ...a); };
+  console.error= (...a)=>{ origErr(...a);  echo('[err]',  ...a); };
+  console.warn = (...a)=>{ origWarn(...a); echo('[warn]', ...a); };
+  window.PPP_DEBUG_ECHO = echo; // 任意で直接書き込みたい時に
+})();
+
+
+
 // 画像などのキャッシュバストに使う既存の IMG_BUST が未定義ならフォールバック
 if (typeof window.IMG_BUST === 'undefined') window.IMG_BUST = PPP.meta.ver;
 
