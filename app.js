@@ -318,6 +318,20 @@ async function loadProducts(){
   }
 }
 
+/** =========LIFEプロファイル取りに行く安全策　========== **/
+async function getLineProfileSafely(){
+  try{
+    if (window.PPP_LINE?.userId) return window.PPP_LINE;
+    if (window.liff && liff.isLoggedIn()){
+      const p = await liff.getProfile();
+      window.PPP_LINE = { userId:p.userId, name:p.displayName };
+      return window.PPP_LINE;
+    }
+  }catch(_) {}
+  return null;
+}
+
+
 /** ========= バリエーショングループ構築（Union-Find） ========= **/
 function buildVariantGroups(){
   const ids = new Set(PRODUCTS.map(p=>p.id));
@@ -725,8 +739,9 @@ document.addEventListener('change',(ev)=>{
 document.addEventListener('input',(ev)=>{ if(ev.target.id==='pickupMemo'){ state.memo = ev.target.value; } });
 
 // 注文へ
-document.getElementById('cartProceed')?.addEventListener('click', (e) => {
+document.getElementById('cartProceed')?.addEventListener('click', async (e) => {
   e.preventDefault();
+  await getLineProfileSafely(); // ← ここで最終取得（間に合わなかったケースを救済）
 
   const beforeIso = state.minDateISO;                   // システム最短日（ISO）
   const chosenIso = state.selectedDateISO || beforeIso; // 受取希望日（ISO / 日付型に安全）
@@ -756,11 +771,11 @@ document.getElementById('cartProceed')?.addEventListener('click', (e) => {
   url.searchParams.set('usp', 'pp_url');
 
   // フォームの項目IDに合わせてセット
-  if (window.PPP_LINE?.name) {
-    url.searchParams.set(ENTRY_LINE_NAME, window.PPP_LINE.name);
+  if (window.PPP_LINE?.name && ENTRY_LINE_NAME){
+    url.searchParams.set(`entry.${ENTRY_LINE_NAME}`, window.PPP_LINE.name);
   }
-  if (window.PPP_LINE?.userId) {
-    url.searchParams.set(ENTRY_LINE_UID, window.PPP_LINE.userId);
+  if (window.PPP_LINE?.userId && ENTRY_LINE_UID){
+    url.searchParams.set(`entry.${ENTRY_LINE_UID}`, window.PPP_LINE.userId);
   }
   url.searchParams.set('entry.1286573866', text);      // 商品一覧（確認用テキスト）
   url.searchParams.set('entry.145233294',  slot);      // 希望時間帯（ラジオ：完全一致）
