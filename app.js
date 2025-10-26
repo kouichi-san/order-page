@@ -15,16 +15,16 @@ PPP.meta = Object.freeze({
 (function(){
   if (!location.search.includes('debug=1')) return;
   const box = document.createElement('pre');
-  box.style.cssText = 'position:fixed;right:8px;top:8px;z-index:99999;max-width:70vw;max-height:40vh;overflow:auto;background:#111;color:#0f0;padding:8px;border-radius:8px;font:11px/1.4 ui-monospace;opacity:.9';
-  box.textContent = '[debug] ready\n';
-  document.body.appendChild(box);
-  const echo = (...args) => { try { box.textContent += args.map(x => typeof x==='string'?x:JSON.stringify(x)).join(' ') + '\n'; } catch(_){} };
-  const origLog = console.log, origErr = console.error, origWarn = console.warn;
-  console.log  = (...a)=>{ origLog(...a);  echo('[log]',  ...a); };
-  console.error= (...a)=>{ origErr(...a);  echo('[err]',  ...a); };
-  console.warn = (...a)=>{ origWarn(...a); echo('[warn]', ...a); };
-  window.PPP_DEBUG_ECHO = echo; // 任意で直接書き込みたい時に
+  box.style.cssText='position:fixed;right:8px;top:8px;zIndex:99999;maxWidth:70vw;maxHeight:40vh;overflow:auto;background:#111;color:#0f0;padding:8px;borderRadius:8px;font:11px/1.4 ui-monospace;opacity:.9';
+  box.textContent='[debug] ready\n';
+  document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(box));
+  const echo=(...a)=>{try{box.textContent+=a.map(x=>typeof x==='string'?x:JSON.stringify(x)).join(' ')+'\n'}catch{}};
+  const L=console.log,E=console.error,W=console.warn;
+  console.log=(...a)=>{L(...a);echo('[log]',...a)}; console.error=(...a)=>{E(...a);echo('[err]',...a)};
+  console.warn=(...a)=>{W(...a);echo('[warn]',...a)};
+  window.PPP_DEBUG_ECHO=echo;
 })();
+
 
 
 
@@ -756,7 +756,7 @@ document.addEventListener('change',(ev)=>{
 document.addEventListener('input',(ev)=>{ if(ev.target.id==='pickupMemo'){ state.memo = ev.target.value; } });
 
 // 注文へ
-document.getElementById('cartProceed')?.addEventListener('click', async (e) => {
+document.getElementById('cartProceed')?.addEventListener('click', async (e)=>{
   e.preventDefault();
   await getLineProfileSafely(); // ← ここで最終取得（間に合わなかったケースを救済）
 
