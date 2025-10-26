@@ -41,8 +41,8 @@ const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhH
 const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
 const MAX_ADVANCE_DAYS = 20; // 最短日から＋20日（合計21候補）
 // Googleフォームの entry 番号（手順1で取得）
-const ENTRY_LINE_NAME = 'entry.733179957';   // 例 '1234567890'
-const ENTRY_LINE_UID  = 'entry.1260088783'; // 例 '0987654321'
+const ENTRY_LINE_NAME = '733179957';   // 例 '1234567890'
+const ENTRY_LINE_UID  = '1260088783'; // 例 '0987654321'
 
 let PRODUCTS = [];
 let productById = new Map();
