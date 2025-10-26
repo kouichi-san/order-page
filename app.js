@@ -7,7 +7,7 @@
 window.PPP = window.PPP || {};
 PPP.meta = Object.freeze({
   sp: 'SP-20251019-FavLater-1',
-  ver: '20251019b',
+  ver: '20251026g',
   builtAt: '2025-10-19T00:00:00+09:00'
 });
 
