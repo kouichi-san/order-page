@@ -1,13 +1,8 @@
-/*!
- * PPP Order Page - app.js
- * SavePoint: SP-20251019-FavLater-1
- * Version: 20251019b
- * Purpose: お気に入り（♡）/ あとで の実装安定化 & 表示整合
- */
+/*!　ーーーーーーー */
 window.PPP = window.PPP || {};
 PPP.meta = Object.freeze({
   sp: 'SP-20251019-FavLater-1',
-  ver: '20251026g',
+  ver: '20251027a',
   builtAt: '2025-10-19T00:00:00+09:00'
 });
 
@@ -56,6 +51,38 @@ const state = {
   memo: "",
   agreeStock: false,
 };
+
+/** ========= LINEメニュー入場の検知＆カート初期化 ========= **/
+const ENTRY_PARAM_KEYS = ['entry','src','from'];   // ← リッチメニューURLに ?entry=menu を推奨
+function isLineInApp(){ return /Line\//i.test(navigator.userAgent||''); }
+function hasEntryParam(){
+  const sp = new URLSearchParams(location.search);
+  return ENTRY_PARAM_KEYS.some(k => sp.get(k)?.toLowerCase?.() === 'menu');
+}
+function alreadyClearedThisSession(){ return sessionStorage.getItem('PPP_CART_CLEARED') === '1'; }
+function markCleared(){ sessionStorage.setItem('PPP_CART_CLEARED','1'); }
+
+function clearCartNow(reason='entry'){
+  try{
+    state.cart = {};
+    localStorage.setItem('cart','{}');
+    renderCartBar && renderCartBar();
+    console.info('[PPP] cart cleared:', reason);
+  }catch(e){ console.warn(e); }
+  markCleared();
+}
+
+/** 起動直後にUA/クエリでざっくり判定 → その後 LIFFプロファイル取得でもう一度保険 */
+function maybeClearCartOnEntry(stage='boot'){
+  if (alreadyClearedThisSession()) return;
+  // 1) 最も確実：リッチメニューURLに ?entry=menu を付ける（推奨）
+  if (hasEntryParam()) { clearCartNow(`param:${stage}`); return; }
+  // 2) 次善：LINEアプリ内UAで新規オープンらしき時
+  if (isLineInApp() && performance?.getEntriesByType?.('navigation')?.[0]?.type === 'navigate') {
+    clearCartNow(`ua:${stage}`); return;
+  }
+  // 3) さらに保険：LIFFで userId が取れた直後にもう一回だけ確認
+}
 
 /** ========= フィルタ状態（Variant Mode対応） ========= **/
 const filterState = {
@@ -342,6 +369,8 @@ async function getLineProfileSafely(){
     if (window.liff && liff.isLoggedIn()){
       const p = await liff.getProfile();
       window.PPP_LINE = { userId:p.userId, name:p.displayName };
+      // ★ プロファイルが取れた段階でもう一度だけ判定
+      maybeClearCartOnEntry('liff');
       return window.PPP_LINE;
     }
   }catch(_) {}
@@ -1045,6 +1074,7 @@ async function initLIFF(){
 (function init(){
   ensureTopProgress(); ensureSr();
   initLIFF();
+  maybeClearCartOnEntry('boot');
   try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
   renderMinDateEverywhere();
   renderCartBar();
