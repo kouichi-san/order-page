@@ -1,10 +1,15 @@
-/*!　ーーーーーーー */
+/*!
+ * PPP Order Page – app.js
+ * SavePoint: SP-20251027-Prefs
+ * Version: 20251027a
+ * Purpose: お気に入り（♡）／あとで のクラウド保存対応
+ */
 window.PPP = window.PPP || {};
-PPP.meta = Object.freeze({
-  sp: 'SP-20251019-FavLater-1',
-  ver: '20251027a',
-  builtAt: '2025-10-19T00:00:00+09:00'
-});
+PPP.build = {
+  id: 'SP-20251027-Prefs',
+  builtAt: '2025-10-27T00:00:00+09:00'
+};
+
 
 /* ===== 画面ミニログ（?debug=1 でON） ===== */
 (function(){
@@ -369,13 +374,83 @@ async function getLineProfileSafely(){
     if (window.liff && liff.isLoggedIn()){
       const p = await liff.getProfile();
       window.PPP_LINE = { userId:p.userId, name:p.displayName };
-      // ★ プロファイルが取れた段階でもう一度だけ判定
       maybeClearCartOnEntry('liff');
       return window.PPP_LINE;
     }
   }catch(_) {}
   return null;
 }
+
+/** ========= User Prefs (fav/later) sync module ========= */
+window.PPP = window.PPP || {};
+(function(PPP){
+  PPP.prefs = PPP.prefs || {};
+  const U = PPP.prefs;
+  U.uid = null;
+  U.syncDone = false;
+
+  U._get = async function(uid){
+    try{
+      const u = new URL(PREFS_URL);
+      u.searchParams.set('action','list');
+      u.searchParams.set('uid', uid);
+      const res = await fetch(u.toString(), { method:'GET', mode:'cors' });
+      return await res.json();
+    }catch(e){
+      console.warn('[Prefs] list error', e);
+      return { ok:false, items:[] };
+    }
+  };
+
+  function _apply(items){
+    // Clear current fav:/later: and re-apply from server
+    try{
+      const rm = [];
+      for (let i=0;i<localStorage.length;i++){
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('fav:') || k.startsWith('later:'))) rm.push(k);
+      }
+      rm.forEach(k=>localStorage.removeItem(k));
+      (items||[]).forEach(it=>{
+        const k = `${it.kind}:${it.id}`;
+        localStorage.setItem(k, '1');
+      });
+    }catch(e){ console.warn('[Prefs] apply local fail', e); }
+    try{
+      renderFavButtonActive?.();
+      renderFavList?.();
+      renderLaterList?.();
+      if (filterState?.favsOnly) renderProducts?.();
+    }catch(_){}
+  }
+
+  U.syncFromServer = async function(){
+    try{
+      const prof = await getLineProfileSafely();
+      const uid = prof?.userId; if(!uid) return;
+      U.uid = uid;
+      const j = await U._get(uid);
+      if (j && j.ok){
+        _apply(j.items||[]);
+        U.syncDone = true;
+      }
+    }catch(e){
+      console.warn('[Prefs] sync fail', e);
+    }
+  };
+
+  U.set = async function(kind,id,on){
+    try{
+      const uid = U.uid || (window.PPP_LINE?.userId) || (await getLineProfileSafely())?.userId;
+      if(!uid) return;
+      const body = JSON.stringify({ action:'set', uid, kind, id, on: !!on });
+      fetch(PREFS_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body });
+    }catch(e){
+      console.warn('[Prefs] set fail', e);
+    }
+  };
+})(window.PPP);
+
 
 
 /** ========= バリエーショングループ構築（Union-Find） ========= **/
@@ -745,10 +820,12 @@ document.addEventListener('click', (ev)=>{
     state.cart[id] = clamp((state.cart[id]||0)+1, 0, 999);
     localStorage.setItem('cart', JSON.stringify(state.cart));
     localStorage.removeItem('later:'+id);
+    try{ window.PPP?.prefs?.set && PPP.prefs.set('later', id, false); }catch(_){}
     renderCartBar(); renderCartDrawer();
   }
   if(ev.target.matches('[data-later-del]')){
     localStorage.removeItem('later:'+id);
+    try{ window.PPP?.prefs?.set && PPP.prefs.set('later', id, false); }catch(_){}
     renderLaterList();
   }
 });
@@ -762,6 +839,7 @@ document.addEventListener('click', (ev)=>{
     renderCartBar(); renderCartDrawer();
   }
   if(ev.target.matches('[data-fav-del]')){
+    try{ window.PPP?.prefs?.set && PPP.prefs.set('fav', id, false); }catch(_){}
     localStorage.removeItem('fav:'+id);
     renderFavList();
   }
@@ -1064,6 +1142,7 @@ async function initLIFF(){
       name: prof.displayName || ''
     };
     console.info('[PPP] LIFF OK:', window.PPP_LINE);
+    try{ window.PPP?.prefs?.syncFromServer && await PPP.prefs.syncFromServer(); }catch(_){}
   }catch(err){
     console.warn('[PPP] LIFF init error', err);
   }
@@ -1289,12 +1368,14 @@ function renderDetailDrawer(p){
     on ? localStorage.removeItem(k) : localStorage.setItem(k,'1');
     laterBtn.textContent = localStorage.getItem(k)==='1' ? 'あとで済' : 'あとで';
     renderLaterList();
+    try{ window.PPP?.prefs?.set && PPP.prefs.set('later', p.id, localStorage.getItem(k)==='1'); }catch(_){}
   });
   favBtn?.addEventListener('click',()=>{
     const k='fav:'+p.id; const on = localStorage.getItem(k)==='1';
     on ? localStorage.removeItem(k) : localStorage.setItem(k,'1');
     favBtn.textContent = localStorage.getItem(k)==='1' ? '♥ お気に入り' : '♡ お気に入り';
     renderFavList();
+    try{ window.PPP?.prefs?.set && PPP.prefs.set('fav', p.id, localStorage.getItem(k)==='1'); }catch(_){}
     if(filterState.favsOnly) renderProducts();
   });
 
