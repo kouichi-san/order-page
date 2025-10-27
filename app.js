@@ -1,15 +1,15 @@
 /*!
- * PPP Order Page – app.js
- * SavePoint: SP-20251027-Prefs
- * Version: 20251027a
- * Purpose: お気に入り（♡）／あとで のクラウド保存対応
+ * PPP Order Page - app.js
+ * SavePoint: SP-20251019-FavLater-1
+ * Version: 20251019b
+ * Purpose: お気に入り（♡）/ あとで の実装安定化 & 表示整合
  */
 window.PPP = window.PPP || {};
-PPP.build = {
-  id: 'SP-20251027-Prefs',
-  builtAt: '2025-10-27T00:00:00+09:00'
-};
-
+PPP.meta = Object.freeze({
+  sp: 'SP-20251027-Prefs-3',
+  ver: '20251026g',
+  builtAt: '2025-10-19T00:00:00+09:00'
+});
 
 /* ===== 画面ミニログ（?debug=1 でON） ===== */
 (function(){
@@ -29,22 +29,60 @@ PPP.build = {
 
 
 // 画像などのキャッシュバストに使う既存の IMG_BUST が未定義ならフォールバック
-if (typeof window.IMG_BUST === 'undefined') {
-  window.IMG_BUST = (window.PPP?.build?.id) || 'SP-20251027-Prefs';
-}
-console.info(`[PPP] ${window.PPP?.build?.id || 'dev'} / built ${window.PPP?.build?.builtAt || ''}`);
+if (typeof window.IMG_BUST === 'undefined') window.IMG_BUST = PPP.meta.ver;
 
+// バナー表示（本番でも邪魔にならないよう1行）
+console.info(`[PPP] ${PPP.meta?.sp || (window.PPP?.build?.id||'dev')} / ver ${PPP.meta?.ver || ''}`);
 
 /** ========= 設定 ========= **/
 const LIFF_ID = '2008359016-DYakKQJd'; // 例: '2008359016-DYakKQJd'
+const PREFS_URL = "https://script.google.com/macros/s/AKfycbwm87EwEvWmKKIWgktmKM6sbHL9aT_6k4Qd0pxQAYWrIecM89A4ET7xLEA0WH1FTYTb/exec?v=SP-20251027-Prefs";
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycby4489YlOmucAj4DguggZsQox2Kg3yfALImCfma0rYPCNTV_OBQ13u_llxSOv8xO6USKw/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
-const PREFS_URL    = "https://script.google.com/macros/s/AKfycbwm87EwEvWmKKIWgktmKM6sbHL9aT_6k4Qd0pxQAYWrIecM89A4ET7xLEA0WH1FTYTb/exec?v=SP-20251027-Prefs";
 const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
 const MAX_ADVANCE_DAYS = 20; // 最短日から＋20日（合計21候補）
 // Googleフォームの entry 番号（手順1で取得）
 const ENTRY_LINE_NAME = '733179957';   // 例 '1234567890'
 const ENTRY_LINE_UID  = '1260088783'; // 例 '0987654321'
+
+/** ====== PPP User Prefs (fav/later cloud sync) ====== */
+PPP.prefs = (function(){
+  function set(kind,id,on){
+    try{
+      if(!window.PREFS_URL && typeof PREFS_URL!=='undefined'){ window.PREFS_URL = PREFS_URL; }
+      if(!window.PPP_LINE?.userId || !PREFS_URL) return Promise.resolve(null);
+      return fetch(PREFS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action:'set', uid: window.PPP_LINE.userId, kind, id, on: !!on })
+      }).then(r=>r.json()).catch(()=>null);
+    }catch(_){ return Promise.resolve(null); }
+  }
+  function syncFromServer(){
+    try{
+      if(!window.PREFS_URL && typeof PREFS_URL!=='undefined'){ window.PREFS_URL = PREFS_URL; }
+      if(!window.PPP_LINE?.userId || !PREFS_URL) return;
+      const uid = window.PPP_LINE.userId;
+      fetch(`${PREFS_URL}?action=list&uid=${encodeURIComponent(uid)}`)
+        .then(r=>r.json())
+        .then(j=>{
+          if(!j || j.ok!==true || !Array.isArray(j.items)) return;
+          for(let i=localStorage.length-1;i>=0;i--){
+            const k = localStorage.key(i);
+            if(/^fav:/.test(k) || /^later:/.test(k)) localStorage.removeItem(k);
+          }
+          j.items.forEach(it=>{
+            if(it && it.kind && it.id) localStorage.setItem(`${it.kind}:${it.id}`, '1');
+          });
+          try{ renderFavButtonActive(); }catch(_){}
+          try{ renderFavList(); }catch(_){}
+          try{ renderLaterList(); }catch(_){}
+          try{ if (window.filterState?.favsOnly) renderProducts(); }catch(_){}
+        }).catch(()=>{});
+    }catch(_){}
+  }
+  return { set, syncFromServer };
+})();
 
 let PRODUCTS = [];
 let productById = new Map();
@@ -58,38 +96,6 @@ const state = {
   memo: "",
   agreeStock: false,
 };
-
-/** ========= LINEメニュー入場の検知＆カート初期化 ========= **/
-const ENTRY_PARAM_KEYS = ['entry','src','from'];   // ← リッチメニューURLに ?entry=menu を推奨
-function isLineInApp(){ return /Line\//i.test(navigator.userAgent||''); }
-function hasEntryParam(){
-  const sp = new URLSearchParams(location.search);
-  return ENTRY_PARAM_KEYS.some(k => sp.get(k)?.toLowerCase?.() === 'menu');
-}
-function alreadyClearedThisSession(){ return sessionStorage.getItem('PPP_CART_CLEARED') === '1'; }
-function markCleared(){ sessionStorage.setItem('PPP_CART_CLEARED','1'); }
-
-function clearCartNow(reason='entry'){
-  try{
-    state.cart = {};
-    localStorage.setItem('cart','{}');
-    renderCartBar && renderCartBar();
-    console.info('[PPP] cart cleared:', reason);
-  }catch(e){ console.warn(e); }
-  markCleared();
-}
-
-/** 起動直後にUA/クエリでざっくり判定 → その後 LIFFプロファイル取得でもう一度保険 */
-function maybeClearCartOnEntry(stage='boot'){
-  if (alreadyClearedThisSession()) return;
-  // 1) 最も確実：リッチメニューURLに ?entry=menu を付ける（推奨）
-  if (hasEntryParam()) { clearCartNow(`param:${stage}`); return; }
-  // 2) 次善：LINEアプリ内UAで新規オープンらしき時
-  if (isLineInApp() && performance?.getEntriesByType?.('navigation')?.[0]?.type === 'navigate') {
-    clearCartNow(`ua:${stage}`); return;
-  }
-  // 3) さらに保険：LIFFで userId が取れた直後にもう一回だけ確認
-}
 
 /** ========= フィルタ状態（Variant Mode対応） ========= **/
 const filterState = {
@@ -376,83 +382,11 @@ async function getLineProfileSafely(){
     if (window.liff && liff.isLoggedIn()){
       const p = await liff.getProfile();
       window.PPP_LINE = { userId:p.userId, name:p.displayName };
-      maybeClearCartOnEntry('liff');
       return window.PPP_LINE;
     }
   }catch(_) {}
   return null;
 }
-
-/** ========= User Prefs (fav/later) sync module ========= */
-window.PPP = window.PPP || {};
-(function(PPP){
-  PPP.prefs = PPP.prefs || {};
-  const U = PPP.prefs;
-  U.uid = null;
-  U.syncDone = false;
-
-  U._get = async function(uid){
-    try{
-      const u = new URL(PREFS_URL);
-      u.searchParams.set('action','list');
-      u.searchParams.set('uid', uid);
-      const res = await fetch(u.toString(), { method:'GET', mode:'cors' });
-      return await res.json();
-    }catch(e){
-      console.warn('[Prefs] list error', e);
-      return { ok:false, items:[] };
-    }
-  };
-
-  function _apply(items){
-    // Clear current fav:/later: and re-apply from server
-    try{
-      const rm = [];
-      for (let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if (k && (k.startsWith('fav:') || k.startsWith('later:'))) rm.push(k);
-      }
-      rm.forEach(k=>localStorage.removeItem(k));
-      (items||[]).forEach(it=>{
-        const k = `${it.kind}:${it.id}`;
-        localStorage.setItem(k, '1');
-      });
-    }catch(e){ console.warn('[Prefs] apply local fail', e); }
-    try{
-      renderFavButtonActive?.();
-      renderFavList?.();
-      renderLaterList?.();
-      if (filterState?.favsOnly) renderProducts?.();
-    }catch(_){}
-  }
-
-  U.syncFromServer = async function(){
-    try{
-      const prof = await getLineProfileSafely();
-      const uid = prof?.userId; if(!uid) return;
-      U.uid = uid;
-      const j = await U._get(uid);
-      if (j && j.ok){
-        _apply(j.items||[]);
-        U.syncDone = true;
-      }
-    }catch(e){
-      console.warn('[Prefs] sync fail', e);
-    }
-  };
-
-  U.set = async function(kind,id,on){
-    try{
-      const uid = U.uid || (window.PPP_LINE?.userId) || (await getLineProfileSafely())?.userId;
-      if(!uid) return;
-      const body = JSON.stringify({ action:'set', uid, kind, id, on: !!on });
-      fetch(PREFS_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body });
-    }catch(e){
-      console.warn('[Prefs] set fail', e);
-    }
-  };
-})(window.PPP);
-
 
 
 /** ========= バリエーショングループ構築（Union-Find） ========= **/
@@ -822,12 +756,12 @@ document.addEventListener('click', (ev)=>{
     state.cart[id] = clamp((state.cart[id]||0)+1, 0, 999);
     localStorage.setItem('cart', JSON.stringify(state.cart));
     localStorage.removeItem('later:'+id);
-    try{ window.PPP?.prefs?.set && PPP.prefs.set('later', id, false); }catch(_){}
+    try{ PPP.prefs && PPP.prefs.set('later', id, false); }catch(_){}
     renderCartBar(); renderCartDrawer();
   }
   if(ev.target.matches('[data-later-del]')){
     localStorage.removeItem('later:'+id);
-    try{ window.PPP?.prefs?.set && PPP.prefs.set('later', id, false); }catch(_){}
+    try{ PPP.prefs && PPP.prefs.set('later', id, false); }catch(_){}
     renderLaterList();
   }
 });
@@ -841,8 +775,8 @@ document.addEventListener('click', (ev)=>{
     renderCartBar(); renderCartDrawer();
   }
   if(ev.target.matches('[data-fav-del]')){
-    try{ window.PPP?.prefs?.set && PPP.prefs.set('fav', id, false); }catch(_){}
     localStorage.removeItem('fav:'+id);
+    try{ PPP.prefs && PPP.prefs.set('fav', id, false); }catch(_){}
     renderFavList();
   }
 });
@@ -989,6 +923,7 @@ document.addEventListener('click',(ev)=>{
     if(on) localStorage.removeItem(k); else localStorage.setItem(k,'1');
     later.textContent = (localStorage.getItem(k)==='1') ? 'あとで済' : 'あとで';
     renderLaterList();
+    try{ PPP.prefs && PPP.prefs.set('later', id, localStorage.getItem(k)==='1'); }catch(_){}
     return;
   }
   // お気に入り（♡）トグル
@@ -1001,6 +936,7 @@ document.addEventListener('click',(ev)=>{
     else  { localStorage.setItem(k,'1'); favBtn.classList.add('active'); favBtn.textContent = '♥'; }
     // ドロワーを開いていたら一覧も更新
     renderFavList();
+    try{ PPP.prefs && PPP.prefs.set('fav', id, localStorage.getItem(k)==='1'); }catch(_){}
     if(filterState.favsOnly) renderProducts();
     return;
   }
@@ -1144,7 +1080,7 @@ async function initLIFF(){
       name: prof.displayName || ''
     };
     console.info('[PPP] LIFF OK:', window.PPP_LINE);
-    try{ window.PPP?.prefs?.syncFromServer && await PPP.prefs.syncFromServer(); }catch(_){}
+    try{ PPP.prefs && PPP.prefs.syncFromServer(); }catch(_){}
   }catch(err){
     console.warn('[PPP] LIFF init error', err);
   }
@@ -1155,7 +1091,6 @@ async function initLIFF(){
 (function init(){
   ensureTopProgress(); ensureSr();
   initLIFF();
-  maybeClearCartOnEntry('boot');
   try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
   renderMinDateEverywhere();
   renderCartBar();
@@ -1370,14 +1305,12 @@ function renderDetailDrawer(p){
     on ? localStorage.removeItem(k) : localStorage.setItem(k,'1');
     laterBtn.textContent = localStorage.getItem(k)==='1' ? 'あとで済' : 'あとで';
     renderLaterList();
-    try{ window.PPP?.prefs?.set && PPP.prefs.set('later', p.id, localStorage.getItem(k)==='1'); }catch(_){}
   });
   favBtn?.addEventListener('click',()=>{
     const k='fav:'+p.id; const on = localStorage.getItem(k)==='1';
     on ? localStorage.removeItem(k) : localStorage.setItem(k,'1');
     favBtn.textContent = localStorage.getItem(k)==='1' ? '♥ お気に入り' : '♡ お気に入り';
     renderFavList();
-    try{ window.PPP?.prefs?.set && PPP.prefs.set('fav', p.id, localStorage.getItem(k)==='1'); }catch(_){}
     if(filterState.favsOnly) renderProducts();
   });
 
