@@ -1,5 +1,6 @@
 # macOS
 .DS_Store
+**/.DS_Store
 
 # Node/Build 系（将来ビルド導入しても安心）
 node_modules/
