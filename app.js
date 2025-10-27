@@ -29,15 +29,17 @@ PPP.build = {
 
 
 // 画像などのキャッシュバストに使う既存の IMG_BUST が未定義ならフォールバック
-if (typeof window.IMG_BUST === 'undefined') window.IMG_BUST = PPP.meta.ver;
+if (typeof window.IMG_BUST === 'undefined') {
+  window.IMG_BUST = (window.PPP?.build?.id) || 'SP-20251027-Prefs';
+}
+console.info(`[PPP] ${window.PPP?.build?.id || 'dev'} / built ${window.PPP?.build?.builtAt || ''}`);
 
-// バナー表示（本番でも邪魔にならないよう1行）
-console.info(`[PPP] ${PPP.meta.sp} / ver ${PPP.meta.ver}`);
 
 /** ========= 設定 ========= **/
 const LIFF_ID = '2008359016-DYakKQJd'; // 例: '2008359016-DYakKQJd'
 const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycby4489YlOmucAj4DguggZsQox2Kg3yfALImCfma0rYPCNTV_OBQ13u_llxSOv8xO6USKw/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
+const PREFS_URL    = "https://script.google.com/macros/s/AKfycbwm87EwEvWmKKIWgktmKM6sbHL9aT_6k4Qd0pxQAYWrIecM89A4ET7xLEA0WH1FTYTb/exec?v=SP-20251027-Prefs";
 const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
 const MAX_ADVANCE_DAYS = 20; // 最短日から＋20日（合計21候補）
 // Googleフォームの entry 番号（手順1で取得）
