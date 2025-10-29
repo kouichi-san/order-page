@@ -481,6 +481,46 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   .menubar-in{ flex-wrap: wrap; }
 }
 
+/* アイコンボタン（虫メガネ） */
+.menu-iconbtn{
+  display:inline-flex; align-items:center; justify-content:center;
+  height:34px; padding:0 10px; margin-left:8px;
+  border:1px solid var(--border); border-radius:10px; background:#fff;
+  line-height:1; font-size:14px;
+}
+.menu-iconbtn:active{ transform:translateY(1px); }
+
+/* 折りたたみ検索バー（メニューバーの直下・左寄せフル幅） */
+.searchbar{
+  width:100%;
+  padding:8px 0 0;           /* 上だけ詰める */
+  transition:max-height .20s ease, opacity .15s ease;
+  overflow:hidden;
+}
+.searchbar.is-collapsed{
+  max-height:0; opacity:0; padding-top:0;
+}
+.searchbar.is-open{
+  max-height:64px; opacity:1;
+}
+
+/* 検索入力：左寄せ＋iOSズーム防止（font-size>=16px） */
+.menu-search{
+  display:block; width:100%;
+  height:40px; padding:8px 12px;
+  border:1px solid var(--border); border-radius:10px;
+  font-size:16px;                 /* ★ iPhone でのズーム防止 */
+  line-height:1.2;
+  -webkit-text-size-adjust:100%;
+  background:#fff;
+}
+
+/* 小さな端末ではメニューバーが折り返されても左寄せでOK */
+@media (max-width:480px){
+  .menubar-in{ flex-wrap:wrap; }
+  .menu-iconbtn{ margin-top:8px; }
+}
+
 
 /* ===== カテゴリグリッド ===== */
 .ppp-catgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px }

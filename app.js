@@ -443,6 +443,26 @@ function initSearchBox(){
     }
   });
 }
+// 既存の debounce / normSearch / initSearchBox の下あたりに追加
+function initSearchToggle(){
+  const btn  = document.getElementById('btnSearchToggle');
+  const wrap = document.getElementById('globalSearchBar');
+  const box  = document.getElementById('qSearch');
+  if(!btn || !wrap || !box) return;
+
+  const open  = ()=>{ wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open'); btn.setAttribute('aria-expanded','true'); setTimeout(()=>box.focus(), 0); };
+  const close = ()=>{ wrap.classList.remove('is-open'); wrap.classList.add('is-collapsed'); btn.setAttribute('aria-expanded','false'); };
+
+  btn.addEventListener('click', ()=>{
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    expanded ? close() : open();
+  });
+
+  // Esc で閉じる（入力中）
+  box.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){ box.blur(); close(); }
+  });
+}
 
 
 /** ========= バリエーショングループ構築（Union-Find） ========= **/
@@ -1165,6 +1185,7 @@ async function initLIFF(){
   renderFavButtonActive();              // ★ 初期反映
   updateCategoryButtonLabel();          // ★ 初期は「カテゴリ」固定表示
   initSearchBox();
+  initSearchToggle();
   loadProducts();
 })();
 
