@@ -185,7 +185,7 @@
   /* ① メニューボタン（「すべて/カテゴリ/並べ替え/お気に入り」）をタイト化 */
   .menubar-in .ppp-btn,
   .menubar-in .menu-iconbtn{
-    height: 32px;              /* 34px → 32px */
+    height: 28px;              /* 34px → 28px */
     padding: 0 10px;           /* 横の余白少し詰める */
     border-radius: 10px;
   }
@@ -719,3 +719,64 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   justify-content:flex-start; /* 既定の右寄せを上書き */
 }
 #detailDrawer #detailAdd{ margin-left:auto; } /* 右端へ */
+
+
+/* === Menubar 密度＆回り込み防止 ===================== */
+.menubar-in{
+  display:flex;
+  gap:6px;                  /* 余白をさらに詰める */
+  flex-wrap:nowrap;         /* ★ 折り返さない＝検索アイコンが回り込まない */
+  overflow-x:auto;          /* はみ出すときは横スクロール（スマホ向け） */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width:none;
+}
+.menubar-in::-webkit-scrollbar{ display:none; }
+
+.menubar-in .ppp-btn,
+.menubar-in .menu-iconbtn{
+  height:30px;              /* 32→30でタイト化 */
+  padding:0 8px;            /* 横余白さらに詰める */
+  border-radius:10px;
+  flex:0 0 auto;            /* ★ 幅を勝手に伸縮させない */
+}
+
+/* 検索トグル（虫メガネ）だけは常に1ボタン分の幅に */
+.menu-iconbtn{ min-width:34px; }
+/* 検索バーも高さを30pxに合わせる */
+.menu-search{
+  height:30px;
+  padding:5px 10px;
+  font-size:16px;           /* iOSズーム防止のため16px以上 */
+} 
+
+/* === Searchbar 左寄せ＆タイト化 ===================== */
+.searchbar{
+  padding:6px 0 0;
+  margin:0;                 /* ★ 左寄せ固定（中央寄せの原因になりがちなautoマージンを排除） */
+  max-width:100%;
+}
+.searchbar.is-open{ max-height:52px; }
+
+.searchbox{ position:relative; margin:0; } /* 左寄せ固定 */
+
+.menu-search{
+  width:100%;
+  height:34px;              /* 36→34 さらに締める（※フォント16px維持） */
+  padding:5px 10px;         /* 内側の空きをもっとタイトに */
+  padding-right:36px;       /* 右の×ボタン分だけ確保 */
+  border-radius:8px;
+  font-size:16px;           /* ★ iOSズーム防止 */
+  line-height:1.2;
+  text-align:left;          /* 明示的に左寄せ */
+}
+.search-clear{
+  right:6px; width:26px; height:26px; font-size:18px;
+}
+
+/* === Focus 視覚調整＆重なり防止 ===================== */
+.menu-search:focus{
+  outline:none;                                /* デフォルトの青アウトラインを消す */
+  border-color: var(--brand, #2a7cf6);
+  box-shadow: 0 0 0 2px rgba(42,124,246,.15);  /* 控えめな発光に置換 */
+}
+.searchbar{ margin-bottom:10px; }              /* ★ 下に余白を足してカードと分離 */

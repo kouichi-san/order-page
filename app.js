@@ -450,7 +450,8 @@ function initSearchToggle(){
   const box  = document.getElementById('qSearch');
   if(!btn || !wrap || !box) return;
 
-  const open  = ()=>{ wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open'); btn.setAttribute('aria-expanded','true'); setTimeout(()=>box.focus(), 0); };
+  const open  = ()=>{ wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open'); 
+    btn.setAttribute('aria-expanded','true'); wrap.scrollIntoView({block:'nearest', behavior:'smooth'}); setTimeout(()=>box.focus(), 0); }; 
   const close = ()=>{ wrap.classList.remove('is-open'); wrap.classList.add('is-collapsed'); btn.setAttribute('aria-expanded','false'); };
 
   btn.addEventListener('click', ()=>{
