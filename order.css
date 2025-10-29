@@ -462,13 +462,25 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
 .agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
 
-/* ===== 最終更新ピル（現仕様では未使用：UNUSED） =====
-.lastup{
-  display:inline-block; margin:8px 0 0; font-size:12px;
-  background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5;
-  border-radius:999px; padding:4px 10px;
+/* menubar の検索ボックス */
+.menu-search{
+  margin-left:auto; /* 右寄せ。必要なら消す */
+  min-width: 200px;
+  max-width: 320px;
+  height: 34px;
+  padding: 6px 10px;
+  border:1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
 }
-*/
+@media (max-width:420px){
+  .menu-search{
+    min-width: 0;
+    width: 100%;
+  }
+  .menubar-in{ flex-wrap: wrap; }
+}
+
 
 /* ===== カテゴリグリッド ===== */
 .ppp-catgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px }

@@ -107,6 +107,7 @@ const filterState = {
   variantGroup: null,     // 代表ID（Union-Find root想定・無くてもOK）
   variantSelected: null,  // 選択id
   variantBackup: null,    // 元のcat/sub/sort退避
+  query: '' // グローバル検索文字列
 };
 
 /** ========= ユーティリティ ========= **/
@@ -349,21 +350,33 @@ async function loadProducts(){
     loadingTimer = setTimeout(showSkeleton, 200);
     const res = await fetch(PRODUCTS_URL, { cache:'no-store' });
     const data = await res.json();
-    PRODUCTS = (data.items||[]).map((x,i)=>({
-      id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
-      img:x.img||x.imageUrl||'', desc:x.desc||'',
-      prenote:x.prenote||'', unitNote:x.unitNote||'',
-      catGroup:x.catGroup||x.cat||'', subcatGroup:x.subcatGroup||'',
-      var1Id:x.var1Id||'', var1Label:x.var1Label||'',
-      var2Id:x.var2Id||'', var2Label:x.var2Label||'',
-      group: String(x.group||''),
-      variant: String(x.variant||''),
-      stock:(x.stock!==undefined?Number(x.stock):undefined),
-      active:(x.active===undefined?true:Boolean(x.active)),
-      leadDays:Number(x.leadDays||1),
-      _idx:i, _pop:Number(x.popularity||x.pop||x.rank||0),
-      _newTS: Date.parse(x.newAt||x.createdAt||x.updatedAt||x.date||'') || 0
-    }));
+    PRODUCTS = (data.items||[]).map((x,i)=>{
+      const p = {
+        id:String(x.id||x.code||''), name:x.name, price:Number(x.price||0),
+        img:x.img||x.imageUrl||'', desc:x.desc||'',
+        prenote:x.prenote||'', unitNote:x.unitNote||'',
+        catGroup:x.catGroup||x.cat||'', subcatGroup:x.subcatGroup||'',
+        var1Id:x.var1Id||'', var1Label:x.var1Label||'',
+        var2Id:x.var2Id||'', var2Label:x.var2Label||'',
+        group: String(x.group||''),
+        variant: String(x.variant||''),
+        stock:(x.stock!==undefined?Number(x.stock):undefined),
+        active:(x.active===undefined?true:Boolean(x.active)),
+        leadDays:Number(x.leadDays||1),
+        _idx:i, _pop:Number(x.popularity||x.pop||x.rank||0),
+        _newTS: Date.parse(x.newAt||x.createdAt||x.updatedAt||x.date||'') || 0
+      };
+      // ★ 検索用ブロブの作成（スプシ側の検索用列も統合）
+      const searchField = x.search || x.keywords || '';
+      const blob = [
+        p.name, p.desc, p.prenote, p.unitNote,
+        (p.catGroup || x.cat || ''), p.subcatGroup,
+        searchField
+      ].filter(Boolean).join('\n');
+      // 正規化して隠しプロパティに保持（AND検索で使う）
+      p._q = normSearch(blob);
+      return p;
+    });
     productById = new Map(PRODUCTS.map(p=>[p.id,p]));
     buildVariantGroups();
     renderProducts(); updateCategoryButtonLabel(); renderSortActive();
@@ -386,6 +399,49 @@ async function getLineProfileSafely(){
     }
   }catch(_) {}
   return null;
+}
+
+// --- 検索用 正規化（全角/半角・カナ/かな・小文字化・空白圧縮） ---
+function toHalfWidth(s){
+  return String(s||'').replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0)-0xFEE0));
+}
+function kataToHira(s){
+  // カタカナ→ひらがな（濁点等はそのまま落ちますが実運用は十分）
+  return String(s||'').replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0)-0x60));
+}
+function normSearch(s){
+  return kataToHira(toHalfWidth(String(s||'').toLowerCase()))
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')  // 記号→空白
+    .replace(/\s+/g, ' ')                          // 連続空白→1つ
+    .trim();
+}
+
+// 入力の揺れを抑える軽量デバウンス
+const debounce = (fn, ms=160) => {
+  let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), ms); };
+};
+
+// 検索ボックス初期化（存在すれば1回だけバインド）
+function initSearchBox(){
+  const box = document.getElementById('qSearch');
+  if(!box) return; // HTML側に未設置なら何もしない（安全）
+
+  const apply = ()=>{
+    const q = normSearch(box.value);
+    filterState.query = q;
+    renderProducts();
+  };
+
+  box.addEventListener('input', debounce(apply, 160));
+
+  // Escでクリア
+  box.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){
+      box.value = '';
+      filterState.query = '';
+      renderProducts();
+    }
+  });
 }
 
 
@@ -548,6 +604,17 @@ function renderProducts(){
   if (filterState.favsOnly) {
     const favSet = new Set(getFavIds());
     filtered = filtered.filter(p => favSet.has(p.id));
+  }
+
+    // --- 検索フィルタ（AND検索 / p._q を対象） ---
+  if (filterState.query) {
+    const terms = filterState.query.split(/\s+/).filter(Boolean);
+    if (terms.length){
+      filtered = filtered.filter(p => {
+        const hay = p._q || '';
+        return terms.every(t => hay.includes(t));
+      });
+    }
   }
 
   const list = sortProducts(filtered);
@@ -1097,6 +1164,7 @@ async function initLIFF(){
   document.getElementById('sortbar')?.setAttribute('aria-hidden','true');
   renderFavButtonActive();              // ★ 初期反映
   updateCategoryButtonLabel();          // ★ 初期は「カテゴリ」固定表示
+  initSearchBox();
   loadProducts();
 })();
 
