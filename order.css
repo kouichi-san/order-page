@@ -851,4 +851,49 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
     background: #fff;
   }
 
+  @layer overrides {
+  /* ラッパー基準に絶対配置するための土台 */
+  .searchbox{
+    position: relative;
+    margin: 0;
+  }
+
+  /* iOS のネイティブ×を消す（かぶり防止） */
+  .menu-search{
+    -webkit-appearance: none;
+    box-sizing: border-box;      /* padding計算を枠内に */
+    width: 100%;
+    height: 34px;
+    font-size: 16px;
+    line-height: 1.2;
+    padding: 5px 10px;
+    padding-right: 36px;         /* 右端に×ぶんのスペースを予約 */
+    border-radius: 8px;
+    margin: 0 !important;
+  }
+  .menu-search::-webkit-search-cancel-button{ -webkit-appearance: none; }
+
+  /* ×ボタンを入力の内側右端に“固定” */
+  .search-clear{
+    position: absolute;
+    right: 6px;                  /* 入力枠の内側に収める */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    border: 0;
+    background: transparent;
+    font-size: 18px;
+    line-height: 1;
+    color: #666;
+    border-radius: 13px;
+    z-index: 1;                  /* 画像やカードより前に */
+    cursor: pointer;
+  }
+  .search-clear:active{ transform: translateY(-50%) scale(.96); }
+
+  /* メニューバーとの間を極限まで詰める（下は最低限の8px） */
+  .searchbar{ padding-top: 2px; margin-bottom: 8px; }
+}
+
 

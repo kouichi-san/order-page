@@ -427,12 +427,16 @@ function initSearchBox(){
   if(!box) return;
 
   const clearBtn = document.getElementById('btnSearchClear');
-
+  const sync = () => {
+    if (!clearBtn) return;
+    clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
+  };
   const apply = ()=>{
     const q = normSearch(box.value);
     filterState.query = q;
     renderProducts();
-    if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
+    // if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
+    sync();
   };
 
   box.addEventListener('input', debounce(apply, 160));
@@ -443,7 +447,8 @@ function initSearchBox(){
       box.value = '';
       filterState.query = '';
       renderProducts();
-      if (clearBtn) clearBtn.style.visibility = 'hidden';
+      // if (clearBtn) clearBtn.style.visibility = 'hidden';
+      sync();
     }
   });
 
@@ -454,9 +459,11 @@ function initSearchBox(){
       filterState.query = '';
       renderProducts();
       box.focus();                         // 入力体験を切らさない
-      clearBtn.style.visibility = 'hidden';
+      // clearBtn.style.visibility = 'hidden';
+      sync();
     });
-    clearBtn.style.visibility = 'hidden';   // 初期は非表示
+    // clearBtn.style.visibility = 'hidden';   // 初期は非表示
+    sync();
   }
 }
 
@@ -465,10 +472,19 @@ function initSearchToggle(){
   const btn  = document.getElementById('btnSearchToggle');
   const wrap = document.getElementById('globalSearchBar');
   const box  = document.getElementById('qSearch');
+  const clearBtn = document.getElementById('btnSearchClear');
   if(!btn || !wrap || !box) return;
 
-  const open  = ()=>{ wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open'); 
-    btn.setAttribute('aria-expanded','true'); wrap.scrollIntoView({block:'nearest', behavior:'smooth'}); setTimeout(()=>box.focus(), 0); }; 
+  // const open  = ()=>{ wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open'); 
+  //   btn.setAttribute('aria-expanded','true'); wrap.scrollIntoView({block:'nearest', behavior:'smooth'}); setTimeout(()=>box.focus(), 0); }; 
+  const open  = ()=>{ 
+   wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open'); 
+   btn.setAttribute('aria-expanded','true'); 
+   // 入力値がある場合に×の可視状態を即反映
+   if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
+   wrap.scrollIntoView({block:'nearest', behavior:'smooth'});
+   setTimeout(()=>box.focus(), 0);
+ }; 
   const close = ()=>{ wrap.classList.remove('is-open'); wrap.classList.add('is-collapsed'); btn.setAttribute('aria-expanded','false'); };
 
   btn.addEventListener('click', ()=>{
