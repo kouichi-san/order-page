@@ -780,3 +780,39 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   box-shadow: 0 0 0 2px rgba(42,124,246,.15);  /* 控えめな発光に置換 */
 }
 .searchbar{ margin-bottom:10px; }              /* ★ 下に余白を足してカードと分離 */
+
+@layer overrides {
+  /* 検索入力の左寄せを強制（古い margin-left:auto を無効化） */
+  .menu-search{
+    margin: 0 !important;       /* ← これが効きます */
+    width: 100%;
+    height: 34px;
+    padding: 5px 10px;          /* タイトに */
+    font-size: 16px;            /* iPhoneズーム防止 */
+    border-radius: 8px;
+    text-align: left;
+  }
+
+  /* 検索バーの“重なり”を防ぐため余白を確保＆視覚分離 */
+  .searchbar{ margin-bottom: 10px; }
+  .menu-search:focus{
+    outline: none;
+    border-color: var(--brand, #2a7cf6);
+    box-shadow: 0 0 0 2px rgba(42,124,246,.15);
+    background: #fff;           /* フォーカス時も下のカード色が透けない */
+  }
+
+  /* ボタンが折り返されて虫メガネが回り込まないよう固定 */
+  .menubar-in{
+    display: flex; gap: 6px; align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .menubar-in::-webkit-scrollbar{ display:none; }
+  .menubar-in .ppp-btn, .menubar-in .menu-iconbtn{
+    flex: 0 0 auto; height: 30px; padding: 0 8px; border-radius: 10px;
+  }
+  .menu-iconbtn{ min-width: 34px; }
+}
+
