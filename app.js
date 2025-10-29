@@ -6,8 +6,8 @@
  */
 window.PPP = window.PPP || {};
 PPP.meta = Object.freeze({
-  sp: 'SP-20251027-Prefs-3',
-  ver: '20251026g',
+  sp: 'SP-20251029-SearchMVP-1',
+  ver: '20251029a',
   builtAt: '2025-10-19T00:00:00+09:00'
 });
 
