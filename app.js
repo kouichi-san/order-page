@@ -425,46 +425,24 @@ const debounce = (fn, ms=160) => {
 function initSearchBox(){
   const box = document.getElementById('qSearch');
   if(!box) return;
-
   const clearBtn = document.getElementById('btnSearchClear');
-  const sync = () => {
-    if (!clearBtn) return;
-    clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
-  };
-  const apply = ()=>{
-    const q = normSearch(box.value);
-    filterState.query = q;
-    renderProducts();
-    // if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
-    sync();
-  };
+
+  const sync = () => { if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden'; };
+  const apply = ()=>{ window.filterState = window.filterState || {}; window.filterState.query = normSearch(box.value); if (typeof renderProducts==='function') renderProducts(); sync(); };
 
   box.addEventListener('input', debounce(apply, 160));
-
-  // Escでクリア
   box.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape'){
-      box.value = '';
-      filterState.query = '';
-      renderProducts();
-      // if (clearBtn) clearBtn.style.visibility = 'hidden';
-      sync();
+      box.value = ''; window.filterState.query = ''; if (typeof renderProducts==='function') renderProducts(); sync();
     }
   });
 
-  // ×ボタンで即クリア
   if (clearBtn){
     clearBtn.addEventListener('click', ()=>{
-      box.value = '';
-      filterState.query = '';
-      renderProducts();
-      box.focus();                         // 入力体験を切らさない
-      // clearBtn.style.visibility = 'hidden';
-      sync();
+      box.value = ''; window.filterState.query = ''; if (typeof renderProducts==='function') renderProducts(); box.focus(); sync();
     });
-    // clearBtn.style.visibility = 'hidden';   // 初期は非表示
-    sync();
   }
+  sync();
 }
 
 // 既存の debounce / normSearch / initSearchBox の下あたりに追加
@@ -475,27 +453,22 @@ function initSearchToggle(){
   const clearBtn = document.getElementById('btnSearchClear');
   if(!btn || !wrap || !box) return;
 
-  // const open  = ()=>{ wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open'); 
-  //   btn.setAttribute('aria-expanded','true'); wrap.scrollIntoView({block:'nearest', behavior:'smooth'}); setTimeout(()=>box.focus(), 0); }; 
-  const open  = ()=>{ 
-   wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open'); 
-   btn.setAttribute('aria-expanded','true'); 
-   // 入力値がある場合に×の可視状態を即反映
-   if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
-   wrap.scrollIntoView({block:'nearest', behavior:'smooth'});
-   setTimeout(()=>box.focus(), 0);
- }; 
-  const close = ()=>{ wrap.classList.remove('is-open'); wrap.classList.add('is-collapsed'); btn.setAttribute('aria-expanded','false'); };
+  const open  = ()=>{
+    wrap.classList.remove('is-collapsed'); wrap.classList.add('is-open');
+    btn.setAttribute('aria-expanded','true');
+    if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
+    try{ wrap.scrollIntoView({block:'nearest', behavior:'smooth'}); }catch(_){}
+    setTimeout(()=>box.focus(), 0);
+  };
+  const close = ()=>{
+    wrap.classList.remove('is-open'); wrap.classList.add('is-collapsed');
+    btn.setAttribute('aria-expanded','false');
+  };
 
   btn.addEventListener('click', ()=>{
-    const expanded = btn.getAttribute('aria-expanded') === 'true';
-    expanded ? close() : open();
+    (btn.getAttribute('aria-expanded') === 'true') ? close() : open();
   });
-
-  // Esc で閉じる（入力中）
-  box.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape'){ box.blur(); close(); }
-  });
+  box.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ box.blur(); close(); } });
 }
 
 

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="ppp-version" content="SP-20251029-SearchMVP-1">
   <title>Ping-Pong-Pang｜翌日以降受け取り 注文</title>
-  <link rel="stylesheet" href="order.css?v=SP-20251029-SearchMVP-1"></head>
+  <link rel="stylesheet" href="order.css?v=20251029c"></head>
 <body>
   <!-- ===== ヘッダー ===== -->
   <header>
@@ -44,15 +44,15 @@
       </button>
     </div>
     <div class="wrap">
-      <div id="globalSearchBar" class="searchbar is-collapsed">
-        <div class="searchbox">
-          <input id="qSearch" class="menu-search" type="search"
-            placeholder="商品検索（例: ハイローラー, チーズ）" autocomplete="off" inputmode="search" />
-          <button id="btnSearchClear" class="search-clear" aria-label="検索をクリア" type="button">×</button>
-        </div>
-      </div>
-
+      <div id="globalSearchBar" class="searchbar is-collapsed" role="region" aria-label="商品検索バー">
+  <div class="wrap">
+    <div class="searchbox">
+      <input id="qSearch" class="menu-search" type="search" inputmode="search"
+             placeholder="商品検索（例：ハイローラー、チーズ）" autocomplete="off">
+      <button id="btnSearchClear" class="search-clear" aria-label="検索語をクリア" title="クリア">×</button>
     </div>
+  </div>
+</div>
 
   </nav>
 
@@ -238,7 +238,7 @@
   </div>
   <!-- 追加：LIFF SDK（app.jsより前に） -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="app.js?v=SP-20251029-SearchMVP-1" defer></script>
+  <script src="app.js?v=20251029c" defer></script>
 </body>
   
 </html>
