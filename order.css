@@ -181,7 +181,43 @@
 
   /* 件数表示の体裁 */
   .cartnum{ font-weight:700; font-size:12px; color:#64748b; }
+
+  /* ① メニューボタン（「すべて/カテゴリ/並べ替え/お気に入り」）をタイト化 */
+  .menubar-in .ppp-btn,
+  .menubar-in .menu-iconbtn{
+    height: 32px;              /* 34px → 32px */
+    padding: 0 10px;           /* 横の余白少し詰める */
+    border-radius: 10px;
+  }
+
+  /* スマホでボタンが折り返す時の余白を小さめに */
+  .menubar-in .ppp-btn{ margin-right: 8px; margin-bottom: 6px; }
+
+  /* ② 折りたたみ検索バー：上の余白をさらに詰める */
+  .searchbar{ padding: 6px 0 0; }
+  .searchbar.is-open{ max-height: 56px; }   /* 64px → 56px でキーボード表示時の圧迫感を軽減 */
+
+  /* ③ 入力フィールドをタイト化（iOSズーム防止の16pxは維持） */
+  .menu-search{
+    width: 100%;
+    height: 36px;              /* 40px → 36px（行間は16pxフォントでOK） */
+    padding: 6px 12px;         /* 8px → 6px（左右は12pxで“ぼんやり”感を抑制）*/
+    font-size: 16px;           /* ★ズーム防止のため据え置き */
+    line-height: 1.2;
+    border-radius: 8px;        /* 10px → 8px で見た目を締める */
+  }
+
+  /* ④ クリアボタン（×）の当たり判定は確保しつつ控えめに */
+  .searchbox{ position: relative; }
+  .search-clear{
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; font-size: 18px;
+    color: #666; background: transparent; border: 0; border-radius: 14px;
+  }
+  .menu-search{ padding-right: 38px; } /* 右側の×と被らないように少しだけ余白 */
+
 }
+
 
 @layer components {
 /* ===== CSS変数・ベース ===== */
