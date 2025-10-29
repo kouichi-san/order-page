@@ -816,3 +816,39 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   .menu-iconbtn{ min-width: 34px; }
 }
 
+  /* メニューバー直下の検索バーをギリギリまで詰める */
+  .searchbar{ padding-top: 2px; margin-bottom: 8px; } /* 下は8pxだけ確保：カードと接触しない最低限 */
+  /* .menubar 直後の .wrap で余白が付く場合の保険 */
+  .menubar .wrap + .wrap { margin-top: 0; }
+
+  /* 入力は16px維持（iPhoneズーム防止）＋タイトな内側余白 */
+  .searchbox{ position: relative; margin: 0; }
+  .menu-search{
+    width: 100%;
+    height: 34px;
+    padding: 5px 10px;       /* タイトに */
+    padding-right: 36px;     /* ×ボタン分だけ確保 */
+    font-size: 16px;
+    line-height: 1.2;
+    border-radius: 8px;
+    text-align: left;
+    margin: 0 !important;    /* 左寄せを強制（旧margin-left:autoを無効化） */
+  }
+
+  /* ×クリアボタン：小さめ見た目＋十分なタップ領域 */
+  .search-clear{
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 26px; height: 26px; border: 0; background: transparent;
+    font-size: 18px; line-height: 1; color: #666; border-radius: 13px;
+  }
+  .search-clear:active{ transform: translateY(-50%) scale(.96); }
+
+  /* フォーカス時の“青かぶり”を抑える（カードと視覚分離） */
+  .menu-search:focus{
+    outline: none;
+    border-color: var(--brand, #2a7cf6);
+    box-shadow: 0 0 0 2px rgba(42,124,246,.15);
+    background: #fff;
+  }
+
+

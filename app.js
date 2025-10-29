@@ -424,12 +424,15 @@ const debounce = (fn, ms=160) => {
 // 検索ボックス初期化（存在すれば1回だけバインド）
 function initSearchBox(){
   const box = document.getElementById('qSearch');
-  if(!box) return; // HTML側に未設置なら何もしない（安全）
+  if(!box) return;
+
+  const clearBtn = document.getElementById('btnSearchClear');
 
   const apply = ()=>{
     const q = normSearch(box.value);
     filterState.query = q;
     renderProducts();
+    if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden';
   };
 
   box.addEventListener('input', debounce(apply, 160));
@@ -440,9 +443,23 @@ function initSearchBox(){
       box.value = '';
       filterState.query = '';
       renderProducts();
+      if (clearBtn) clearBtn.style.visibility = 'hidden';
     }
   });
+
+  // ×ボタンで即クリア
+  if (clearBtn){
+    clearBtn.addEventListener('click', ()=>{
+      box.value = '';
+      filterState.query = '';
+      renderProducts();
+      box.focus();                         // 入力体験を切らさない
+      clearBtn.style.visibility = 'hidden';
+    });
+    clearBtn.style.visibility = 'hidden';   // 初期は非表示
+  }
 }
+
 // 既存の debounce / normSearch / initSearchBox の下あたりに追加
 function initSearchToggle(){
   const btn  = document.getElementById('btnSearchToggle');
