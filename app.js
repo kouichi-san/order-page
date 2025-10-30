@@ -1180,11 +1180,28 @@ async function initLIFF(){
   }
 }
 
+function maybeClearCartOnEntry(){
+  try{
+    const url = new URL(location.href);
+    // ロジックはあなたの運用に合わせて選ぶ：
+    // 1) LIFFでuserId取れてたら初回はカート消す
+    // 2) URLに ?entry=liff がある時だけ消す
+    const fromLiff = url.searchParams.get('entry') === 'liff' || !!window.PPP_LINE?.userId;
+    const doneKey = 'PPP_CART_CLEARED_THIS_SESSION';
+    if (fromLiff && !sessionStorage.getItem(doneKey)) {
+      localStorage.removeItem('cart'); // ← cartキー名はあなたの実装に合わせて
+      sessionStorage.setItem(doneKey, '1');
+      state.cart = {};
+    }
+  }catch(_){}
+}
+
 
 /** ========= 初期化 ========= **/
 (function init(){
   ensureTopProgress(); ensureSr();
   initLIFF();
+  maybeClearCartOnEntry(); 
   try{ state.cart=JSON.parse(localStorage.getItem('cart')||'{}') }catch(_){}
   renderMinDateEverywhere();
   renderCartBar();

@@ -498,24 +498,6 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
 .agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
 
-/* menubar の検索ボックス */
-.menu-search{
-  margin-left:auto; /* 右寄せ。必要なら消す */
-  min-width: 200px;
-  max-width: 320px;
-  height: 34px;
-  padding: 6px 10px;
-  border:1px solid var(--border);
-  border-radius: 10px;
-  font-size: 13px;
-}
-@media (max-width:420px){
-  .menu-search{
-    min-width: 0;
-    width: 100%;
-  }
-  .menubar-in{ flex-wrap: wrap; }
-}
 
 /* アイコンボタン（虫メガネ） */
 .menu-iconbtn{
@@ -540,16 +522,6 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
   max-height:64px; opacity:1;
 }
 
-/* 検索入力：左寄せ＋iOSズーム防止（font-size>=16px） */
-.menu-search{
-  display:block; width:100%;
-  height:40px; padding:8px 12px;
-  border:1px solid var(--border); border-radius:10px;
-  font-size:16px;                 /* ★ iPhone でのズーム防止 */
-  line-height:1.2;
-  -webkit-text-size-adjust:100%;
-  background:#fff;
-}
 
 /* 小さな端末ではメニューバーが折り返されても左寄せでOK */
 @media (max-width:480px){
@@ -742,12 +714,6 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
 
 /* 検索トグル（虫メガネ）だけは常に1ボタン分の幅に */
 .menu-iconbtn{ min-width:34px; }
-/* 検索バーも高さを30pxに合わせる */
-.menu-search{
-  height:30px;
-  padding:5px 10px;
-  font-size:16px;           /* iOSズーム防止のため16px以上 */
-} 
 
 /* === Searchbar 左寄せ＆タイト化 ===================== */
 .searchbar{
@@ -759,16 +725,6 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
 
 .searchbox{ position:relative; margin:0; } /* 左寄せ固定 */
 
-.menu-search{
-  width:100%;
-  height:34px;              /* 36→34 さらに締める（※フォント16px維持） */
-  padding:5px 10px;         /* 内側の空きをもっとタイトに */
-  padding-right:36px;       /* 右の×ボタン分だけ確保 */
-  border-radius:8px;
-  font-size:16px;           /* ★ iOSズーム防止 */
-  line-height:1.2;
-  text-align:left;          /* 明示的に左寄せ */
-}
 .search-clear{
   right:6px; width:26px; height:26px; font-size:18px;
 }
@@ -820,20 +776,6 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   .searchbar{ padding-top: 2px; margin-bottom: 8px; } /* 下は8pxだけ確保：カードと接触しない最低限 */
   /* .menubar 直後の .wrap で余白が付く場合の保険 */
   .menubar .wrap + .wrap { margin-top: 0; }
-
-  /* 入力は16px維持（iPhoneズーム防止）＋タイトな内側余白 */
-  .searchbox{ position: relative; margin: 0; }
-  .menu-search{
-    width: 100%;
-    height: 34px;
-    padding: 5px 10px;       /* タイトに */
-    padding-right: 36px;     /* ×ボタン分だけ確保 */
-    font-size: 16px;
-    line-height: 1.2;
-    border-radius: 8px;
-    text-align: left;
-    margin: 0 !important;    /* 左寄せを強制（旧margin-left:autoを無効化） */
-  }
 
   /* ×クリアボタン：小さめ見た目＋十分なタップ領域 */
   .search-clear{
@@ -896,4 +838,146 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   .searchbar{ padding-top: 2px; margin-bottom: 8px; }
 }
 
+@layer overrides {
+  /* --- Menubar：ボタンをタイト化＆回り込み禁止 --- */
+  .menubar-in{
+    display:flex; gap:6px; align-items:center;
+    flex-wrap:nowrap;                 /* 折り返さない：虫メガネが回り込まない */
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .menubar-in::-webkit-scrollbar{ display:none }
+  .menubar-in .ppp-btn,
+  .menubar-in .menu-iconbtn{
+    flex:0 0 auto; height:30px; padding:0 8px; border-radius:10px;
+  }
+  .menu-iconbtn{ min-width:34px; }
+
+  /* --- 検索バー：左寄せ・タイト化・×は内側に固定 --- */
+  .searchbar{ padding-top:2px; margin:0 0 8px; max-height:0; opacity:0; overflow:hidden; }
+  .searchbar.is-open{ max-height:52px; opacity:1; }   /* 開いた時だけ高さを出す */
+  .searchbox{ position:relative; margin:0; }
+
+  .menu-search{
+    -webkit-appearance:none;          /* iOSの×を消して被り防止 */
+    margin:0 !important;              /* ← 中央化の犯人を無効化 */
+    width:100%;
+    height:34px;
+    padding:5px 10px;                 /* タイトに */
+    padding-right:36px;               /* 内側×の分だけ確保 */
+    border-radius:8px;
+    font-size:16px;                   /* iPhoneのズーム防止 */
+    line-height:1.2;
+    text-align:left;                  /* 明示的に左寄せ */
+  }
+  .menu-search::-webkit-search-cancel-button{ -webkit-appearance:none; }
+
+  .menu-search:focus{
+    outline:none;
+    border-color:var(--brand,#10b981);
+    box-shadow:0 0 0 2px rgba(16,185,129,.15); /* 青ハイライトの“かぶり”を弱める */
+    background:#fff;
+  }
+
+  .search-clear{
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    width:26px; height:26px; border:0; background:transparent;
+    font-size:18px; line-height:1; color:#666; border-radius:13px; z-index:1;
+  }
+  .search-clear:active{ transform:translateY(-50%) scale(.96); }
+
+  @layer overrides {
+
+  /* メニューバー（すべて/カテゴリ/並べ替え/お気に入り/虫メガネ）を1行に押し込む */
+  .menubar-in{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:nowrap; /* 折り返さないで右に流す */
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .menubar-in::-webkit-scrollbar{ display:none; }
+
+  .menubar-in .ppp-btn,
+  .menubar-in .menu-iconbtn{
+    flex:0 0 auto;
+    height:30px;
+    padding:0 8px;
+    border-radius:10px;
+  }
+  .menu-iconbtn{ min-width:34px; }
+
+  /* 検索バーのコンテナ */
+  /* 通常時はほぼ隙間なしで詰める。折りたたみ＝高さ0, opacity0 で潰す */
+  .searchbar{
+    padding-top:2px;
+    margin:0 0 6px;
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+  }
+  .searchbar.is-open{
+    max-height:48px; /* 開いたときだけ高さ有効化 */
+    opacity:1;
+  }
+
+  .searchbox{
+    position:relative;
+    margin:0;
+  }
+
+  /* 入力フィールド本体 */
+  .menu-search{
+    -webkit-appearance:none;
+    box-sizing:border-box;
+    width:100%;
+    height:34px;
+    padding:5px 10px;
+    padding-right:36px; /* 内側の×ボタンぶん */
+    font-size:16px;     /* iPhoneのズーム防止 */
+    line-height:1.2;
+    border-radius:8px;
+
+    margin:0 !important;        /* 上書き: autoマージンで中央寄せさせない */
+    text-align:left !important; /* 上書き: 中央寄せ防止 */
+  }
+
+  /* フォーカス時の枠と影（カードと干渉しない薄いやつ） */
+  .menu-search:focus{
+    outline:none;
+    border-color:var(--brand,#10b981);
+    box-shadow:0 0 0 2px rgba(16,185,129,.15);
+    background:#fff;
+  }
+
+  /* iOS標準のクリアボタンは殺して自前の×を使う */
+  .menu-search::-webkit-search-cancel-button{
+    -webkit-appearance:none;
+  }
+
+  /* 入力欄の右内側に表示する × ボタン */
+  .search-clear{
+    position:absolute;
+    right:6px;
+    top:50%;
+    transform:translateY(-50%);
+    width:26px;
+    height:26px;
+    border:0;
+    background:transparent;
+    font-size:18px;
+    line-height:1;
+    color:#666;
+    border-radius:13px;
+    z-index:1;
+    /* visibilityはJS側で切り替えOK。常にDOM内にいてOK */
+  }
+  .search-clear:active{
+    transform:translateY(-50%) scale(.96);
+  }
+}
+
+}
 
