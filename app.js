@@ -107,7 +107,7 @@ const filterState = {
   variantGroup: null,     // 代表ID（Union-Find root想定・無くてもOK）
   variantSelected: null,  // 選択id
   variantBackup: null,    // 元のcat/sub/sort退避
-  query: '' // グローバル検索文字列
+  query: '' // グローバル検索文字列　（検索バーの入力はここに集約する）
 };
 
 /** ========= ユーティリティ ========= **/
@@ -422,28 +422,66 @@ const debounce = (fn, ms=160) => {
 };
 
 // 検索ボックス初期化（存在すれば1回だけバインド）
-function initSearchBox(){
-  const box = document.getElementById('qSearch');
-  if(!box) return;
-  const clearBtn = document.getElementById('btnSearchClear');
+function initSearchBox() {
+  const searchBar    = document.querySelector('.searchbar');       // 開閉するエリア
+  const btnToggle    = document.getElementById('btnSearchToggle'); // 虫眼鏡/× トグル
+  const inputSearch  = document.getElementById('qSearch');         // テキスト入力
+  const btnSubmit    = document.getElementById('btnSearchSubmit'); // 右矢印(検索実行)
 
-  const sync = () => { if (clearBtn) clearBtn.style.visibility = box.value ? 'visible' : 'hidden'; };
-  const apply = ()=>{ window.filterState = window.filterState || {}; window.filterState.query = normSearch(box.value); if (typeof renderProducts==='function') renderProducts(); sync(); };
+  // ユーティリティ: toggleアイコンを更新する
+  function updateToggleIcon() {
+    if (!btnToggle) return;
+    // searchBarが開いているなら×、閉じているなら虫眼鏡
+    const isOpen = searchBar?.classList.contains('is-open');
+    btnToggle.innerHTML = isOpen
+      ? '<span class="icon-close">×</span>'
+      : '<span class="icon-search">🔍</span>';
+  }
 
-  box.addEventListener('input', debounce(apply, 160));
-  box.addEventListener('keydown', (e)=>{
-    if(e.key === 'Escape'){
-      box.value = ''; window.filterState.query = ''; if (typeof renderProducts==='function') renderProducts(); sync();
-    }
-  });
+  // 1) トグル: 検索バー開閉
+  if (btnToggle && searchBar) {
+    btnToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      searchBar.classList.toggle('is-open');
+      updateToggleIcon();
+      // ここでは検索条件は消さない
+      // stickyやbodyスクロールロックも触らない
+    });
 
-  if (clearBtn){
-    clearBtn.addEventListener('click', ()=>{
-      box.value = ''; window.filterState.query = ''; if (typeof renderProducts==='function') renderProducts(); box.focus(); sync();
+    // 初期アイコン
+    updateToggleIcon();
+  }
+
+  // 2) 入力イベント
+  // 入力しただけでは検索は走らない。重い端末のためにあえて動かさない。
+  if (inputSearch) {
+    inputSearch.addEventListener('input', () => {
+      // ここでは何もしない。
+      // 以前はここでrenderProducts()呼んでいたが、もう呼ばない。
     });
   }
-  sync();
+
+  // 3) 送信（右矢印）で検索を実行
+  if (btnSubmit && inputSearch) {
+    btnSubmit.addEventListener('click', (e) => {
+      e.preventDefault();
+      const v = (inputSearch.value || '').trim();
+
+      // 検索語を唯一のソースに入れる
+      filterState.query = v;
+
+      // 絞り込んでリスト再描画
+      renderProducts();
+
+      // ここでバーを自動的に閉じるか?
+      // → 今は閉じない。必要なら以下をコメントアウト解除すればOK。
+      // searchBar.classList.remove('is-open');
+      // updateToggleIcon();
+    });
+  }
 }
+
+
 
 // 既存の debounce / normSearch / initSearchBox の下あたりに追加
 function initSearchToggle(){
