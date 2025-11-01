@@ -713,23 +713,24 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   line-height: 1.4;
 }
 
-
   /* 右矢印ボタン */
-  .searchbox .submitbtn {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    background: none;
+  .submitbtn {
     border: 0;
-    font-size: 18px;
+    background: none;
+    cursor: pointer;
+    font-weight: 800;
     line-height: 1;
-    color: #1f2937;
-    padding: 4px;
+    font-size: 16px;
+    color: #0f172a;
+    min-width: 24px;
+    min-height: 24px;
+    display: grid;
+    place-items: center;
   }
-  .searchbox .submitbtn:active {
-    transform: translateY(-50%) scale(0.95);
+  .submitbtn:active {
+    opacity: .6;
   }
+
 
   /* 検索トグルの虫眼鏡/× */
   .menu-iconbtn {
@@ -772,26 +773,7 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
     -webkit-appearance:none;
   }
 
-  /* 入力欄の中のクリアボタン（×） */
-  .search-clear{
-    position:absolute;
-    right:6px;
-    top:50%;
-    transform:translateY(-50%);
-    width:26px;
-    height:26px;
-    border:0;
-    background:transparent;
-    font-size:18px;
-    line-height:1;
-    color:#666;
-    border-radius:13px;
-    z-index:1;
-    cursor:pointer;
-  }
-  .search-clear:active{
-    transform:translateY(-50%) scale(.96);
-  }
+
 
   /* スマホ幅：ボタン折り返し対策 */
   @media (max-width:480px){
