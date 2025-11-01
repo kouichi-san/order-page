@@ -31,29 +31,39 @@
       <button class="menu-pill" id="btnCategories" aria-haspopup="dialog" aria-controls="catDrawer">カテゴリ</button>
       <button class="menu-pill" id="btnSort" aria-controls="sortbar" aria-expanded="false">並べ替え</button>
       <button class="menu-pill" id="btnFavs" aria-pressed="false">お気に入り</button>
-      <!-- 追加: グローバル検索 -->
-      <!-- <input id="qSearch" class="menu-search" type="search" placeholder="商品検索（例: ハイローラー, チーズ）" autocomplete="off" /> -->
-       <!-- menubar の中（お気に入りの直後あたり） -->
+
+      <!-- 検索トグル (虫眼鏡 ↔ ×) -->
       <button id="btnSearchToggle" class="menu-iconbtn" aria-expanded="false" aria-controls="globalSearchBar">
-        <!-- シンプルなSVG虫メガネ -->
-        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M11 4a7 7 0 1 1-4.95 2.05A7 7 0 0 1 11 4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <!-- 中身はJSで切り替えるので、ここは空でOK / またはデフォ虫眼鏡 -->
+        <span class="icon-search">🔍</span>
         <span class="sr-only">検索</span>
       </button>
     </div>
-    <div class="wrap">
-      <div id="globalSearchBar" class="searchbar is-collapsed" role="region" aria-label="商品検索バー">
-  <div class="wrap">
-    <div class="searchbox">
-      <input id="qSearch" class="menu-search" type="search" inputmode="search"
-             placeholder="商品検索（例：ハイローラー、チーズ）" autocomplete="off">
-      <button id="btnSearchClear" class="search-clear" aria-label="検索語をクリア" title="クリア">×</button>
-    </div>
-  </div>
-</div>
 
+    <div class="wrap">
+      <!-- ▼ 'is-collapsed' はやめて、閉じた状態＝クラスなし / 開いた状態＝.is-open という想定に変更する -->
+      <div id="globalSearchBar" class="searchbar" role="region" aria-label="商品検索バー">
+        <div class="wrap">
+          <div class="searchbox">
+            <input id="qSearch"
+                  class="menu-search"
+                  type="search"
+                  inputmode="search"
+                  placeholder="商品検索（例：ハイローラー、チーズ）"
+                  autocomplete="off" />
+
+            <!-- ここ、旧: btnSearchClear を捨てる -->
+            <!-- ここから新: 右矢印で検索実行 -->
+            <button id="btnSearchSubmit"
+                    class="submitbtn"
+                    aria-label="検索実行"
+                    title="検索">
+              <span class="icon-arrow">➔</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </nav>
 
   <!-- 並べ替えオプションバー -->

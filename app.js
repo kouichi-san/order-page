@@ -423,63 +423,75 @@ const debounce = (fn, ms=160) => {
 
 // 検索ボックス初期化（存在すれば1回だけバインド）
 function initSearchBox() {
-  const searchBar    = document.querySelector('.searchbar');       // 開閉するエリア
-  const btnToggle    = document.getElementById('btnSearchToggle'); // 虫眼鏡/× トグル
-  const inputSearch  = document.getElementById('qSearch');         // テキスト入力
-  const btnSubmit    = document.getElementById('btnSearchSubmit'); // 右矢印(検索実行)
+  const searchBar   = document.getElementById('globalSearchBar'); // <div id="globalSearchBar" class="searchbar">
+  const btnToggle   = document.getElementById('btnSearchToggle'); // 🔍/× を切り替えるトグル
+  const inputSearch = document.getElementById('qSearch');         // 入力欄
+  const btnSubmit   = document.getElementById('btnSearchSubmit'); // 右矢印ボタン（新設）
 
-  // ユーティリティ: toggleアイコンを更新する
+  // トグルボタンの中身を更新する関数
   function updateToggleIcon() {
     if (!btnToggle) return;
-    // searchBarが開いているなら×、閉じているなら虫眼鏡
-    const isOpen = searchBar?.classList.contains('is-open');
-    btnToggle.innerHTML = isOpen
-      ? '<span class="icon-close">×</span>'
-      : '<span class="icon-search">🔍</span>';
+    const opened = searchBar?.classList.contains('is-open');
+    btnToggle.innerHTML = opened
+      ? '<span class="icon-close">×</span><span class="sr-only">閉じる</span>'
+      : '<span class="icon-search">🔍</span><span class="sr-only">検索</span>';
   }
 
-  // 1) トグル: 検索バー開閉
+  // 検索バー開閉
   if (btnToggle && searchBar) {
     btnToggle.addEventListener('click', (e) => {
       e.preventDefault();
+
+      // is-open を付け外し
       searchBar.classList.toggle('is-open');
+
+      // アイコン差し替え
       updateToggleIcon();
-      // ここでは検索条件は消さない
-      // stickyやbodyスクロールロックも触らない
+
+      // aria-expanded も更新しとくと親切
+      btnToggle.setAttribute(
+        'aria-expanded',
+        searchBar.classList.contains('is-open') ? 'true' : 'false'
+      );
     });
 
     // 初期アイコン
     updateToggleIcon();
+    btnToggle.setAttribute('aria-expanded', 'false');
   }
 
-  // 2) 入力イベント
-  // 入力しただけでは検索は走らない。重い端末のためにあえて動かさない。
+  // 入力中は検索しない（重いので）
   if (inputSearch) {
     inputSearch.addEventListener('input', () => {
-      // ここでは何もしない。
-      // 以前はここでrenderProducts()呼んでいたが、もう呼ばない。
+      // 何もしない。打鍵は軽く保つ。
     });
   }
 
-  // 3) 送信（右矢印）で検索を実行
+  // 右矢印タップで検索を実行
   if (btnSubmit && inputSearch) {
     btnSubmit.addEventListener('click', (e) => {
       e.preventDefault();
+
       const v = (inputSearch.value || '').trim();
 
-      // 検索語を唯一のソースに入れる
+      // グローバル検索語を確定
       filterState.query = v;
 
-      // 絞り込んでリスト再描画
+      // 再描画
       renderProducts();
 
-      // ここでバーを自動的に閉じるか?
-      // → 今は閉じない。必要なら以下をコメントアウト解除すればOK。
-      // searchBar.classList.remove('is-open');
-      // updateToggleIcon();
+      // ここで閉じるかどうかは運用次第。
+      // 今回は開いたまま結果を見る想定なので閉じない。
+      // もし「確定したら閉じてスッキリ」が好みなら下をアンコメント。
+      /*
+      searchBar.classList.remove('is-open');
+      updateToggleIcon();
+      btnToggle.setAttribute('aria-expanded','false');
+      */
     });
   }
 }
+
 
 
 

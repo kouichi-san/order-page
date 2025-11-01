@@ -703,6 +703,45 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
     margin:0;
   }
 
+  .searchbox .menu-search {
+  flex: 1;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px;
+  padding: 8px 40px 8px 12px; /* 右側はボタン用によけておく */
+  line-height: 1.4;
+}
+
+
+  /* 右矢印ボタン */
+  .searchbox .submitbtn {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: 0;
+    font-size: 18px;
+    line-height: 1;
+    color: #1f2937;
+    padding: 4px;
+  }
+  .searchbox .submitbtn:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  /* 検索トグルの虫眼鏡/× */
+  .menu-iconbtn {
+    background: none;
+    border: 0;
+    padding: 6px 8px;
+    font-size: 16px;
+    line-height: 1;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+  }
   /* 入力欄 */
   .menu-search{
     -webkit-appearance:none;
