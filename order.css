@@ -77,6 +77,43 @@
   .u-hide  { display: none !important; }
   .muted{ font-size:13px; color:#6b7280; padding:8px 4px }
   .ppp-fav.active{ background:#fef2f2; border-color:#fecaca; color:#ef4444 }
+    /* ===== 検索UIの状態用ユーティリティ ===== */
+
+  /* 検索トグルボタンが開いている時（=検索バー展開中）
+    → 虫眼鏡を隠して、×を出す */
+  .ppp-menu-searchToggleBtn.is-open .ppp-icon-search {
+    display:none;
+  }
+  .ppp-menu-searchToggleBtn.is-open .ppp-icon-close {
+    display:inline-block;
+  }
+
+  /* 閉じている時（デフォルト）
+    → 虫眼鏡だけ表示、×は隠す */
+  .ppp-menu-searchToggleBtn:not(.is-open) .ppp-icon-search {
+    display:inline-block;
+  }
+  .ppp-menu-searchToggleBtn:not(.is-open) .ppp-icon-close {
+    display:none;
+  }
+
+  /* 検索バー本体のopen/close。
+    いまは inline style="display:none" でスタートしてOKだけど、
+    JSからclassで管理する場合のための予備 */
+  .ppp-searchbar-row.is-hidden {
+    display:none !important;
+  }
+  .ppp-searchbar-row.is-visible {
+    display:block !important;
+  }
+
+  /* 入力中だけ右端の小さい×を見せる用 */
+  .ppp-searchbar__clearBtn.is-visible {
+    display:flex !important;
+    justify-content:center;
+    align-items:center;
+  }
+
 
 }
 
@@ -243,6 +280,138 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 @media (max-width:420px){
   #btnCategories{ padding-right:12px }
 }
+
+/* ===== 検索バー UI（メニューバー直下） ===== */
+
+/* メニューバーのすぐ下に出る1行。横幅は .wrap で揃える */
+.ppp-searchbar-row {
+  background-color:#fff;           /* menubarと同じ背景でOK */
+  border:0;                        /* 水平線いらない要件 */
+  padding:8px 0;                   /* 上下だけ少し余白。左右は .wrap が担当 */
+}
+
+/* 角丸ボックス本体（Yahooショッピングっぽいやつ） */
+.ppp-searchbar {
+  position:relative;
+  display:flex;
+  align-items:center;
+
+  width:100%;
+  min-height:40px;
+
+  border-radius:10px;
+  background-color:#f1f1f1;        /* ページ背景より一段濃い/灰色で“面”をつくる */
+  border:none;
+  box-shadow:none;
+
+  /* 左の虫眼鏡と右の×用のスペース */
+  padding-left:32px;
+  padding-right:32px;
+
+  font-size:14px;
+  line-height:1.4;
+}
+
+/* 左側の虫眼鏡アイコンエリア（飾り・タップなし） */
+.ppp-searchbar__icon-left {
+  position:absolute;
+  left:10px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#888;
+  line-height:0;
+  pointer-events:none;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px; /* アイコンサイズ調整用 */
+}
+
+/* 入力欄本体 */
+.ppp-searchbar__input {
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+
+  font-size:14px;
+  line-height:1.4;
+  color:#222;
+  width:100%;
+}
+.ppp-searchbar__input::placeholder {
+  color:#888;
+}
+
+/* 入力中だけ出る右端の小さな丸×ボタン */
+.ppp-searchbar__clearBtn {
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+
+  min-width:20px;
+  min-height:20px;
+  border-radius:50%;
+  border:none;
+
+  background-color:#aaa;
+  color:#fff;
+
+  display:none;          /* JSで出し入れする */
+  line-height:1;
+  font-size:12px;
+  font-weight:500;
+
+  cursor:pointer;
+}
+
+/* メニューバー右端の検索トグルボタン（虫眼鏡⇔×） */
+.ppp-menu-searchToggleBtn {
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+
+  min-width:2.25rem;     /* ~36pxタップ領域 */
+  min-height:2.25rem;
+  padding:0 .5rem;
+
+  background:none;
+  border:none;
+  border-radius:.5rem;
+  line-height:1;
+}
+
+/* アイコンの枠（虫眼鏡 / × / 小さい×） */
+.ppp-icon-search,
+.ppp-icon-close,
+.ppp-icon-close-small {
+  display:inline-block;
+  line-height:1;
+  font-style:normal;
+  font-weight:400;
+}
+
+/* トグルボタン内の虫眼鏡・×の大きさ・トーン */
+.ppp-menu-searchToggleBtn .ppp-icon-search,
+.ppp-menu-searchToggleBtn .ppp-icon-close {
+  font-size:16px;
+  color:#333;
+}
+
+/* 入力欄内の左虫眼鏡アイコン（ちょい薄め） */
+.ppp-searchbar__icon-left .ppp-icon-search {
+  font-size:14px;
+  color:#888;
+}
+
+/* 入力欄右端の小さい×の中身 */
+.ppp-searchbar__clearBtn .ppp-icon-close-small {
+  font-size:12px;
+  color:#fff;
+}
+
 
 /* ===== 並べ替えバー ===== */
 .sortbar{ display:none; background:#fff; border-bottom:1px solid #eef2f7 }

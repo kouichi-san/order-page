@@ -4,7 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Ping-Pong-Pang｜翌日以降受け取り 注文</title>
-  <link rel="stylesheet" href="order.css?v=SP-20251027-Prefs-3"></head>
+  <link rel="stylesheet" href="order.css?v=SP-20251027-Prefs-3">
+</head>
 <body>
   <!-- ===== ヘッダー ===== -->
   <header>
@@ -30,8 +31,43 @@
       <button class="menu-pill" id="btnCategories" aria-haspopup="dialog" aria-controls="catDrawer">カテゴリ</button>
       <button class="menu-pill" id="btnSort" aria-controls="sortbar" aria-expanded="false">並べ替え</button>
       <button class="menu-pill" id="btnFavs" aria-pressed="false">お気に入り</button>
+      <!-- ★追加：検索トグルボタン（虫眼鏡⇔×に切り替わるやつ） -->
+      <button class="menu-pill ppp-menu-searchToggleBtn"
+              data-ui="search-toggle"
+              aria-label="検索">
+        <span class="ppp-icon-search">🔍</span>
+        <span class="ppp-icon-close">✕</span>
+      </button>
+
     </div>
   </nav>
+
+  <!-- ===== 検索バー ===== -->
+  <div class="ppp-searchbar-row"
+       data-ui="searchbar"
+       style="display:none;">
+    <div class="wrap">
+      <div class="ppp-searchbar">
+        <span class="ppp-searchbar__icon-left">
+          <span class="ppp-icon-search"></span>
+        </span>
+
+        <input
+          type="text"
+          class="ppp-searchbar__input"
+          placeholder="商品名・キーワードで検索"
+          inputmode="search"
+        />
+
+        <button class="ppp-searchbar__clearBtn"
+                data-ui="search-clear"
+                aria-label="クリア"
+                style="display:none;">
+          <span class="ppp-icon-close-small"></span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- 並べ替えオプションバー -->
   <div id="sortbar" class="sortbar" aria-hidden="true">

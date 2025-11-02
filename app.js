@@ -95,6 +95,9 @@ const state = {
   selectedSlot: "14時〜17時",
   memo: "",
   agreeStock: false,
+  // ★検索UI状態
+  searchVisible: false,        // 検索バー表示中かどうか
+  searchInputValue: ""     // 検索バーの入力値 ユーザーが今タイプしてるテキスト（未確定でも保持）
 };
 
 /** ========= LINEメニュー入場の検知＆カート初期化 ========= **/
@@ -133,11 +136,81 @@ const filterState = {
   subcat: null,
   sort: 'default',
   favsOnly: false,
+
+  // ★検索クエリ（Enterで確定したものだけここに入る）
+  searchQuery: "",
   // Variant Mode
   variantGroup: null,     // 代表ID（Union-Find root想定・無くてもOK）
   variantSelected: null,  // 選択id
   variantBackup: null,    // 元のcat/sub/sort退避
 };
+
+/* ===== 検索UI関連 ===== */
+
+// DOM参照用の変数（init時にセットする）
+let elSearchToggleBtn = null; // メニューバー右端の虫眼鏡/×トグルボタン
+let elSearchRow       = null; // .ppp-searchbar-row（バー全体の行）
+let elSearchInput     = null; // <input> 検索テキスト
+let elSearchClearBtn  = null; // 丸い×クリアボタン
+
+// state -> DOM へ反映する唯一の関数
+function syncSearchUI(){
+  // 1) 検索バーの開閉
+  if (elSearchRow){
+    if (state.searchVisible){
+      // 開いてる
+      elSearchRow.style.display = ''; // 初期は inline style="display:none;" なので外す
+      elSearchRow.classList.add('is-visible');
+      elSearchRow.classList.remove('is-hidden');
+    } else {
+      elSearchRow.style.display = 'none';
+      elSearchRow.classList.remove('is-visible');
+      elSearchRow.classList.add('is-hidden');
+    }
+  }
+
+  // 2) トグルボタン（虫眼鏡⇔×）
+  if (elSearchToggleBtn){
+    if (state.searchVisible){
+      elSearchToggleBtn.classList.add('is-open');   // ← CSS utilitiesで .is-open の時は×を表示
+    } else {
+      elSearchToggleBtn.classList.remove('is-open');
+    }
+  }
+
+  // 3) 入力欄の値（入力途中を復元する）
+  if (elSearchInput){
+    if (elSearchInput.value !== state.searchInputValue){
+      elSearchInput.value = state.searchInputValue;
+    }
+  }
+
+  // 4) 入力中だけ右端の丸い×ボタンを表示
+  if (elSearchClearBtn){
+    const hasText = !!state.searchInputValue.trim();
+    if (hasText){
+      elSearchClearBtn.style.display = ''; // default none → 出す
+      elSearchClearBtn.classList.add('is-visible');
+    } else {
+      elSearchClearBtn.style.display = 'none';
+      elSearchClearBtn.classList.remove('is-visible');
+    }
+  }
+}
+
+// 検索UIを閉じて、検索条件も解除し、商品一覧を初期状態に戻す
+function closeSearchUIAndReset(){
+  state.searchVisible = false;
+  state.searchInputValue = '';
+  filterState.searchQuery = '';
+
+  // バリエーションモードを解除（検索とバリアントは共存させない設計）
+  clearVariantMode();
+
+  syncSearchUI();
+  renderProducts();
+}
+
 
 /** ========= ユーティリティ ========= **/
 const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
@@ -391,6 +464,7 @@ async function loadProducts(){
       stock:(x.stock!==undefined?Number(x.stock):undefined),
       active:(x.active===undefined?true:Boolean(x.active)),
       leadDays:Number(x.leadDays||1),
+      searchBlob: x.searchBlob || "",    // ★スプシ側で用意予定の検索用テキスト
       _idx:i, _pop:Number(x.popularity||x.pop||x.rank||0),
       _newTS: Date.parse(x.newAt||x.createdAt||x.updatedAt||x.date||'') || 0
     }));
@@ -417,6 +491,77 @@ async function getLineProfileSafely(){
     }
   }catch(_) {}
   return null;
+}
+
+// 検索UIのDOMを取得してイベントを貼る初期化関数
+function setupSearchEvents(){
+  // DOMキャッシュ
+  elSearchToggleBtn = document.querySelector('.ppp-menu-searchToggleBtn[data-ui="search-toggle"]');
+  elSearchRow       = document.querySelector('.ppp-searchbar-row[data-ui="searchbar"]');
+  elSearchInput     = document.querySelector('.ppp-searchbar__input');
+  elSearchClearBtn  = document.querySelector('.ppp-searchbar__clearBtn[data-ui="search-clear"]');
+
+  // まだHTML側に存在しない / 将来消された などでも落ちないように
+  if (!elSearchToggleBtn || !elSearchRow || !elSearchInput || !elSearchClearBtn){
+    // 足りない場合でも例外は出さない
+    syncSearchUI();
+    return;
+  }
+
+  // 1) メニューバー右端の虫眼鏡⇔×トグル
+  elSearchToggleBtn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    // まだ閉じてる → 開く
+    if (!state.searchVisible){
+      state.searchVisible = true;
+      // バーを開いた瞬間にフォーカス
+      syncSearchUI();
+      elSearchInput.focus({ preventScroll: true });
+      return;
+    }
+    // すでに開いてる → 閉じてリセット
+    closeSearchUIAndReset();
+  });
+
+  // 2) 入力中（タイピング中）
+  // 入力途中では検索は走らない（パフォーマンス・モサ防止）
+  elSearchInput.addEventListener('input', (e)=>{
+    state.searchInputValue = e.target.value;
+    syncSearchUI(); // 丸い×ボタンの表示/非表示だけ更新
+  });
+
+  // 3) Enterキーで検索確定
+  elSearchInput.addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter'){
+      e.preventDefault();
+      const q = state.searchInputValue.trim();
+      filterState.searchQuery = q;
+
+      // バリエーションモードは検索と共存させない
+      clearVariantMode();
+
+      renderProducts(); // ここで初めて商品リストに反映
+      syncSearchUI();
+    }
+  });
+
+  // 4) 右端の小さい丸×ボタン
+  // 入力を空にして、検索条件も解除して、リストを全表示に戻す
+  elSearchClearBtn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    state.searchInputValue = '';
+    filterState.searchQuery = '';
+
+    clearVariantMode();
+
+    renderProducts();
+    syncSearchUI();
+    // クリア後もフォーカスは残す（再入力させたいので）
+    elSearchInput.focus({ preventScroll: true });
+  });
+
+  // 最初の同期
+  syncSearchUI();
 }
 
 
@@ -581,6 +726,28 @@ function renderProducts(){
     filtered = filtered.filter(p => favSet.has(p.id));
   }
 
+    // ★ 検索クエリ確定済みの場合は検索フィルタでさらに絞る
+  if (filterState.searchQuery && filterState.searchQuery.trim() !== '') {
+    const q = norm(filterState.searchQuery); // 小文字化・trim済み
+    filtered = filtered.filter(p => {
+      // searchBlob がスプシ由来で入っている想定
+      // なければいくつかのフィールドを合成して代替
+      const blobSrc = p.searchBlob && p.searchBlob.trim()
+        ? p.searchBlob
+        : [
+            p.name,
+            p.prenote,
+            p.unitNote,
+            p.desc,
+            p.catGroup || p.cat,
+            p.subcatGroup || ''
+          ].join(' ');
+      const blob = norm(blobSrc);
+      return blob.includes(q);
+    });
+  }
+
+
   const list = sortProducts(filtered);
   if (list.length === 0) {
     // 空のときの見栄え（任意）
@@ -664,7 +831,7 @@ function renderCartFooterTotals(){
 /** ========= カートドロワ ========= **/
 const cartDrawer = document.getElementById('cartDrawer');
 function lockScroll(on){ document.documentElement.classList.toggle('ppp-no-scroll', on); document.body.classList.toggle('ppp-no-scroll', on); }
-function openCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','false'); lockScroll(true); renderCartDrawer(); window.addEventListener('keydown',onCartKeydown); PPP.guard.run(); PPP.guard.run && PPP.guard.run(); PPP.patch.cartFooter();}
+function openCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','false'); lockScroll(true); renderCartDrawer(); window.addEventListener('keydown',onCartKeydown); PPP.guard.run(); PPP.patch.cartFooter();}
 function closeCartDrawer(){ cartDrawer?.setAttribute('aria-hidden','true');  lockScroll(false); window.removeEventListener('keydown',onCartKeydown); }
 function onCartKeydown(e){ if(e.key==='Escape') closeCartDrawer(); }
 document.querySelector('#cartDrawer .ppp-drawer__scrim')?.addEventListener('click',(e)=>{ if(e.target.matches('.ppp-drawer__scrim')) closeCartDrawer(); });
@@ -1130,6 +1297,10 @@ async function initLIFF(){
   document.getElementById('sortbar')?.setAttribute('aria-hidden','true');
   renderFavButtonActive();              // ★ 初期反映
   updateCategoryButtonLabel();          // ★ 初期は「カテゴリ」固定表示
+
+  // ★ 検索UIのセットアップ（DOM取得＋イベント貼り＋初期sync）
+  setupSearchEvents();
+  
   loadProducts();
 })();
 
