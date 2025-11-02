@@ -1,7 +1,7 @@
 /*!
  * PPP Order Page - app.js
  * SavePoint: SP-20251019-FavLater-1
- * Version: 20251019b
+ * Version: 20251026g
  * Purpose: お気に入り（♡）/ あとで の実装安定化 & 表示整合
  */
 window.PPP = window.PPP || {};
