@@ -6,8 +6,8 @@
  */
 window.PPP = window.PPP || {};
 PPP.meta = Object.freeze({
-  sp: 'SP-20251027-Prefs-3',
-  ver: '20251026g',
+  sp: 'cart-clear-rep1102-hand',
+  ver: '20251102handrep',
   builtAt: '2025-10-19T00:00:00+09:00'
 });
 
@@ -123,9 +123,7 @@ function maybeClearCartOnEntry(stage='boot'){
   // 1) 最も確実：リッチメニューURLに ?entry=menu を付ける（推奨）
   if (hasEntryParam()) { clearCartNow(`param:${stage}`); return; }
   // 2) 次善：LINEアプリ内UAで新規オープンらしき時
-  if (isLineInApp() && performance?.getEntriesByType?.('navigation')?.[0]?.type === 'navigate') {
-    clearCartNow(`ua:${stage}`); return;
-  }
+  if (isLineInApp()) { clearCartNow(`ua:${stage}`); return; }
   // 3) さらに保険：LIFFで userId が取れた直後にもう一回だけ確認
 }
 
@@ -1112,10 +1110,11 @@ async function initLIFF(){
       userId: prof.userId || '',
       name: prof.displayName || ''
     };
-    console.info('[PPP] LIFF OK:', window.PPP_LINE);
+        // LIFFでLINE本人確認取れた段階でもう1回だけ保険でカート初期化を試みる
+    maybeClearCartOnEntry('afterLIFF');
+
     try{ PPP.prefs && PPP.prefs.syncFromServer(); }catch(_){}
   }catch(err){
-    console.warn('[PPP] LIFF init error', err);
   }
 }
 
