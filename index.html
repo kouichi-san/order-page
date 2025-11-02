@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="ppp-version" content="SP-20251029-SearchMVP-1">
   <title>Ping-Pong-Pang｜翌日以降受け取り 注文</title>
-  <link rel="stylesheet" href="order.css?v=20251029c"></head>
+  <link rel="stylesheet" href="order.css?v=SP-20251027-Prefs-3"></head>
 <body>
   <!-- ===== ヘッダー ===== -->
   <header>
@@ -31,38 +30,6 @@
       <button class="menu-pill" id="btnCategories" aria-haspopup="dialog" aria-controls="catDrawer">カテゴリ</button>
       <button class="menu-pill" id="btnSort" aria-controls="sortbar" aria-expanded="false">並べ替え</button>
       <button class="menu-pill" id="btnFavs" aria-pressed="false">お気に入り</button>
-
-      <!-- 検索トグル (虫眼鏡 ↔ ×) -->
-      <button id="btnSearchToggle" class="menu-iconbtn" aria-expanded="false" aria-controls="globalSearchBar">
-        <!-- 中身はJSで切り替えるので、ここは空でOK / またはデフォ虫眼鏡 -->
-        <span class="icon-search">🔍</span>
-        <span class="sr-only">検索</span>
-      </button>
-    </div>
-
-    <div class="wrap">
-      <!-- ▼ 'is-collapsed' はやめて、閉じた状態＝クラスなし / 開いた状態＝.is-open という想定に変更する -->
-      <div id="globalSearchBar" class="searchbar" role="region" aria-label="商品検索バー">
-        <div class="wrap">
-          <div class="searchbox">
-            <input id="qSearch"
-                  class="menu-search"
-                  type="search"
-                  inputmode="search"
-                  placeholder="商品検索（例：ハイローラー、チーズ）"
-                  autocomplete="off" />
-
-            <!-- ここ、旧: btnSearchClear を捨てる -->
-            <!-- ここから新: 右矢印で検索実行 -->
-            <button id="btnSearchSubmit"
-                    class="submitbtn"
-                    aria-label="検索実行"
-                    title="検索">
-              <span class="icon-arrow">➔</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </nav>
 
@@ -248,7 +215,7 @@
   </div>
   <!-- 追加：LIFF SDK（app.jsより前に） -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="app.js?v=20251029c" defer></script>
+  <script src="app.js?v=SP-20251027-Prefs-3" defer></script>
 </body>
   
 </html>

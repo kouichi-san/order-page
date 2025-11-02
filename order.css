@@ -179,8 +179,9 @@
   }
   .collapsible:not([open]) > summary::after{ transform: rotate(0deg); }
 
+  /* 件数表示の体裁 */
+  .cartnum{ font-weight:700; font-size:12px; color:#64748b; }
 }
-
 
 @layer components {
 /* ===== CSS変数・ベース ===== */
@@ -220,8 +221,8 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 }
 
 /* ===== メニューバー ===== */
-/* .menubar{ position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border) } */
-/* .menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0 } */
+.menubar{ position:sticky; top:0; z-index:var(--z-sticky); background:#fff; border-bottom:1px solid var(--border) }
+.menubar-in{ display:flex; gap:8px; align-items:center; padding:10px 0 }
 .menu-pill{
   font-size:13px; font-weight:700; color:#0f172a; background:#f1f5f9;
   border:1px solid #e2e8f0; border-radius:var(--btn-radius);
@@ -461,14 +462,13 @@ header{ background:#fff; border-bottom:1px solid var(--border) }
 .agrees{ padding-left:12px; border-left:4px solid #f3f4f6; display:flex; flex-direction:column; gap:8px }
 .agrees label{ display:flex; align-items:center; gap:8px; font-size:13px }
 
-
-
-/* 小さな端末ではメニューバーが折り返されても左寄せでOK */
-@media (max-width:480px){
-  .menubar-in{ flex-wrap:wrap; }
-  .menu-iconbtn{ margin-top:8px; }
+/* ===== 最終更新ピル（現仕様では未使用：UNUSED） =====
+.lastup{
+  display:inline-block; margin:8px 0 0; font-size:12px;
+  background:#f0fdf4; color:var(--brand-ink); border:1px solid #d1fae5;
+  border-radius:999px; padding:4px 10px;
 }
-
+*/
 
 /* ===== カテゴリグリッド ===== */
 .ppp-catgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px }
@@ -631,158 +631,3 @@ html.ppp-no-scroll, body.ppp-no-scroll{ overflow:hidden !important; touch-action
   justify-content:flex-start; /* 既定の右寄せを上書き */
 }
 #detailDrawer #detailAdd{ margin-left:auto; } /* 右端へ */
-
-@layer overrides {
-  /* ===== メニューバー固定＆コンパクトレイアウト ===== */
-  .menubar{
-    position:sticky;
-    top:0;
-    z-index:var(--z-sticky);
-    background:#fff;
-    border-bottom:1px solid var(--border);
-  }
-
-  .menubar-in{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    flex-wrap:nowrap;                 /* 折り返さない：虫メガネが下に落ちない */
-    overflow-x:auto;                  /* はみ出したら横スクロール */
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    padding:10px 0;
-  }
-  .menubar-in::-webkit-scrollbar{ display:none; }
-
-  .menubar-in .ppp-btn,
-  .menubar-in .menu-iconbtn{
-    flex:0 0 auto;                    /* 勝手に伸び縮みしない */
-    height:30px;
-    padding:0 8px;
-    border-radius:10px;
-    font-size:13px;
-    font-weight:700;
-    line-height:1;
-  }
-
-  .menu-iconbtn{
-    background:#f8fafc;
-    border:1px solid #e2e8f0;
-    border-radius:10px;
-    min-width:34px;
-    display:grid;
-    place-items:center;
-    cursor:pointer;
-  }
-  .menu-iconbtn:active{ transform:translateY(1px); }
-
-  /* ===== 検索バー（メニューバー直下で折りたたみ） ===== */
-  .searchbar{
-    background:#fff;
-    border-top:0;
-    padding-top:2px;
-    margin:0 0 8px;
-    max-height:0;
-    opacity:0;
-    overflow:hidden;
-    transition:max-height .20s ease, opacity .15s ease;
-  }
-  .searchbar.is-open{
-    max-height:52px;   /* 開いたときだけ高さを確保 */
-    opacity:1;
-  }
-
-  .searchbox{
-    position:relative;
-    display:flex;
-    align-items:center;
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:6px 12px;
-    margin:0;
-  }
-
-  .searchbox .menu-search {
-  flex: 1;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font-size: 16px;
-  padding: 8px 40px 8px 12px; /* 右側はボタン用によけておく */
-  line-height: 1.4;
-}
-
-  /* 右矢印ボタン */
-  .submitbtn {
-    border: 0;
-    background: none;
-    cursor: pointer;
-    font-weight: 800;
-    line-height: 1;
-    font-size: 16px;
-    color: #0f172a;
-    min-width: 24px;
-    min-height: 24px;
-    display: grid;
-    place-items: center;
-  }
-  .submitbtn:active {
-    opacity: .6;
-  }
-
-
-  /* 検索トグルの虫眼鏡/× */
-  .menu-iconbtn {
-    background: none;
-    border: 0;
-    padding: 6px 8px;
-    font-size: 16px;
-    line-height: 1;
-    color: #1f2937;
-    display: flex;
-    align-items: center;
-  }
-  /* 入力欄 */
-  .menu-search{
-    -webkit-appearance:none;
-    box-sizing:border-box;
-    flex:1;
-    width:100%;
-    height:34px;
-    padding:5px 10px;
-    padding-right:36px;               /* 右側の×ぶん空ける */
-    font-size:16px;                   /* iPhoneズーム防止ルール */
-    line-height:1.2;
-    border:none;
-    border-radius:8px;
-    background:transparent;
-    color:#0f172a;
-    margin:0 !important;
-    text-align:left !important;
-    outline:none;
-  }
-  .menu-search:focus{
-    outline:none;
-    border-color:var(--brand,#10b981);
-    box-shadow:0 0 0 2px rgba(16,185,129,.15);
-    background:#fff;
-  }
-  /* デフォルトのiOSサーチフィールドの×を殺す */
-  .menu-search::-webkit-search-cancel-button{
-    -webkit-appearance:none;
-  }
-
-
-
-  /* スマホ幅：ボタン折り返し対策 */
-  @media (max-width:480px){
-    .menubar-in{
-      /* 折り返し禁止はすでに flex-wrap:nowrap で効いてるので
-        ここでは追記不要。
-        ただし Safari が勝手に折り返したくなる場合があるので
-        念のためもう1回だけ。 */
-      flex-wrap:nowrap;
-    }
-  }
-}
