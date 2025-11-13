@@ -37,7 +37,7 @@ console.info(`[PPP] ${PPP.meta?.sp || (window.PPP?.build?.id||'dev')} / ver ${PP
 /** ========= 設定 ========= **/
 const LIFF_ID = '2008359016-DYakKQJd'; // 例: '2008359016-DYakKQJd'
 const PREFS_URL = "https://script.google.com/macros/s/AKfycbwm87EwEvWmKKIWgktmKM6sbHL9aT_6k4Qd0pxQAYWrIecM89A4ET7xLEA0WH1FTYTb/exec?v=SP-20251027-Prefs";
-const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycby4489YlOmucAj4DguggZsQox2Kg3yfALImCfma0rYPCNTV_OBQ13u_llxSOv8xO6USKw/exec?endpoint=products";
+const PRODUCTS_URL = "https://script.google.com/macros/s/AKfycbyHXMj4ym8RjrceYnDovvo2co3YNvoIlG2r-9GpOkiqyWn3DfU3PNDpfVejBaoRDQ8g7g/exec?endpoint=products";
 const FORM_BASE    = "https://docs.google.com/forms/d/e/1FAIpQLScWyIhn4F9iS-ZFhHQlQerLu7noGWSu4xauMPgISh1DmNFD_w/viewform";
 const CUTOVER_HOUR = 2; // 26時 (=午前2:00) までは前日扱い
 const MAX_ADVANCE_DAYS = 20; // 最短日から＋20日（合計21候補）
