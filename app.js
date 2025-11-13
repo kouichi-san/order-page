@@ -287,6 +287,18 @@ function setGFormDate(url, entryId, iso){ // iso="YYYY-MM-DD"
   url.searchParams.set(`entry.${entryId}_day`,   d);
 }
 
+// === PPPユーティリティ：画像URL整形 ===
+window.PPP = window.PPP || {};
+PPP.util = PPP.util || {};
+PPP.util.makeImg = PPP.util.makeImg || function(u){
+  u = String(u || '').trim();
+  if (!u) return 'https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';
+  const bust = (typeof window.IMG_BUST !== 'undefined'
+                ? window.IMG_BUST
+                : (window.APP_VERSION || Date.now()));
+  return u + (u.includes('?') ? '&' : '?') + 'v=' + bust;
+};
+
 
 
 /** ========= Loading UX（200msルール） ========= **/
@@ -363,7 +375,7 @@ function renderLaterList(){
   const ids = getLaterIds();
   if(ids.length===0){ box.innerHTML = '<div class="muted">「あとで」に入れた商品はありません</div>'; return; }
   box.innerHTML = ids.map(id=>{
-    const p = productById.get(id); const img = p.img || 'https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image';
+    const p = productById.get(id); const img = PPP.util.makeImg(p.img);
     return `
       <div class="cartrow" data-id="${p.id}">
         <div class="rowline">
@@ -395,7 +407,7 @@ function renderFavList(limit=8){
   const ids = getFavIds().slice(0,limit);
   if(ids.length===0){ box.innerHTML = '<div class="muted">お気に入りは未登録です（♡で登録）</div>'; return; }
   box.innerHTML = ids.map(id=>{
-    const p = productById.get(id); const img = p.img || 'https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image';
+    const p = productById.get(id); const img = PPP.util.makeImg(p.img);
     return `
       <div class="cartrow" data-id="${p.id}">
         <div class="rowline">
@@ -780,7 +792,7 @@ function appendProductCard(grid, p, idx, selectedId){
     <div class="ppp-titlebar"><div class="ppp-name">${escapeHtml(p.name||'')}</div><button class="ppp-fav" data-fav="${p.id}" aria-label="お気に入り">♡</button></div>
     <div class="ppp-mi">
       <div class="ppp-media"><div class="ppp-img">
-        <img onload="this.classList.add('is-ready')" src="${p.img||''}" alt="${escapeHtml(p.name||'')}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';this.classList.add('is-ready');">
+        <img onload="this.classList.add('is-ready')" src="${PPP.util.makeImg(p.img)}" alt="${escapeHtml(p.name||'')}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';this.classList.add('is-ready');">
       </div></div>
       <div class="ppp-info">
         ${p.prenote?`<div class="ppp-prenote">${escapeHtml(p.prenote)}</div>`:''}
@@ -863,7 +875,7 @@ function renderCartDrawer(){
     }else{
       list.innerHTML = t.items.map(it=>{
         const p = productById.get(it.id) || {};
-        const img = p.img || 'https://dummyimage.com/160x120/ffffff/e5e7eb&text=No+Image';
+        const img =  PPP.util.makeImg(p.img);
         const name = escapeHtml(it.name);
         return `
           <div class="cartrow" data-id="${it.id}">
@@ -1452,7 +1464,8 @@ function renderDetailDrawer(p){
   if(stockChip){ stockChip.hidden = !hasStock; stockChip.textContent = hasStock ? '在庫あり' : '入荷待ち'; }
   if(eolChip){ eolChip.hidden = !eol; }
 
-  const img = p.img || 'https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image';
+  const img = PPP.util.makeImg(p.img);
+
   const vars = [];
   if (p.var1Id && p.var1Label) vars.push({id:String(p.var1Id), label:p.var1Label});
   if (p.var2Id && p.var2Label) vars.push({id:String(p.var2Id), label:p.var2Label});
@@ -1461,7 +1474,7 @@ function renderDetailDrawer(p){
     <div class="detail-media">
       <!-- 未来の複数画像に備えたラッパ（現状1枚） -->
       <img src="${img}" alt="${escapeHtml(p.name)}"
-           loading="lazy" decoding="async" referrerpolicy="no-referrer"
+           loading="lazy" decoding="async"
            onerror="this.onerror=null;this.src='https://dummyimage.com/1080x720/ffffff/e5e7eb&text=No+Image'">
     </div>
     <div class="detail-info">
